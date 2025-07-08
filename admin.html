@@ -369,13 +369,14 @@
         }[status] || "";
 
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${name}</td>
-          <td>${dates.sort().join(", ")}</td>
-          <td>${shift}</td>
-          <td>${reason}</td>
-          <td><span class="${statusClass}" onclick='showActionPopup(${JSON.stringify(requests)}, "${shift}")'>${status}</span></td>
-        `;
+       tr.innerHTML = `
+  <td data-label="Họ tên">${name}</td>
+  <td data-label="Ngày">${dates.sort().join(", ")}</td>
+  <td data-label="Ca">${shift}</td>
+  <td data-label="Lý do nghỉ">${reason}</td>
+  <td data-label="Trạng thái"><span class="${statusClass}" onclick='showActionPopup(${JSON.stringify(requests)}, "${shift}")'>${status}</span></td>
+`;
+
         tableBody.appendChild(tr);
       }
     });
