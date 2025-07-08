@@ -21,7 +21,6 @@
       width: 100%;
       max-width: 800px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
     }
 
     h2 {
@@ -53,14 +52,28 @@
       padding: 6px 10px;
       border-radius: 6px;
       cursor: pointer;
+      margin-right: 6px;
     }
 
     .approve-btn:hover {
       background-color: #27ae60;
     }
 
-    .delete-all-btn {
+    .reject-btn {
       background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .reject-btn:hover {
+      background-color: #c0392b;
+    }
+
+    .delete-all-btn {
+      background-color: #e67e22;
       color: white;
       padding: 10px 16px;
       border: none;
@@ -72,7 +85,7 @@
     }
 
     .delete-all-btn:hover {
-      background-color: #c0392b;
+      background-color: #d35400;
     }
   </style>
 </head>
@@ -93,7 +106,6 @@
       </tbody>
     </table>
 
-    <!-- Nút xoá tất cả -->
     <button id="clearAllBtn" class="delete-all-btn">
       <i class="fa-solid fa-trash"></i> Xoá tất cả yêu cầu nghỉ
     </button>
@@ -101,7 +113,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+    import { getDatabase, ref, onValue, update, set, remove } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
@@ -136,41 +148,69 @@
           return;
         }
 
+        const grouped = {};
         for (const date in data) {
           for (const shift in data[date]) {
             for (const id in data[date][shift]) {
               const req = data[date][shift][id];
-              const tr = document.createElement("tr");
-
               const status = req.status || "chờ duyệt";
-              const approveBtn = status === "chờ duyệt" ? `
-                <button class="approve-btn" onclick="approve('${date}', '${shift}', '${id}')">
-                  Duyệt
-                </button>` : status;
+              const key = `${req.name}|${shift}|${status}`;
 
-              tr.innerHTML = `
-                <td>${req.name}</td>
-                <td>${formatVietnameseDate(date)}</td>
-                <td>${shift}</td>
-                <td>${approveBtn}</td>
-              `;
-              tableBody.appendChild(tr);
+              if (!grouped[key]) grouped[key] = [];
+              grouped[key].push({ date, id });
             }
           }
+        }
+
+        for (const key in grouped) {
+          const [name, shift, status] = key.split("|");
+          const requests = grouped[key];
+          const dates = requests.map(r => formatVietnameseDate(r.date)).sort().join(", ");
+
+          const tr = document.createElement("tr");
+          let actions = status;
+
+          if (status === "chờ duyệt") {
+            actions = `
+              <button class="approve-btn" onclick='approveAll(${JSON.stringify(requests)}, "${shift}")'>Duyệt</button>
+              <button class="reject-btn" onclick='rejectAll(${JSON.stringify(requests)}, "${shift}")'>Không duyệt</button>
+            `;
+          }
+
+          tr.innerHTML = `
+            <td>${name}</td>
+            <td>${dates}</td>
+            <td>${shift}</td>
+            <td>${actions}</td>
+          `;
+          tableBody.appendChild(tr);
         }
       });
     }
 
     loadRequests();
 
-    // Duyệt đơn
-    window.approve = async function (date, shift, id) {
-      const reqRef = ref(db, `lichnghi/${date}/${shift}/${id}`);
-      await update(reqRef, { status: "đã duyệt" });
-      alert("Đã duyệt yêu cầu.");
+    // Duyệt tất cả yêu cầu trong nhóm
+    window.approveAll = async function(requests, shift) {
+      for (const { date, id } of requests) {
+        const refItem = ref(db, `lichnghi/${date}/${shift}/${id}`);
+        await update(refItem, { status: "đã duyệt" });
+      }
+      alert("Đã duyệt các yêu cầu.");
     };
 
-    // Xoá toàn bộ đơn
+    // Không duyệt (xoá) tất cả yêu cầu trong nhóm
+    window.rejectAll = async function(requests, shift) {
+      const confirmReject = confirm("Bạn có chắc muốn từ chối các yêu cầu này?");
+      if (!confirmReject) return;
+      for (const { date, id } of requests) {
+        const refItem = ref(db, `lichnghi/${date}/${shift}/${id}`);
+        await remove(refItem);
+      }
+      alert("Đã xoá các yêu cầu.");
+    };
+
+    // Xoá tất cả
     document.getElementById("clearAllBtn").addEventListener("click", async () => {
       const confirmDelete = confirm("Bạn có chắc muốn xoá tất cả yêu cầu nghỉ?");
       if (!confirmDelete) return;
