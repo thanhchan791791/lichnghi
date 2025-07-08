@@ -139,9 +139,25 @@
       margin: 10px auto;
       display: block;
     }
+    #toast {
+  position: fixed;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #2ecc71;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: top 0.6s ease;
+  z-index: 9999;
+}
+
   </style>
 </head>
 <body>
+<div id="toast"></div>
+
   <div class="container">
     <h2><i class="fa-solid fa-umbrella-beach"></i> Đăng ký nghỉ phép</h2>
 
@@ -293,62 +309,71 @@
       }
     });
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const name = nameInput.value.trim();
-      const type = typeSelect.value;
+   form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = nameInput.value.trim();
+  const type = typeSelect.value;
 
-      if (type === "1") {
-  const date = weekdaySelect.value;
-  const shift = document.getElementById("singleShift").value;
-  if (!date || !shift) return;
+  if (type === "1") {
+    const date = weekdaySelect.value;
+    const shift = document.getElementById("singleShift").value;
+    if (!date || !shift) return;
 
-  if (await checkDuplicate(date, shift)) {
-    return showStatus(`⚠️ Trùng ngày/ca đang chờ duyệt`, "error");
-  }
-
-  await set(push(ref(db, `lichnghi/${date}/${shift}`)), {
-    name, status: "chờ duyệt", timestamp: new Date().toISOString()
-  });
-  showStatus("✅ Đã gửi yêu cầu nghỉ 1 ngày!", "success");
-} else if (type === "many") {
-  const shift = document.getElementById("multiShift").value;
-  const reason = document.getElementById("reason").value.trim();
-  const dateInputs = document.querySelectorAll(".multiDate");
-
-  if (dateInputs.length === 0) {
-    return showStatus("⚠️ Vui lòng chọn ít nhất 1 ngày!", "error");
-  }
-
-  let successCount = 0;
-  for (const input of dateInputs) {
-    const date = input.value;
-    if (!date) continue;
-
-    const duplicate = await checkDuplicate(date, shift);
-    if (duplicate) {
-      showStatus(`⚠️ ${date} đã có người chờ duyệt`, "error");
-      continue;
+    if (await checkDuplicate(date, shift)) {
+      return showStatus(`⚠️ Trùng ngày/ca đang chờ duyệt`, "error");
     }
 
     await set(push(ref(db, `lichnghi/${date}/${shift}`)), {
       name,
-      reason,
       status: "chờ duyệt",
       timestamp: new Date().toISOString()
     });
 
-    successCount++;
-  }
+    showStatus("✅ Đã gửi yêu cầu nghỉ 1 ngày!", "success");
+    showToast("✅ Gửi yêu cầu nghỉ 1 ngày thành công!");
+  } else if (type === "many") {
+    const shift = document.getElementById("multiShift").value;
+    const reason = document.getElementById("reason").value.trim();
+    const dateInputs = document.querySelectorAll(".multiDate");
 
-  if (successCount > 0) {
-    showStatus(`✅ Đã gửi yêu cầu nghỉ ${successCount} ngày!`, "success");
-  } else {
-    showStatus("⚠️ Không có ngày nào được gửi!", "error");
-  }
-}
+    if (dateInputs.length === 0) {
+      return showStatus("⚠️ Vui lòng chọn ít nhất 1 ngày!", "error");
+    }
 
-    });
+    if (!reason) {
+      return showStatus("⚠️ Vui lòng nhập lý do nghỉ!", "error");
+    }
+
+    let successCount = 0;
+    for (const input of dateInputs) {
+      const date = input.value;
+      if (!date) continue;
+
+      const duplicate = await checkDuplicate(date, shift);
+      if (duplicate) {
+        showStatus(`⚠️ ${date} đã có người chờ duyệt`, "error");
+        continue;
+      }
+
+      await set(push(ref(db, `lichnghi/${date}/${shift}`)), {
+        name,
+        reason,
+        status: "chờ duyệt",
+        timestamp: new Date().toISOString()
+      });
+
+      successCount++;
+    }
+
+    if (successCount > 0) {
+      showStatus(`✅ Đã gửi yêu cầu nghỉ ${successCount} ngày!`, "success");
+      showToast(`✅ Gửi yêu cầu ${successCount} ngày thành công!`);
+    } else {
+      showStatus("⚠️ Không có ngày nào được gửi!", "error");
+    }
+  }
+});
+
 
     window.addDateInput = () => {
       const div = document.createElement("div");
@@ -357,45 +382,70 @@
         <button type="button" class="add-date-btn" onclick="addDateInput()">+</button>`;
       document.getElementById("multiDatesContainer").appendChild(div);
     };
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.style.display = "block";
+  toast.style.top = "20px";
+
+  setTimeout(() => {
+    toast.style.top = "-100px";
+  }, 3000);
+}
 
     function loadData() {
-      const dbRef = ref(db, "lichnghi/");
-      onValue(dbRef, snapshot => {
-        const data = snapshot.val();
-        tableBody.innerHTML = "";
-        if (!data) return tableBody.innerHTML = "<tr><td colspan='4'>Không có dữ liệu</td></tr>";
+  const dbRef = ref(db, "lichnghi/");
+  onValue(dbRef, snapshot => {
+    const data = snapshot.val();
+    tableBody.innerHTML = "";
+    if (!data) return tableBody.innerHTML = "<tr><td colspan='4'>Không có dữ liệu</td></tr>";
 
-        const entries = [];
-        for (const date in data) {
-          for (const shift in data[date]) {
-            for (const id in data[date][shift]) {
-              const req = data[date][shift][id];
-              const status = req.status || "chờ duyệt";
-              const formattedDate = formatVietnameseDate(date);
+    const grouped = {};
 
-              entries.push({
-                name: req.name,
-                shift,
-                status,
-                dates: [formattedDate]
-              });
-            }
+    for (const date in data) {
+      for (const shift in data[date]) {
+        for (const id in data[date][shift]) {
+          const req = data[date][shift][id];
+          const name = req.name;
+          const status = req.status || "chờ duyệt";
+          const reason = req.reason || "";
+          const formattedDate = formatVietnameseDate(date);
+          const key = `${name}|${shift}|${reason}|${status}`;
+
+          if (!grouped[key]) {
+            grouped[key] = {
+              name,
+              shift,
+              reason,
+              status,
+              dates: []
+            };
           }
-        }
 
-        for (const entry of entries) {
-          const statusClass = entry.status === "đã duyệt" ? "success" : entry.status === "từ chối" ? "error" : "pending";
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${entry.name}</td>
-            <td>${entry.dates.join(", ")}</td>
-            <td>${entry.shift}</td>
-            <td class="${statusClass}">${entry.status}</td>
-          `;
-          tableBody.appendChild(tr);
+          grouped[key].dates.push(formattedDate);
         }
-      });
+      }
     }
+
+    const entries = Object.values(grouped);
+
+    for (const entry of entries) {
+      const statusClass =
+        entry.status === "đã duyệt" ? "success" :
+        entry.status === "từ chối" ? "error" : "pending";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${entry.name}</td>
+        <td>${entry.dates.sort().join(", ")}</td>
+        <td>${entry.shift}</td>
+        <td class="${statusClass}">${entry.status}</td>
+      `;
+      tableBody.appendChild(tr);
+    }
+  });
+}
+
 
     loadData();
   </script>
