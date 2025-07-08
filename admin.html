@@ -6,120 +6,177 @@
   <title>Quản lý nghỉ phép - Admin</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #ffe0e0, #fff2d6);
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to right, #ffe0e0, #fff2d6);
+    margin: 0;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 900px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  h2, h3 {
+    text-align: center;
+    color: #c0392b;
+    margin-bottom: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    overflow-x: auto;
+  }
+
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    background-color: #f4f4f4;
+  }
+
+  .delete-all-btn {
+    background-color: #e67e22;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+  }
+
+  .status-approved, .status-rejected, .status-pending {
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+
+  .status-approved { color: #27ae60; background: #eafaf1; }
+  .status-rejected { color: #e74c3c; background: #fdecea; }
+  .status-pending  { color: #f39c12; background: #fff6e5; }
+
+  .toast {
+    position: fixed;
+    top: 20px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    z-index: 9999;
+    animation: slideFade 3s ease forwards;
+  }
+
+  @keyframes slideFade {
+    0% { opacity: 0; transform: translate(-50%, -30px); }
+    10% { opacity: 1; transform: translate(-50%, 0); }
+    90% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -30px); }
+  }
+
+  .popup-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9998;
+  }
+
+  .popup-content {
+    background: #fff;
+    padding: 24px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    max-width: 300px;
+    width: 90%;
+  }
+
+  .popup-buttons {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .approve-btn, .reject-btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100px;
+  }
+
+  .approve-btn { background-color: #2ecc71; color: white; }
+  .reject-btn  { background-color: #e74c3c; color: white; }
+
+  #summaryContainer div {
+    margin-bottom: 8px;
+  }
+
+  /* MOBILE RESPONSIVE */
+  @media (max-width: 600px) {
+    table, thead, tbody, th, td, tr {
+      display: block;
     }
 
-    .container {
-      background: #fff;
-      padding: 20px;
-      border-radius: 16px;
-      width: 100%;
-      max-width: 900px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    h2, h3 {
-      text-align: center;
-      color: #c0392b;
-      margin-bottom: 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: left;
-      word-break: break-word;
-    }
-
-    th {
-      background-color: #f4f4f4;
-    }
-
-    .delete-all-btn {
-      background-color: #e67e22;
-      color: white;
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 20px;
-      width: 100%;
-    }
-
-    .status-approved { color: #27ae60; font-weight: bold; cursor: pointer; }
-    .status-rejected { color: #e74c3c; font-weight: bold; cursor: pointer; }
-    .status-pending  { color: #f39c12; font-weight: bold; cursor: pointer; }
-
-    .toast {
-      position: fixed;
-      top: 20px; left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.85);
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 12px;
-      font-size: 14px;
-      z-index: 9999;
-      animation: slideFade 3s ease forwards;
-    }
-
-    @keyframes slideFade {
-      0% { opacity: 0; transform: translate(-50%, -30px); }
-      10% { opacity: 1; transform: translate(-50%, 0); }
-      90% { opacity: 1; transform: translate(-50%, 0); }
-      100% { opacity: 0; transform: translate(-50%, -30px); }
-    }
-
-    .popup-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
+    thead {
       display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9998;
     }
 
-    .popup-content {
-      background: #fff;
-      padding: 24px;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    tr {
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff9f6;
     }
 
-    .popup-buttons {
-      margin-top: 16px;
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-    }
-
-    .approve-btn, .reject-btn {
-      padding: 8px 14px;
+    td {
       border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
+      padding: 6px 0;
+      position: relative;
     }
 
-    .approve-btn { background-color: #2ecc71; color: white; }
-    .reject-btn  { background-color: #e74c3c; color: white; }
-  </style>
+    td::before {
+      content: attr(data-label);
+      position: absolute;
+      left: 0;
+      width: 40%;
+      padding-left: 10px;
+      font-weight: bold;
+      color: #888;
+    }
+
+    td {
+      padding-left: 50%;
+      text-align: right;
+    }
+  }
+</style>
+
 </head>
 <body>
   <div class="container">
