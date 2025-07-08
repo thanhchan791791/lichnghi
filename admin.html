@@ -25,11 +25,10 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     }
 
-    h2 {
+    h2, h3 {
       text-align: center;
       color: #c0392b;
       margin-bottom: 20px;
-      font-size: 20px;
     }
 
     table {
@@ -49,25 +48,6 @@
       background-color: #f4f4f4;
     }
 
-    .approve-btn {
-      background-color: #2ecc71;
-      color: white;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-right: 4px;
-    }
-
-    .reject-btn {
-      background-color: #e74c3c;
-      color: white;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
     .delete-all-btn {
       background-color: #e67e22;
       color: white;
@@ -80,20 +60,13 @@
       width: 100%;
     }
 
-    .status-approved {
-      color: #27ae60;
-      font-weight: bold;
-    }
-
-    .status-rejected {
-      color: #e74c3c;
-      font-weight: bold;
-    }
+    .status-approved { color: #27ae60; font-weight: bold; cursor: pointer; }
+    .status-rejected { color: #e74c3c; font-weight: bold; cursor: pointer; }
+    .status-pending  { color: #f39c12; font-weight: bold; cursor: pointer; }
 
     .toast {
       position: fixed;
-      top: 20px;
-      left: 50%;
+      top: 20px; left: 50%;
       transform: translateX(-50%);
       background: rgba(0, 0, 0, 0.85);
       color: #fff;
@@ -105,39 +78,47 @@
     }
 
     @keyframes slideFade {
-      0% {
-        opacity: 0;
-        transform: translate(-50%, -30px);
-      }
-      10% {
-        opacity: 1;
-        transform: translate(-50%, 0);
-      }
-      90% {
-        opacity: 1;
-        transform: translate(-50%, 0);
-      }
-      100% {
-        opacity: 0;
-        transform: translate(-50%, -30px);
-      }
+      0% { opacity: 0; transform: translate(-50%, -30px); }
+      10% { opacity: 1; transform: translate(-50%, 0); }
+      90% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -30px); }
     }
 
-    @media (max-width: 600px) {
-      th, td {
-        font-size: 13px;
-        padding: 8px;
-      }
-
-      h2 {
-        font-size: 18px;
-      }
-
-      .approve-btn, .reject-btn {
-        padding: 4px 8px;
-        font-size: 12px;
-      }
+    .popup-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
     }
+
+    .popup-content {
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .popup-buttons {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .approve-btn, .reject-btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .approve-btn { background-color: #2ecc71; color: white; }
+    .reject-btn  { background-color: #e74c3c; color: white; }
   </style>
 </head>
 <body>
@@ -161,136 +142,189 @@
     <button id="clearAllBtn" class="delete-all-btn">
       <i class="fa-solid fa-trash"></i> Xoá tất cả yêu cầu nghỉ
     </button>
+
+    <h3>🗓️ Lịch nghỉ tuần tới (Đã duyệt)</h3>
+    <div id="summaryContainer" style="background:#fefefe; padding: 15px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.05); font-size: 14px;"></div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+  <div id="actionPopup" class="popup-overlay">
+    <div class="popup-content">
+      <p>Bạn muốn xử lý yêu cầu này?</p>
+      <div class="popup-buttons">
+        <button id="approveBtn" class="approve-btn">Duyệt</button>
+        <button id="rejectBtn" class="reject-btn">Không duyệt</button>
+      </div>
+    </div>
+  </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
-      authDomain: "lichnghi-4c665.firebaseapp.com",
-      databaseURL: "https://lichnghi-4c665-default-rtdb.firebaseio.com",
-      projectId: "lichnghi-4c665",
-      storageBucket: "lichnghi-4c665.appspot.com",
-      messagingSenderId: "86673813509",
-      appId: "1:86673813509:web:168376408dfcbf14e16c6c"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
+    authDomain: "lichnghi-4c665.firebaseapp.com",
+    databaseURL: "https://lichnghi-4c665-default-rtdb.firebaseio.com",
+    projectId: "lichnghi-4c665",
+    storageBucket: "lichnghi-4c665.appspot.com",
+    messagingSenderId: "86673813509",
+    appId: "1:86673813509:web:168376408dfcbf14e16c6c"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const tableBody = document.getElementById("adminTableBody");
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const tableBody = document.getElementById("adminTableBody");
 
-    function showToast(message) {
-      const toast = document.createElement("div");
-      toast.className = "toast";
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
+  let currentRequests = [];
+  let currentShift = "";
+  let currentAction = "";
+
+  function showToast(message) {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+
+  function formatVietnameseDate(dateStr) {
+    const date = new Date(dateStr);
+    const days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+    const dayName = days[date.getDay()];
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    return `${dayName}, ${day}/${month}`;
+  }
+
+  window.showActionPopup = function(requests, shift) {
+    currentRequests = requests;
+    currentShift = shift;
+    document.getElementById("actionPopup").style.display = "flex";
+  };
+
+  document.getElementById("approveBtn").addEventListener("click", async () => {
+    for (const { date, id } of currentRequests) {
+      await update(ref(db, `lichnghi/${date}/${currentShift}/${id}`), { status: "đã duyệt" });
+    }
+    document.getElementById("actionPopup").style.display = "none";
+    showToast("✅ Đã duyệt thành công.");
+  });
+
+  document.getElementById("rejectBtn").addEventListener("click", async () => {
+    for (const { date, id } of currentRequests) {
+      await update(ref(db, `lichnghi/${date}/${currentShift}/${id}`), { status: "từ chối" });
+    }
+    document.getElementById("actionPopup").style.display = "none";
+    showToast("❌ Đã từ chối yêu cầu.");
+  });
+
+  document.getElementById("clearAllBtn").addEventListener("click", async () => {
+    if (confirm("Bạn có chắc muốn xoá tất cả yêu cầu nghỉ?")) {
+      await set(ref(db, "lichnghi/"), null);
+      showToast("🗑️ Đã xoá tất cả yêu cầu.");
+    }
+  });
+
+  function summarizeNextWeek(data) {
+    const summaryContainer = document.getElementById("summaryContainer");
+    summaryContainer.innerHTML = "";
+
+    const today = new Date();
+    const nextWeek = {};
+
+    for (let i = 1; i <= 7; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() + ((8 - today.getDay()) % 7) + i - 1);
+      const dateKey = date.toISOString().split("T")[0];
+      const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][date.getDay()];
+      nextWeek[dateKey] = {
+        label: `${weekday} (${dateKey})`,
+        names: []
+      };
     }
 
-    function formatVietnameseDate(dateStr) {
-      const date = new Date(dateStr);
-      const days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
-      const dayName = days[date.getDay()];
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      return `${dayName}, ${day}/${month}`;
-    }
-
-    function loadRequests() {
-      const dbRef = ref(db, "lichnghi/");
-      onValue(dbRef, snapshot => {
-        const data = snapshot.val();
-        tableBody.innerHTML = "";
-        if (!data) {
-          tableBody.innerHTML = "<tr><td colspan='5'>Không có dữ liệu</td></tr>";
-          return;
+    for (const date in data) {
+      if (!nextWeek[date]) continue;
+      for (const shift in data[date]) {
+        for (const id in data[date][shift]) {
+          const req = data[date][shift][id];
+          if (req.status === "đã duyệt" && !nextWeek[date].names.includes(req.name)) {
+            nextWeek[date].names.push(req.name);
+          }
         }
+      }
+    }
 
-        const entries = [];
+    let hasData = false;
+    for (const key in nextWeek) {
+      const entry = nextWeek[key];
+      if (entry.names.length > 0) {
+        hasData = true;
+        const div = document.createElement("div");
+        div.innerHTML = `<strong>${entry.label}:</strong> ${entry.names.join(", ")}`;
+        summaryContainer.appendChild(div);
+      }
+    }
 
-        for (const date in data) {
-          for (const shift in data[date]) {
-            for (const id in data[date][shift]) {
-              const req = data[date][shift][id];
-              const name = req.name;
-              const reason = req.reason || "-";
-              const status = req.status || "chờ duyệt";
-              const formattedDate = formatVietnameseDate(date);
+    if (!hasData) summaryContainer.innerHTML = "<i>Không có ai nghỉ trong tuần tới.</i>";
+  }
 
-              const key = `${name}|${shift}|${status}|${reason}`;
-              const existing = entries.find(e => e.key === key);
-              if (existing) {
-                existing.requests.push({ date, id });
-                existing.dates.push(formattedDate);
-              } else {
-                entries.push({
-                  key,
-                  name,
-                  shift,
-                  status,
-                  reason,
-                  dates: [formattedDate],
-                  requests: [{ date, id }]
-                });
-              }
+  function loadRequests() {
+    onValue(ref(db, "lichnghi/"), snapshot => {
+      const data = snapshot.val();
+      tableBody.innerHTML = "";
+      if (!data) return tableBody.innerHTML = "<tr><td colspan='5'>Không có dữ liệu</td></tr>";
+
+      summarizeNextWeek(data);
+      const entries = [];
+
+      for (const date in data) {
+        for (const shift in data[date]) {
+          for (const id in data[date][shift]) {
+            const req = data[date][shift][id];
+            const name = req.name;
+            const reason = req.reason || "-";
+            const status = req.status || "chờ duyệt";
+            const formattedDate = formatVietnameseDate(date);
+
+            const key = `${name}|${shift}|${status}|${reason}`;
+            const existing = entries.find(e => e.key === key);
+            if (existing) {
+              existing.requests.push({ date, id });
+              existing.dates.push(formattedDate);
+            } else {
+              entries.push({
+                key, name, shift, status, reason,
+                dates: [formattedDate],
+                requests: [{ date, id }]
+              });
             }
           }
         }
-
-        for (const entry of entries) {
-          const { name, shift, status, reason, dates, requests } = entry;
-
-          let actions = "";
-          if (status === "chờ duyệt") {
-            actions = `
-              <button class="approve-btn" onclick='approveAll(${JSON.stringify(requests)}, "${shift}")'>Duyệt</button>
-              <button class="reject-btn" onclick='rejectAll(${JSON.stringify(requests)}, "${shift}")'>Không duyệt</button>
-            `;
-          } else if (status === "đã duyệt") {
-            actions = `<span class="status-approved">Đã duyệt</span>`;
-          } else if (status === "từ chối") {
-            actions = `<span class="status-rejected">Không duyệt</span>`;
-          }
-
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${name}</td>
-            <td>${dates.sort().join(", ")}</td>
-            <td>${shift}</td>
-            <td>${reason}</td>
-            <td>${actions}</td>
-          `;
-          tableBody.appendChild(tr);
-        }
-      });
-    }
-
-    loadRequests();
-
-    window.approveAll = async function(requests, shift) {
-      for (const { date, id } of requests) {
-        const refItem = ref(db, `lichnghi/${date}/${shift}/${id}`);
-        await update(refItem, { status: "đã duyệt" });
       }
-      showToast("✅ Đã duyệt thành công.");
-    };
 
-    window.rejectAll = async function(requests, shift) {
-      for (const { date, id } of requests) {
-        const refItem = ref(db, `lichnghi/${date}/${shift}/${id}`);
-        await update(refItem, { status: "từ chối" });
+      for (const entry of entries) {
+        const { name, shift, status, reason, dates, requests } = entry;
+
+        const statusClass = {
+          "chờ duyệt": "status-pending",
+          "đã duyệt": "status-approved",
+          "từ chối": "status-rejected"
+        }[status] || "";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${name}</td>
+          <td>${dates.sort().join(", ")}</td>
+          <td>${shift}</td>
+          <td>${reason}</td>
+          <td><span class="${statusClass}" onclick='showActionPopup(${JSON.stringify(requests)}, "${shift}")'>${status}</span></td>
+        `;
+        tableBody.appendChild(tr);
       }
-      showToast("❌ Đã từ chối yêu cầu.");
-    };
-
-    document.getElementById("clearAllBtn").addEventListener("click", async () => {
-      const confirmDelete = confirm("Bạn có chắc muốn xoá tất cả yêu cầu nghỉ?");
-      if (!confirmDelete) return;
-      await set(ref(db, "lichnghi/"), null);
-      showToast("🗑️ Đã xoá tất cả yêu cầu.");
     });
-  </script>
+  }
+
+  loadRequests();
+</script>
 </body>
 </html>
