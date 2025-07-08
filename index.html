@@ -4,24 +4,25 @@
   <meta charset="UTF-8" />
   <title>Đăng ký nghỉ phép</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to right, #d0eaff, #e1f7d5);
-      padding: 40px;
+      padding: 20px;
       display: flex;
       justify-content: center;
+      align-items: center;
       min-height: 100vh;
     }
 
     .container {
       background: #fff;
-      padding: 30px;
+      padding: 20px;
       border-radius: 16px;
       width: 100%;
-      max-width: 800px;
+      max-width: 500px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
     }
 
     h2, h3 {
@@ -45,13 +46,6 @@
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 15px;
-      transition: border 0.3s ease;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: #3498db;
-      box-shadow: 0 0 6px rgba(52, 152, 219, 0.3);
-      outline: none;
     }
 
     button {
@@ -63,36 +57,18 @@
       border-radius: 8px;
       cursor: pointer;
       width: 100%;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background: #2980b9;
-    }
-
-    .hidden {
-      opacity: 0;
-      visibility: hidden;
-      max-height: 0;
-      transition: all 0.4s ease;
-    }
-
-    .show {
-      opacity: 1;
-      visibility: visible;
-      max-height: 2000px;
-      transition: all 0.4s ease;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
+      font-size: 14px;
     }
 
     th, td {
       border: 1px solid #ccc;
-      padding: 12px;
+      padding: 10px;
       text-align: left;
     }
 
@@ -114,36 +90,34 @@
       padding: 8px 12px;
       border-radius: 6px;
       cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .add-date-btn:hover {
-      background: #27ae60;
     }
 
     #status {
       text-align: center;
       margin-top: 15px;
       font-weight: bold;
+      transition: transform 0.3s ease-in-out;
     }
 
-    .success {
-      color: #27ae60;
+    .slide {
+      animation: slidein 0.4s ease-out;
     }
 
-    .error {
-      color: #e74c3c;
+    @keyframes slidein {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
     }
 
-    .icon-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .icon-label i {
-      color: #3498db;
-    }
+    .success { color: #27ae60; }
+    .error { color: #e74c3c; }
+    .pending { color: #555; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -154,10 +128,10 @@
     <table>
       <thead>
         <tr>
-          <th><i class="fa-solid fa-user"></i> Họ tên</th>
-          <th><i class="fa-solid fa-calendar-days"></i> Ngày</th>
-          <th><i class="fa-solid fa-clock"></i> Ca</th>
-          <th><i class="fa-solid fa-info-circle"></i> Trạng thái</th>
+          <th>Họ tên</th>
+          <th>Ngày</th>
+          <th>Ca</th>
+          <th>Trạng thái</th>
         </tr>
       </thead>
       <tbody id="tableBody">
@@ -165,24 +139,21 @@
       </tbody>
     </table>
 
-    <div id="step1">
-      <label class="icon-label" for="name"><i class="fa-solid fa-user"></i> Nhập tên của bạn:</label>
-      <input type="text" id="name" placeholder="Nguyễn Văn A" required />
+    <label for="name">Tên của bạn:</label>
+    <input type="text" id="name" placeholder="Nguyễn Văn A" />
 
-      <label class="icon-label" for="type"><i class="fa-solid fa-calendar-check"></i> Chọn hình thức nghỉ:</label>
-      <select id="type">
-        <option value="">-- Chọn --</option>
-        <option value="1">Nghỉ 1 ngày</option>
-        <option value="many">Nghỉ nhiều ngày</option>
-      </select>
-    </div>
+    <label for="type">Hình thức nghỉ:</label>
+    <select id="type">
+      <option value="">-- Chọn --</option>
+      <option value="1">Nghỉ 1 ngày</option>
+      <option value="many">Nghỉ nhiều ngày</option>
+    </select>
 
     <form id="leaveForm" class="hidden">
       <div id="singleSection" class="hidden">
-        <label class="icon-label"><i class="fa-solid fa-calendar-day"></i> Ngày nghỉ:</label>
+        <label>Ngày nghỉ:</label>
         <input type="date" id="singleDate" />
-
-        <label class="icon-label"><i class="fa-solid fa-clock"></i> Ca làm việc:</label>
+        <label>Ca làm việc:</label>
         <select id="singleShift">
           <option value="sáng">Sáng</option>
           <option value="tối">Tối</option>
@@ -190,25 +161,23 @@
       </div>
 
       <div id="multiSection" class="hidden">
-        <label class="icon-label"><i class="fa-solid fa-calendar-days"></i> Các ngày nghỉ:</label>
+        <label>Các ngày nghỉ:</label>
         <div id="multiDatesContainer">
           <div class="multi-date-group">
             <input type="date" class="multiDate" />
             <button type="button" class="add-date-btn" onclick="addDateInput()">+</button>
           </div>
         </div>
-
-        <label class="icon-label"><i class="fa-solid fa-clock"></i> Ca làm việc:</label>
+        <label>Ca làm việc:</label>
         <select id="multiShift">
           <option value="sáng">Sáng</option>
           <option value="tối">Tối</option>
         </select>
-
-        <label class="icon-label"><i class="fa-solid fa-pen"></i> Lý do nghỉ:</label>
-        <textarea id="reason" rows="3" placeholder="Ví dụ: Về quê, có việc gia đình..."></textarea>
+        <label>Lý do nghỉ:</label>
+        <textarea id="reason" rows="3"></textarea>
       </div>
 
-      <button type="submit"><i class="fa-solid fa-paper-plane"></i> Gửi yêu cầu nghỉ</button>
+      <button type="submit">Gửi yêu cầu nghỉ</button>
     </form>
 
     <p id="status"></p>
@@ -239,6 +208,12 @@
     const singleSection = document.getElementById("singleSection");
     const multiSection = document.getElementById("multiSection");
 
+    function showStatus(msg, type) {
+      statusEl.textContent = msg;
+      statusEl.className = `${type} slide`;
+      setTimeout(() => statusEl.classList.remove("slide"), 1000);
+    }
+
     function formatVietnameseDate(dateStr) {
       const date = new Date(dateStr);
       const days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
@@ -248,55 +223,17 @@
       return `${dayName}, ${day}/${month}`;
     }
 
-    function loadData() {
-      const dbRef = ref(db, "lichnghi/");
-      onValue(dbRef, snapshot => {
-        const data = snapshot.val();
-        tableBody.innerHTML = "";
-        if (!data) {
-          tableBody.innerHTML = "<tr><td colspan='4'>Không có dữ liệu</td></tr>";
-          return;
-        }
-
-        const groupedData = {};
-        for (const date in data) {
-          for (const shift in data[date]) {
-            for (const id in data[date][shift]) {
-              const req = data[date][shift][id];
-              const key = `${req.name}|${shift}|${req.status || "chờ duyệt"}`;
-              if (!groupedData[key]) groupedData[key] = [];
-              groupedData[key].push(formatVietnameseDate(date));
-            }
-          }
-        }
-
-        for (const key in groupedData) {
-          const [name, shift, status] = key.split("|");
-          const dates = groupedData[key].sort().join(", ");
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${name}</td>
-            <td>${dates}</td>
-            <td>${shift}</td>
-            <td>${status}</td>
-          `;
-          tableBody.appendChild(tr);
-        }
-      });
+    async function checkDuplicate(date, shift) {
+      const res = await fetch(`${firebaseConfig.databaseURL}/lichnghi/${date}/${shift}.json`);
+      const data = await res.json();
+      return data && Object.values(data).some(e => e.status === "chờ duyệt");
     }
 
-    loadData();
-
-    typeSelect.addEventListener("change", () => {
+    document.getElementById("type").addEventListener("change", () => {
       const name = nameInput.value.trim();
-      if (!name) {
-        alert("Vui lòng nhập tên trước!");
-        typeSelect.value = "";
-        return;
-      }
+      if (!name) return alert("Vui lòng nhập tên trước!");
 
       form.classList.remove("hidden");
-
       if (typeSelect.value === "1") {
         singleSection.classList.remove("hidden");
         multiSection.classList.add("hidden");
@@ -316,51 +253,32 @@
         const shift = document.getElementById("singleShift").value;
         if (!date || !shift) return;
 
-        const day = new Date(date).getDay();
-        if (day === 0 || day === 6) {
-          alert("Không được đăng ký nghỉ vào Thứ Bảy hoặc Chủ Nhật.");
-          return;
+        if (await checkDuplicate(date, shift)) {
+          return showStatus(`⚠️ Trùng ngày/ca đang chờ duyệt`, "error");
         }
 
-        const checkRef = ref(db, `lichnghi/${date}/${shift}`);
-        const snapshot = await new Promise(resolve => {
-          onValue(checkRef, resolve, { onlyOnce: true });
+        await set(push(ref(db, `lichnghi/${date}/${shift}`)), {
+          name, status: "chờ duyệt", timestamp: new Date().toISOString()
         });
-
-        if (snapshot.exists()) {
-          alert("Ca này đã có người nghỉ! Vui lòng chọn ngày hoặc ca khác.");
-          return;
-        }
-
-        const newRef = push(checkRef);
-        await set(newRef, {
-          name,
-          status: "chờ duyệt",
-          timestamp: new Date().toISOString()
-        });
-
-        statusEl.innerText = "Đã gửi yêu cầu nghỉ 1 ngày!";
-        statusEl.className = "success";
-
+        showStatus("✅ Đã gửi yêu cầu nghỉ 1 ngày!", "success");
       } else {
-        const reason = document.getElementById("reason").value;
         const shift = document.getElementById("multiShift").value;
-        const dateInputs = document.querySelectorAll(".multiDate");
-        const dates = Array.from(dateInputs).map(input => input.value.trim()).filter(Boolean);
-        if (dates.length === 0 || !shift || !reason) return;
+        const reason = document.getElementById("reason").value.trim();
+        const dates = [...document.querySelectorAll(".multiDate")].map(i => i.value.trim()).filter(Boolean);
+        if (!dates.length || !shift) return;
+
+        let conflict = [];
+        for (const date of dates) {
+          if (await checkDuplicate(date, shift)) conflict.push(date);
+        }
+        if (conflict.length) return showStatus(`❌ Trùng ngày đang chờ duyệt: ${conflict.join(', ')}`, "error");
 
         for (const date of dates) {
-          const newRef = push(ref(db, `lichnghi/${date}/${shift}`));
-          await set(newRef, {
-            name,
-            reason,
-            status: "chờ duyệt",
-            timestamp: new Date().toISOString()
+          await set(push(ref(db, `lichnghi/${date}/${shift}`)), {
+            name, reason, status: "chờ duyệt", timestamp: new Date().toISOString()
           });
         }
-
-        statusEl.innerText = `Đã gửi ${dates.length} ngày nghỉ!`;
-        statusEl.className = "success";
+        showStatus(`✅ Đã gửi ${dates.length} ngày nghỉ!`, "success");
       }
 
       form.reset();
@@ -369,25 +287,80 @@
       form.classList.add("hidden");
       singleSection.classList.add("hidden");
       multiSection.classList.add("hidden");
-
-      document.getElementById("multiDatesContainer").innerHTML = `
-        <div class="multi-date-group">
-          <input type="date" class="multiDate" />
-          <button type="button" class="add-date-btn" onclick="addDateInput()">+</button>
-        </div>
-      `;
-    });
-
-    window.addDateInput = function () {
-      const container = document.getElementById("multiDatesContainer");
-      const div = document.createElement("div");
-      div.className = "multi-date-group";
-      div.innerHTML = `
+      document.getElementById("multiDatesContainer").innerHTML = `<div class="multi-date-group">
         <input type="date" class="multiDate" />
         <button type="button" class="add-date-btn" onclick="addDateInput()">+</button>
-      `;
-      container.appendChild(div);
+      </div>`;
+    });
+
+    window.addDateInput = () => {
+      const div = document.createElement("div");
+      div.className = "multi-date-group";
+      div.innerHTML = `<input type="date" class="multiDate" />
+        <button type="button" class="add-date-btn" onclick="addDateInput()">+</button>`;
+      document.getElementById("multiDatesContainer").appendChild(div);
     };
+
+    function loadData() {
+  const dbRef = ref(db, "lichnghi/");
+  onValue(dbRef, snapshot => {
+    const data = snapshot.val();
+    tableBody.innerHTML = "";
+    if (!data) return tableBody.innerHTML = "<tr><td colspan='4'>Không có dữ liệu</td></tr>";
+
+    const entries = [];
+
+    for (const date in data) {
+      for (const shift in data[date]) {
+        for (const id in data[date][shift]) {
+          const req = data[date][shift][id];
+          const status = req.status || "chờ duyệt";
+          const formattedDate = formatVietnameseDate(date);
+
+          if (req.reason) {
+            // Nếu có lý do => nghỉ nhiều ngày => gộp
+            const key = `${req.name}|${shift}|${status}|${req.reason}`;
+            const existing = entries.find(e => e.key === key);
+            if (existing) {
+              existing.dates.push(formattedDate);
+            } else {
+              entries.push({
+                key,
+                name: req.name,
+                shift,
+                status,
+                dates: [formattedDate]
+              });
+            }
+          } else {
+            // Nếu không có lý do => nghỉ từng ngày => tách
+            entries.push({
+              name: req.name,
+              shift,
+              status,
+              dates: [formattedDate]
+            });
+          }
+        }
+      }
+    }
+
+    for (const entry of entries) {
+      const statusClass = entry.status === "đã duyệt" ? "success" : entry.status === "từ chối" ? "error" : "pending";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${entry.name}</td>
+        <td>${entry.dates.join(", ")}</td>
+        <td>${entry.shift}</td>
+        <td class="${statusClass}">${entry.status}</td>
+      `;
+      tableBody.appendChild(tr);
+    }
+  });
+}
+
+
+    loadData();
   </script>
 </body>
 </html>
