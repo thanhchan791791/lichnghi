@@ -2,452 +2,446 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Đăng ký nghỉ phép</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quản lý nghỉ phép - Admin</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600&display=swap" rel="stylesheet" />
   <style>
+    * {
+      box-sizing: border-box;
+      transition: all 0.3s ease-in-out;
+    }
+
     body {
       font-family: 'Quicksand', sans-serif;
-      background: linear-gradient(135deg, #e0f7fa, #e1f5fe);
-      padding: 20px;
+      background: linear-gradient(to right, #ffe0e0, #fff2d6);
+      margin: 0;
+      padding: 10px;
       display: flex;
       justify-content: center;
-      align-items: center;
       min-height: 100vh;
     }
 
     .container {
-      background: white;
-      padding: 30px;
-      border-radius: 20px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 16px;
       width: 100%;
-      max-width: 600px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-      animation: fadeInUp 0.8s ease;
-    }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
+      max-width: 920px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     }
 
     h2, h3 {
       text-align: center;
-      color: #2c3e50;
+      color: #c0392b;
       margin-bottom: 20px;
-    }
-
-    label {
-      font-weight: 600;
-      color: #34495e;
-      display: block;
-      margin-top: 15px;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 12px 15px;
-      margin-top: 6px;
-      border: 1px solid #ccc;
-      border-radius: 12px;
-      font-size: 15px;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: #3498db;
-      box-shadow: 0 0 0 4px rgba(52,152,219,0.2);
-    }
-
-    button {
-      background: linear-gradient(to right, #3498db, #2980b9);
-      color: white;
-      font-weight: bold;
-      padding: 12px;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      width: 100%;
-      font-size: 16px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
       font-size: 14px;
+      overflow-x: auto;
     }
 
     th, td {
-      border: 1px solid #eee;
-      padding: 12px;
+      border: 1px solid #ccc;
+      padding: 10px;
       text-align: left;
+      white-space: nowrap;
     }
 
     th {
-      background-color: #f9fafb;
-      font-weight: 700;
+      background-color: #f4f4f4;
+      text-align: center;
     }
 
-    .multi-date-group {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .add-date-btn {
-      background: #27ae60;
+    .delete-all-btn {
+      background-color: #e67e22;
       color: white;
+      padding: 12px;
       border: none;
-      padding: 8px 12px;
       border-radius: 8px;
+      font-weight: bold;
       cursor: pointer;
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    .delete-all-btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .status-approved, .status-rejected, .status-pending {
       font-weight: bold;
+      cursor: pointer;
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 6px;
     }
 
-    #status {
+    .status-approved { color: #27ae60; background: #eafaf1; }
+    .status-rejected { color: #e74c3c; background: #fdecea; }
+    .status-pending  { color: #f39c12; background: #fff6e5; }
+
+    .toast {
+      position: fixed;
+      top: 20px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      z-index: 9999;
+      animation: slideFade 3s ease forwards;
+    }
+
+    @keyframes slideFade {
+      0% { opacity: 0; transform: translate(-50%, -30px); }
+      10% { opacity: 1; transform: translate(-50%, 0); }
+      90% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -30px); }
+    }
+
+    .popup-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .popup-overlay.show {
+      display: flex;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .popup-content {
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
       text-align: center;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-
-    .success { color: #2ecc71; }
-    .error { color: #e74c3c; }
-    .pending { color: #f39c12; }
-    .hidden { display: none; }
-
-    select:disabled {
-      background: #f0f0f0;
-      color: #999;
-    }
-
-    /* 👉 Định dạng khung chọn ngày nghỉ 1 ngày */
-    #singleSection {
-      background: #f0f8ff;
-      padding: 20px;
-      border-radius: 16px;
-      margin-top: 15px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-      animation: fadeInUp 0.5s ease;
-      text-align: center;
-    }
-
-    #singleSection select {
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
       max-width: 300px;
-      margin: 10px auto;
-      display: block;
+      width: 90%;
     }
-    #toast {
-  position: fixed;
-  top: -100px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #2ecc71;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: bold;
-  transition: top 0.6s ease;
-  z-index: 9999;
-}
 
+    .popup-buttons {
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .approve-btn, .reject-btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100px;
+    }
+
+    .approve-btn {
+      background-color: #2ecc71;
+      color: white;
+    }
+
+    .reject-btn {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    #summaryContainer {
+      margin-top: 15px;
+      overflow-x: auto;
+    }
+
+    #timetable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    #timetable th, #timetable td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      vertical-align: top;
+      min-height: 50px;
+      text-align: left;
+    }
+
+    #timetable th {
+      background-color: #f9f3e7;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    #timetable td {
+      background-color: #fffefb;
+    }
+
+    .name-tag {
+      background: #fdebd0;
+      display: inline-block;
+      margin: 2px 0;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+      color: #a04000;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 16px;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      h2, h3 {
+        font-size: 20px;
+      }
+
+      table, #timetable {
+        font-size: 12px;
+      }
+
+      .delete-all-btn {
+        font-size: 14px;
+        padding: 10px;
+      }
+
+      .name-tag {
+        font-size: 12px;
+        padding: 3px 6px;
+      }
+    }
   </style>
 </head>
 <body>
-<div id="toast"></div>
-
   <div class="container">
-    <h2><i class="fa-solid fa-umbrella-beach"></i> Đăng ký nghỉ phép</h2>
-
-    <h3><i class="fa-solid fa-list"></i> Danh sách đã gửi yêu cầu</h3>
+    <h2><i class="fa-solid fa-shield-halved"></i> Quản lý nghỉ phép</h2>
     <table>
       <thead>
         <tr>
           <th>Họ tên</th>
           <th>Ngày</th>
           <th>Ca</th>
+          <th>Lý do nghỉ</th>
           <th>Trạng thái</th>
         </tr>
       </thead>
-      <tbody id="tableBody">
-        <tr><td colspan="4">Đang tải...</td></tr>
+      <tbody id="adminTableBody">
+        <tr><td colspan="5">Đang tải...</td></tr>
       </tbody>
     </table>
 
-    <label for="name">👤 Tên của bạn:</label>
-    <input type="text" id="name" placeholder="Nguyễn Văn A" />
+    <button id="clearAllBtn" class="delete-all-btn">
+      <i class="fa-solid fa-trash"></i> Xoá tất cả yêu cầu nghỉ
+    </button>
 
-    <label for="type">📅 Hình thức nghỉ:</label>
-    <select id="type">
-      <option value="">-- Chọn --</option>
-      <option value="1">Nghỉ 1 ngày</option>
-      <option value="many">Nghỉ nhiều ngày</option>
-    </select>
-
-    <form id="leaveForm" class="hidden">
-      <div id="singleSection" class="hidden">
-        <h4>🗓 Vui lòng chọn ngày nghỉ và ca làm việc</h4>
-        <select id="weekdaySelect">
-          <option value="">-- Chọn ngày --</option>
-        </select>
-        <select id="singleShift">
-          <option value="sáng">Ca sáng</option>
-          <option value="tối">Ca tối</option>
-          <option value="khác">Khác</option>
-        </select>
+    <h3>🗓️ Lịch nghỉ tuần tới (Đã duyệt)</h3>
+    <div id="summaryContainer">
+      <table id="timetable">
+        <thead><tr id="dayHeaderRow"></tr></thead>
+        <tbody><tr id="dayDataRow"></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="actionPopup" class="popup-overlay">
+    <div class="popup-content">
+      <p>Bạn muốn xử lý yêu cầu này?</p>
+      <div class="popup-buttons">
+        <button id="approveBtn" class="approve-btn">Duyệt</button>
+        <button id="rejectBtn" class="reject-btn">Không duyệt</button>
       </div>
-
-      <div id="multiSection" class="hidden">
-        <label>📆 Các ngày nghỉ:</label>
-        <div id="multiDatesContainer">
-          <div class="multi-date-group">
-            <input type="date" class="multiDate" />
-            <button type="button" class="add-date-btn" onclick="addDateInput()">+</button>
-          </div>
-        </div>
-        <label>Ca làm việc:</label>
-        <select id="multiShift">
-          <option value="sáng">Sáng</option>
-          <option value="tối">Tối</option>
-          <option value="khác">Khác</option>
-        </select>
-        <label>Lý do nghỉ:</label>
-        <textarea id="reason" rows="3"></textarea>
-      </div>
-
-      <button type="submit">📤 Gửi yêu cầu nghỉ</button>
-    </form>
-
-    <p id="status"></p>
+    </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
-      authDomain: "lichnghi-4c665.firebaseapp.com",
-      databaseURL: "https://lichnghi-4c665-default-rtdb.firebaseio.com",
-      projectId: "lichnghi-4c665",
-      storageBucket: "lichnghi-4c665.appspot.com",
-      messagingSenderId: "86673813509",
-      appId: "1:86673813509:web:168376408dfcbf14e16c6c"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
+    authDomain: "lichnghi-4c665.firebaseapp.com",
+    databaseURL: "https://lichnghi-4c665-default-rtdb.firebaseio.com",
+    projectId: "lichnghi-4c665",
+    storageBucket: "lichnghi-4c665.appspot.com",
+    messagingSenderId: "86673813509",
+    appId: "1:86673813509:web:168376408dfcbf14e16c6c"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const tableBody = document.getElementById("adminTableBody");
 
-    const tableBody = document.getElementById("tableBody");
-    const nameInput = document.getElementById("name");
-    const typeSelect = document.getElementById("type");
-    const form = document.getElementById("leaveForm");
-    const statusEl = document.getElementById("status");
-    const singleSection = document.getElementById("singleSection");
-    const multiSection = document.getElementById("multiSection");
-    const weekdaySelect = document.getElementById("weekdaySelect");
+  let currentRequests = [];
+  let currentShift = "";
 
-    function showStatus(msg, type) {
-      statusEl.textContent = msg;
-      statusEl.className = `${type}`;
-    }
-
-    function formatVietnameseDate(dateStr) {
-      const date = new Date(dateStr);
-      const days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
-      const dayName = days[date.getDay()];
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      return `${dayName}, ${day}/${month}`;
-    }
-
-    function getNextWeekdays() {
-      const result = [];
-      const now = new Date();
-      const today = now.getDay();
-      const daysToAdd = (1 + 7 - today) % 7;
-      for (let i = 0; i < 5; i++) {
-        const d = new Date(now);
-        d.setDate(now.getDate() + daysToAdd + i);
-        result.push(d);
-      }
-      return result;
-    }
-
-    async function checkDuplicate(date, shift) {
-      const res = await fetch(`${firebaseConfig.databaseURL}/lichnghi/${date}/${shift}.json`);
-      const data = await res.json();
-      return data && Object.values(data).some(e => e.status === "chờ duyệt");
-    }
-
-    document.getElementById("type").addEventListener("change", async () => {
-      const name = nameInput.value.trim();
-      if (!name) return alert("Vui lòng nhập tên trước!");
-
-      form.classList.remove("hidden");
-
-      if (typeSelect.value === "1") {
-        singleSection.classList.remove("hidden");
-        multiSection.classList.add("hidden");
-
-        const dates = getNextWeekdays();
-        weekdaySelect.innerHTML = '<option value="">-- Chọn ngày --</option>';
-
-        for (const d of dates) {
-          const dateStr = d.toISOString().split("T")[0];
-          const conflictSang = await checkDuplicate(dateStr, "sáng");
-          const conflictToi = await checkDuplicate(dateStr, "tối");
-          const disabled = conflictSang && conflictToi;
-          const label = `${formatVietnameseDate(dateStr)}${disabled ? " (Đã đầy)" : ""}`;
-          weekdaySelect.innerHTML += `<option value="${dateStr}" ${disabled ? "disabled" : ""}>${label}</option>`;
-        }
-      } else {
-        multiSection.classList.remove("hidden");
-        singleSection.classList.add("hidden");
-      }
-    });
-
-   form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const name = nameInput.value.trim();
-  const type = typeSelect.value;
-
-  if (type === "1") {
-    const date = weekdaySelect.value;
-    const shift = document.getElementById("singleShift").value;
-    if (!date || !shift) return;
-
-    if (await checkDuplicate(date, shift)) {
-      return showStatus(`⚠️ Trùng ngày/ca đang chờ duyệt`, "error");
-    }
-
-    await set(push(ref(db, `lichnghi/${date}/${shift}`)), {
-      name,
-      status: "chờ duyệt",
-      timestamp: new Date().toISOString()
-    });
-
-    showStatus("✅ Đã gửi yêu cầu nghỉ 1 ngày!", "success");
-    showToast("✅ Gửi yêu cầu nghỉ 1 ngày thành công!");
-  } else if (type === "many") {
-    const shift = document.getElementById("multiShift").value;
-    const reason = document.getElementById("reason").value.trim();
-    const dateInputs = document.querySelectorAll(".multiDate");
-
-    if (dateInputs.length === 0) {
-      return showStatus("⚠️ Vui lòng chọn ít nhất 1 ngày!", "error");
-    }
-
-    if (!reason) {
-      return showStatus("⚠️ Vui lòng nhập lý do nghỉ!", "error");
-    }
-
-    let successCount = 0;
-    for (const input of dateInputs) {
-      const date = input.value;
-      if (!date) continue;
-
-      const duplicate = await checkDuplicate(date, shift);
-      if (duplicate) {
-        showStatus(`⚠️ ${date} đã có người chờ duyệt`, "error");
-        continue;
-      }
-
-      await set(push(ref(db, `lichnghi/${date}/${shift}`)), {
-        name,
-        reason,
-        status: "chờ duyệt",
-        timestamp: new Date().toISOString()
-      });
-
-      successCount++;
-    }
-
-    if (successCount > 0) {
-      showStatus(`✅ Đã gửi yêu cầu nghỉ ${successCount} ngày!`, "success");
-      showToast(`✅ Gửi yêu cầu ${successCount} ngày thành công!`);
-    } else {
-      showStatus("⚠️ Không có ngày nào được gửi!", "error");
-    }
+  function showToast(message) {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
   }
-});
 
+  function formatVietnameseDate(dateStr) {
+    const date = new Date(dateStr);
+    const days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+    const dayName = days[date.getDay()];
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    return `${dayName}, ${day}/${month}`;
+  }
 
-    window.addDateInput = () => {
-      const div = document.createElement("div");
-      div.className = "multi-date-group";
-      div.innerHTML = `<input type="date" class="multiDate" />
-        <button type="button" class="add-date-btn" onclick="addDateInput()">+</button>`;
-      document.getElementById("multiDatesContainer").appendChild(div);
-    };
-function showToast(message) {
-  const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.style.display = "block";
-  toast.style.top = "20px";
+  window.showActionPopup = function(requests, shift) {
+    currentRequests = requests;
+    currentShift = shift;
+    document.getElementById("actionPopup").classList.add("show");
+  };
 
-  setTimeout(() => {
-    toast.style.top = "-100px";
-  }, 3000);
-}
+  document.getElementById("approveBtn").addEventListener("click", async () => {
+    for (const { date, id } of currentRequests) {
+      await update(ref(db, `lichnghi/${date}/${currentShift}/${id}`), { status: "đã duyệt" });
+    }
+    document.getElementById("actionPopup").classList.remove("show");
+    showToast("✅ Đã duyệt thành công.");
+  });
 
-    function loadData() {
-  const dbRef = ref(db, "lichnghi/");
-  onValue(dbRef, snapshot => {
-    const data = snapshot.val();
-    tableBody.innerHTML = "";
-    if (!data) return tableBody.innerHTML = "<tr><td colspan='4'>Không có dữ liệu</td></tr>";
+  document.getElementById("rejectBtn").addEventListener("click", async () => {
+    for (const { date, id } of currentRequests) {
+      await update(ref(db, `lichnghi/${date}/${currentShift}/${id}`), { status: "từ chối" });
+    }
+    document.getElementById("actionPopup").classList.remove("show");
+    showToast("❌ Đã từ chối yêu cầu.");
+  });
 
-    const grouped = {};
+  document.getElementById("clearAllBtn").addEventListener("click", async () => {
+    if (confirm("Bạn có chắc muốn xoá tất cả yêu cầu nghỉ?")) {
+      await set(ref(db, "lichnghi/"), null);
+      showToast("🗑️ Đã xoá tất cả yêu cầu.");
+    }
+  });
+
+  function summarizeNextWeek(data) {
+    const dayHeaderRow = document.getElementById("dayHeaderRow");
+    const dayDataRow = document.getElementById("dayDataRow");
+    dayHeaderRow.innerHTML = "";
+    dayDataRow.innerHTML = "";
+
+    const today = new Date();
+    const nextWeek = {};
+
+    for (let i = 1; i <= 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + ((8 - today.getDay()) % 7) + i - 1);
+      const dateKey = date.toISOString().split("T")[0];
+      const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][date.getDay()];
+      nextWeek[dateKey] = {
+        label: `${weekday}<br><small>${dateKey}</small>`,
+        names: []
+      };
+    }
 
     for (const date in data) {
+      if (!nextWeek[date]) continue;
       for (const shift in data[date]) {
         for (const id in data[date][shift]) {
           const req = data[date][shift][id];
-          const name = req.name;
-          const status = req.status || "chờ duyệt";
-          const reason = req.reason || "";
-          const formattedDate = formatVietnameseDate(date);
-          const key = `${name}|${shift}|${reason}|${status}`;
-
-          if (!grouped[key]) {
-            grouped[key] = {
-              name,
-              shift,
-              reason,
-              status,
-              dates: []
-            };
+          if (req.status === "đã duyệt") {
+            nextWeek[date].names.push(req.name);
           }
-
-          grouped[key].dates.push(formattedDate);
         }
       }
     }
 
-    const entries = Object.values(grouped);
+    for (const date in nextWeek) {
+      const th = document.createElement("th");
+      th.innerHTML = nextWeek[date].label;
+      dayHeaderRow.appendChild(th);
 
-    for (const entry of entries) {
-      const statusClass =
-        entry.status === "đã duyệt" ? "success" :
-        entry.status === "từ chối" ? "error" : "pending";
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${entry.name}</td>
-        <td>${entry.dates.sort().join(", ")}</td>
-        <td>${entry.shift}</td>
-        <td class="${statusClass}">${entry.status}</td>
-      `;
-      tableBody.appendChild(tr);
+      const td = document.createElement("td");
+      const nameList = nextWeek[date].names;
+      if (nameList.length === 0) {
+        td.innerHTML = "<i>Không có</i>";
+      } else {
+        td.innerHTML = nameList.map(name => `<div class="name-tag">${name}</div>`).join("");
+      }
+      dayDataRow.appendChild(td);
     }
-  });
-}
+  }
 
+  function loadRequests() {
+    onValue(ref(db, "lichnghi/"), snapshot => {
+      const data = snapshot.val();
+      tableBody.innerHTML = "";
+      if (!data) {
+        tableBody.innerHTML = "<tr><td colspan='5'>Không có dữ liệu</td></tr>";
+        return;
+      }
 
-    loadData();
-  </script>
+      summarizeNextWeek(data);
+      const entries = [];
+
+      for (const date in data) {
+        for (const shift in data[date]) {
+          for (const id in data[date][shift]) {
+            const req = data[date][shift][id];
+            const name = req.name;
+            const reason = req.reason || "-";
+            const status = req.status || "chờ duyệt";
+            const formattedDate = formatVietnameseDate(date);
+
+            const key = `${name}|${shift}|${status}|${reason}`;
+            const existing = entries.find(e => e.key === key);
+            if (existing) {
+              existing.requests.push({ date, id });
+              existing.dates.push(formattedDate);
+            } else {
+              entries.push({
+                key, name, shift, status, reason,
+                dates: [formattedDate],
+                requests: [{ date, id }]
+              });
+            }
+          }
+        }
+      }
+
+      for (const entry of entries) {
+        const { name, shift, status, reason, dates, requests } = entry;
+        const statusClass = {
+          "chờ duyệt": "status-pending",
+          "đã duyệt": "status-approved",
+          "từ chối": "status-rejected"
+        }[status] || "";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td data-label="Họ tên">${name}</td>
+          <td data-label="Ngày">${dates.sort().join(", ")}</td>
+          <td data-label="Ca">${shift}</td>
+          <td data-label="Lý do nghỉ">${reason}</td>
+          <td data-label="Trạng thái"><span class="${statusClass}" onclick='showActionPopup(${JSON.stringify(requests)}, "${shift}")'>${status}</span></td>
+        `;
+        tableBody.appendChild(tr);
+      }
+    });
+  }
+
+  loadRequests();
+</script>
 </body>
 </html>
