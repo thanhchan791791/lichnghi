@@ -45,11 +45,19 @@
     }
 
     th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: left;
-      white-space: nowrap;
-    }
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* CHO PHÉP TỰ XUỐNG DÒNG Ở CỘT NGÀY VÀ LÝ DO NGHỈ */
+td[data-label="Ngày"],
+td[data-label="Lý do nghỉ"] {
+  white-space: normal;
+  word-break: break-word;
+}
+
 
     th {
       background-color: #f4f4f4;
