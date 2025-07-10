@@ -10,55 +10,48 @@
   <style>
     body {
       font-family: 'Quicksand', sans-serif;
-      background: linear-gradient(to right, #ffe0e0, #fff2d6);
+      background: linear-gradient(to right, #fef5ec, #fff8f4);
       padding: 20px;
     }
-.name-tag {
-  background-color: #fdebd0;
-  margin: 2px 0;
-  padding: 4px 6px;
-  border-radius: 6px;
-  display: block; /* Chuyển từ inline-block sang block để xuống dòng tự nhiên */
-  color: #a04000;
-  font-weight: 500;
-  word-wrap: break-word;
-  word-break: break-word;
-  white-space: normal;
-}
-
 
     .container {
       background: #fff;
       padding: 20px;
       border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
       max-width: 1000px;
       margin: auto;
     }
 
     h2, h3 {
       text-align: center;
-      color: #c0392b;
+      color: #d35400;
       margin-bottom: 20px;
     }
 
-   .request-card {
-  background: #fffaf5;
-  border: 1px solid #f0d1b5;
-  border-left: 6px solid #e67e22;
-  border-radius: 10px;
-  padding: 15px 20px;
-  margin-bottom: 15px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
+    .request-card {
+      background: #fffdfc;
+      border: 1px solid #ffe6cc;
+      border-left: 6px solid #ffa94d;
+      border-radius: 12px;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      overflow-wrap: break-word;
+      word-break: break-word;
+      transition: transform 0.2s ease;
+      cursor: pointer;
+    }
 
+    .request-card:hover {
+      background-color: #fff5ec;
+      transform: scale(1.01);
+    }
 
     .request-card h5 {
       margin: 0 0 5px;
       font-size: 16px;
-      color: #d35400;
+      color: #e67e22;
     }
 
     .request-card .shift {
@@ -73,7 +66,7 @@
 
     .request-card .reason {
       font-style: italic;
-      color: #555;
+      color: #5c5c5c;
       font-size: 14px;
     }
 
@@ -82,29 +75,41 @@
       text-align: right;
     }
 
-    .request-card .status-action span,
-    .request-card .status-action i {
+    .request-card .status-action i,
+    .request-card .status-action span {
       font-weight: bold;
-      cursor: pointer;
     }
 
-    .text-success { color: #27ae60 !important; }
+    .text-success { color: #2ecc71 !important; }
     .text-danger { color: #e74c3c !important; }
     .text-warning { color: #f39c12 !important; }
 
     .delete-all-btn {
       background-color: #e67e22;
       color: white;
-      padding: 10px;
+      padding: 12px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       width: 100%;
       margin-top: 20px;
       font-weight: bold;
+      font-size: 16px;
+      transition: background 0.2s ease;
     }
 
     .delete-all-btn:hover {
       background-color: #cf711c;
+    }
+
+    /* Tag tên */
+    .name-tag {
+      background-color: #fff2e0;
+      margin: 3px 0;
+      padding: 5px 8px;
+      border-radius: 8px;
+      display: inline-block;
+      color: #a04000;
+      font-weight: 600;
     }
 
     /* Popup xử lý */
@@ -116,45 +121,96 @@
       align-items: center;
       justify-content: center;
       z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.4s ease;
     }
 
     .popup-overlay.show {
       display: flex;
+      opacity: 1;
     }
 
     .popup-content {
       background: #fff;
-      padding: 20px;
-      border-radius: 12px;
+      padding: 24px;
+      border-radius: 16px;
       text-align: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      max-width: 320px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+      max-width: 340px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .popup-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
     }
 
     .popup-buttons button {
-      margin: 10px;
       padding: 10px 16px;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-weight: bold;
-      width: 100px;
+      min-width: 100px;
+      font-size: 15px;
       cursor: pointer;
     }
 
-    .approve-btn { background-color: #27ae60; color: white; }
-    .reject-btn  { background-color: #e74c3c; color: white; }
+    .approve-btn {
+      background-color: #27ae60;
+      color: white;
+    }
 
+    .reject-btn {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    /* Toast nâng cấp */
     #toast {
       position: fixed;
-      top: 10px;
+      top: 15px;
       left: 50%;
       transform: translateX(-50%);
-      background: #000;
-      color: white;
-      padding: 8px 16px;
-      border-radius: 6px;
+      background: #222;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
       display: none;
-      z-index: 9999;
+      z-index: 10000;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    #toast.show {
+      display: block;
+      opacity: 1;
+    }
+
+    @media (max-width: 576px) {
+      .request-card, .popup-content {
+        padding: 12px;
+      }
+
+      .popup-buttons {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .popup-buttons button {
+        width: 100%;
+      }
+
+      h2, h3 {
+        font-size: 20px;
+      }
     }
   </style>
 </head>
@@ -172,201 +228,226 @@
 
     <h3>🗓️ Lịch nghỉ tuần tới (Đã duyệt)</h3>
     <div id="weekSchedule" class="mt-4">
-  <!-- Các thẻ ngày sẽ được render tại đây -->
-</div>
-
-  </div>
-<!-- Popup xử lý -->
-<div id="actionPopup" class="popup-overlay">
-  <div class="popup-content">
-    <p>Bạn muốn xử lý yêu cầu này?</p>
-    <div class="popup-buttons">
-      <button id="approveBtn" class="approve-btn"><i class="fa fa-check"></i> Duyệt</button>
-      <button id="rejectBtn" class="reject-btn"><i class="fa fa-times"></i> Từ chối</button>
+      <!-- Các thẻ ngày sẽ được render tại đây -->
     </div>
   </div>
-</div>
+  <!-- Popup xử lý -->
+  <div id="actionPopup" class="popup-overlay">
+    <div class="popup-content">
+      <p>Bạn muốn xử lý yêu cầu này?</p>
+      <div class="popup-buttons">
+        <button id="approveBtn" class="approve-btn">
+          <i class="fa fa-check"></i> Duyệt
+        </button>
+        <button id="rejectBtn" class="reject-btn">
+          <i class="fa fa-times"></i> Từ chối
+        </button>
+      </div>
+    </div>
+  </div>
 
-<!-- Toast thông báo -->
-<div id="toast"></div>
+  <!-- Toast thông báo -->
+  <div id="toast"></div>
 
-<!-- Firebase + Script -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-  import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+  <!-- Firebase + Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
-    authDomain: "lichnghi-4c665.firebaseapp.com",
-    databaseURL: "https://lichnghi-4c665-default-rtdb.firebaseio.com",
-    projectId: "lichnghi-4c665",
-    storageBucket: "lichnghi-4c665.appspot.com",
-    messagingSenderId: "86673813509",
-    appId: "1:86673813509:web:168376408dfcbf14e16c6c"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
+      authDomain: "lichnghi-4c665.firebaseapp.com",
+      databaseURL: "https://lichnghi-4c665-default-rtdb.firebaseio.com",
+      projectId: "lichnghi-4c665",
+      storageBucket: "lichnghi-4c665.appspot.com",
+      messagingSenderId: "86673813509",
+      appId: "1:86673813509:web:168376408dfcbf14e16c6c"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const requestList = document.getElementById("requestList");
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const requestList = document.getElementById("requestList");
 
-  let currentRequests = [];
-  let currentShift = "";
+    let currentRequests = [];
+    let currentShift = "";
 
-  function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.style.display = "block";
-    setTimeout(() => toast.style.display = "none", 3000);
-  }
-
-  window.showActionPopup = function (requests, shift) {
-    currentRequests = requests;
-    currentShift = shift;
-    document.getElementById("actionPopup").classList.add("show");
-  };
-
-  document.getElementById("approveBtn").addEventListener("click", async () => {
-    for (const { date, id } of currentRequests) {
-      await update(ref(db, `lichnghi/${date}/${currentShift}/${id}`), { status: "đã duyệt" });
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
     }
-    document.getElementById("actionPopup").classList.remove("show");
-    showToast("✅ Đã duyệt thành công.");
-  });
 
-  document.getElementById("rejectBtn").addEventListener("click", async () => {
-    for (const { date, id } of currentRequests) {
-      await update(ref(db, `lichnghi/${date}/${currentShift}/${id}`), { status: "từ chối" });
+    window.showActionPopup = function (requests, shift) {
+      currentRequests = requests;
+      currentShift = shift;
+      document.getElementById("actionPopup").classList.add("show");
+    };
+
+    document.getElementById("approveBtn").addEventListener("click", async () => {
+      for (const { date, id } of currentRequests) {
+        await update(ref(db, `lichnghi/${date}/${currentShift}/${id}`), { status: "đã duyệt" });
+      }
+      document.getElementById("actionPopup").classList.remove("show");
+      showToast("✅ Đã duyệt thành công.");
+    });
+
+    document.getElementById("rejectBtn").addEventListener("click", async () => {
+      for (const { date, id } of currentRequests) {
+        await update(ref(db, `lichnghi/${date}/${currentShift}/${id}`), { status: "từ chối" });
+      }
+      document.getElementById("actionPopup").classList.remove("show");
+      showToast("❌ Đã từ chối yêu cầu.");
+    });
+
+    document.getElementById("clearAllBtn").addEventListener("click", async () => {
+      if (!confirm("Bạn có chắc muốn xoá các yêu cầu từ Thứ Hai đến Thứ Tư của tuần này?")) return;
+
+      onValue(ref(db, "lichnghi/"), async (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        const today = new Date();
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay());
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+
+        for (const dateKey in data) {
+          const date = new Date(dateKey);
+          const dayOfWeek = date.getDay();
+          const isInThisWeek = date >= weekStart && date <= weekEnd;
+          const isThuHaiToThuTu = dayOfWeek >= 1 && dayOfWeek <= 3;
+          if (isInThisWeek && isThuHaiToThuTu) {
+            await set(ref(db, `lichnghi/${dateKey}`), null);
+          }
+        }
+
+        showToast("🗑️ Đã xoá yêu cầu Thứ 2 → Thứ 4 của tuần này.");
+      }, { onlyOnce: true });
+    });
+
+    function formatVietnameseDate(dateStr) {
+      const date = new Date(dateStr);
+      const days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+      const dayName = days[date.getDay()];
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      return `${dayName}, ${day}/${month}`;
     }
-    document.getElementById("actionPopup").classList.remove("show");
-    showToast("❌ Đã từ chối yêu cầu.");
-  });
 
-  document.getElementById("clearAllBtn").addEventListener("click", async () => {
-    if (confirm("Bạn có chắc muốn xoá tất cả yêu cầu nghỉ?")) {
-      await set(ref(db, "lichnghi/"), null);
-      showToast("🗑️ Đã xoá tất cả yêu cầu.");
+    function loadRequests() {
+      onValue(ref(db, "lichnghi/"), snapshot => {
+        const data = snapshot.val();
+        requestList.innerHTML = "";
+
+        if (!data) {
+          requestList.innerHTML = "<p class='text-center text-muted'>Không có yêu cầu nghỉ nào.</p>";
+          return;
+        }
+
+        summarizeNextWeek(data);
+        const entries = [];
+
+        for (const date in data) {
+          for (const shift in data[date]) {
+            for (const id in data[date][shift]) {
+              const req = data[date][shift][id];
+              const name = req.name;
+              const reason = req.reason || "-";
+              const status = req.status || "chờ duyệt";
+              const formattedDate = formatVietnameseDate(date);
+              const key = `${name}|${shift}|${status}|${reason}`;
+
+              const existing = entries.find(e => e.key === key);
+              if (existing) {
+                existing.requests.push({ date, id });
+                existing.dates.push(formattedDate);
+              } else {
+                entries.push({
+                  key, name, shift, status, reason,
+                  dates: [formattedDate],
+                  requests: [{ date, id }]
+                });
+              }
+            }
+          }
+        }
+
+        for (const entry of entries) {
+          const { name, shift, status, reason, dates, requests } = entry;
+          let statusContent = "";
+
+          if (status === "đã duyệt") {
+            statusContent = `<i class="fa-solid fa-circle-check text-success" title="Đã duyệt"></i>`;
+          } else if (status === "từ chối") {
+            statusContent = `<i class="fa-solid fa-circle-xmark text-danger" title="Từ chối"></i>`;
+          } else {
+            statusContent = `<span class="text-warning">Chờ duyệt</span>`;
+          }
+
+          const card = document.createElement("div");
+          card.className = "request-card";
+          card.innerHTML = `
+            <h5>${name} <span class="shift">(${shift})</span></h5>
+            <div class="dates">📅 ${dates.sort().join("<br>")}</div>
+            <div class="reason">📝 ${reason}</div>
+            <div class="status-action">${statusContent}</div>
+          `;
+
+          card.addEventListener("click", () => {
+            showActionPopup(requests, shift);
+          });
+
+          requestList.appendChild(card);
+        }
+      });
     }
-  });
 
-  function formatVietnameseDate(dateStr) {
-    const date = new Date(dateStr);
-    const days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
-    const dayName = days[date.getDay()];
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    return `${dayName}, ${day}/${month}`;
-  }
+    function summarizeNextWeek(data) {
+      const weekSchedule = document.getElementById("weekSchedule");
+      weekSchedule.innerHTML = "";
 
-  function loadRequests() {
-    onValue(ref(db, "lichnghi/"), snapshot => {
-      const data = snapshot.val();
-      requestList.innerHTML = "";
+      const today = new Date();
+      const nextWeek = {};
 
-      if (!data) {
-        requestList.innerHTML = "<p class='text-center text-muted'>Không có yêu cầu nghỉ nào.</p>";
-        return;
+      for (let i = 1; i <= 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + ((8 - today.getDay()) % 7) + i - 1);
+        const dateKey = date.toISOString().split("T")[0];
+        const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][date.getDay()];
+        nextWeek[dateKey] = {
+          label: `${weekday}, ${dateKey}`,
+          names: []
+        };
       }
 
-      summarizeNextWeek(data);
-      const entries = [];
-
       for (const date in data) {
+        if (!nextWeek[date]) continue;
         for (const shift in data[date]) {
           for (const id in data[date][shift]) {
             const req = data[date][shift][id];
-            const name = req.name;
-            const reason = req.reason || "-";
-            const status = req.status || "chờ duyệt";
-            const formattedDate = formatVietnameseDate(date);
-            const key = `${name}|${shift}|${status}|${reason}`;
-
-            const existing = entries.find(e => e.key === key);
-            if (existing) {
-              existing.requests.push({ date, id });
-              existing.dates.push(formattedDate);
-            } else {
-              entries.push({
-                key, name, shift, status, reason,
-                dates: [formattedDate],
-                requests: [{ date, id }]
-              });
+            if (req.status === "đã duyệt") {
+              nextWeek[date].names.push(`${req.name} (${shift})`);
             }
           }
         }
       }
 
-      for (const entry of entries) {
-        const { name, shift, status, reason, dates, requests } = entry;
-        let statusContent = "";
+      for (const date in nextWeek) {
+        if (nextWeek[date].names.length === 0) continue;
 
-        if (status === "đã duyệt") {
-          statusContent = `<i class="fa-solid fa-circle-check text-success" title="Đã duyệt" onclick='showActionPopup(${JSON.stringify(requests)}, "${shift}")'></i>`;
-        } else if (status === "từ chối") {
-          statusContent = `<i class="fa-solid fa-circle-xmark text-danger" title="Từ chối" onclick='showActionPopup(${JSON.stringify(requests)}, "${shift}")'></i>`;
-        } else {
-          statusContent = `<span class="text-warning" onclick='showActionPopup(${JSON.stringify(requests)}, "${shift}")'>Chờ duyệt</span>`;
-        }
-
-        const card = document.createElement("div");
-        card.className = "request-card";
-        card.innerHTML = `
-          <h5>${name} <span class="shift">(${shift})</span></h5>
-          <div class="dates">📅 ${dates.sort().join("<br>")}</div>
-          <div class="reason">📝 ${reason}</div>
-          <div class="status-action">${statusContent}</div>
+        const dayCard = document.createElement("div");
+        dayCard.className = "request-card";
+        dayCard.innerHTML = `
+          <h5>${nextWeek[date].label}</h5>
+          ${nextWeek[date].names.map(name => `<div class="name-tag">${name}</div>`).join("")}
         `;
-        requestList.appendChild(card);
-      }
-    });
-  }
-
-  function summarizeNextWeek(data) {
-  const weekSchedule = document.getElementById("weekSchedule");
-  weekSchedule.innerHTML = "";
-
-  const today = new Date();
-  const nextWeek = {};
-
-  for (let i = 1; i <= 7; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + ((8 - today.getDay()) % 7) + i - 1);
-    const dateKey = date.toISOString().split("T")[0];
-    const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][date.getDay()];
-    nextWeek[dateKey] = {
-      label: `${weekday}, ${dateKey}`,
-      names: []
-    };
-  }
-
-  for (const date in data) {
-    if (!nextWeek[date]) continue;
-    for (const shift in data[date]) {
-      for (const id in data[date][shift]) {
-        const req = data[date][shift][id];
-        if (req.status === "đã duyệt") {
-          nextWeek[date].names.push(`${req.name} (${shift})`);
-        }
+        weekSchedule.appendChild(dayCard);
       }
     }
-  }
 
-  for (const date in nextWeek) {
-    const dayCard = document.createElement("div");
-    dayCard.className = "request-card";
-    dayCard.innerHTML = `
-      <h5>${nextWeek[date].label}</h5>
-      ${
-        nextWeek[date].names.length === 0
-        ? "<div class='text-muted'><i>Không có ai nghỉ</i></div>"
-        : nextWeek[date].names.map(name => `<div class="name-tag">${name}</div>`).join("")
-      }
-    `;
-    weekSchedule.appendChild(dayCard);
-  }
-}
-
-
-  loadRequests();
-</script>
+    loadRequests();
+  </script>
 </body>
 </html>
