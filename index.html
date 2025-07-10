@@ -347,6 +347,7 @@
       singleSection.classList.add("hidden");
     }
   });
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const [name, shift] = nameSelect.value.split("|");
@@ -425,15 +426,13 @@
     onValue(dbRef, snapshot => {
       const data = snapshot.val();
       tableBody.innerHTML = "";
-     if (!data) {
-  document.getElementById("requestSection").style.display = "none";
-  return;
-}
-document.getElementById("requestSection").style.display = "block";
-
+      if (!data) {
+        document.getElementById("requestSection").style.display = "none";
+        return;
+      }
+      document.getElementById("requestSection").style.display = "block";
 
       const grouped = {};
-
       for (const date in data) {
         for (const shift in data[date]) {
           for (const id in data[date][shift]) {
@@ -461,33 +460,61 @@ document.getElementById("requestSection").style.display = "block";
 
       const entries = Object.values(grouped);
       for (const entry of entries) {
-        const statusClass =
-          entry.status === "đã duyệt" ? "success" :
-          entry.status === "từ chối" ? "error" : "pending";
+        const statusContent =
+          entry.status === "đã duyệt"
+            ? `<i class="fa-solid fa-circle-check" style="color: #27ae60; font-size: 28px;" title="Đã duyệt"></i>`
+            : entry.status === "từ chối"
+              ? `<i class="fa-solid fa-circle-xmark" style="color: #e74c3c; font-size: 28px;" title="Từ chối"></i>`
+              : `<span style="color: #f39c12; font-weight: bold;">Chờ duyệt</span>`;
 
-       let statusContent = "";
-if (entry.status === "đã duyệt") {
-  statusContent = `<i class="fa-solid fa-circle-check" style="color: #27ae60; font-size: 28px;" title="Đã duyệt"></i>`;
-} else if (entry.status === "từ chối") {
-  statusContent = `<i class="fa-solid fa-circle-xmark" style="color: #e74c3c; font-size: 28px;" title="Từ chối"></i>`;
-} else {
-  statusContent = `<span style="color: #f39c12; font-weight: bold;">Chờ duyệt</span>`;
-}
-
-const tr = document.createElement("tr");
-tr.innerHTML = `
-  <td>${entry.name}</td>
-  <td>${entry.dates.sort().join(", ")}</td>
-  <td>${entry.shift}</td>
-  <td>${statusContent}</td>
-`;
-
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${entry.name}</td>
+          <td>${entry.dates.sort().join(", ")}</td>
+          <td>${entry.shift}</td>
+          <td>${statusContent}</td>
+        `;
         tableBody.appendChild(tr);
       }
     });
   }
 
-  loadData();
+  async function deleteOldRequests() {
+  const today = new Date();
+  const currentDay = today.getDay();
+
+  if (currentDay !== 4) return; // chỉ xóa vào đúng Thứ 5
+
+  const snapshot = await fetch(`${firebaseConfig.databaseURL}/lichnghi.json`);
+  const data = await snapshot.json();
+  if (!data) return;
+
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay());
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+
+  for (const dateKey in data) {
+    const dateObj = new Date(dateKey);
+    const dayOfWeek = dateObj.getDay();
+    const isInThisWeek = dateObj >= weekStart && dateObj <= weekEnd;
+    const isThu2ToThu4 = dayOfWeek >= 1 && dayOfWeek <= 3;
+    const isBeforeThisWeek = dateObj < weekStart;
+
+    if ((isInThisWeek && isThu2ToThu4) || isBeforeThisWeek) {
+      await set(ref(db, `lichnghi/${dateKey}`), null);
+    }
+  }
+}
+
+
+  async function main() {
+    await deleteOldRequests();
+    loadData();
+  }
+
+  main();
 </script>
+
 </body>
 </html>
