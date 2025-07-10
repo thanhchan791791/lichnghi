@@ -6,13 +6,6 @@
   <title>Đăng ký nghỉ phép</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
-  <!-- Flatpickr CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-<!-- Flatpickr JS -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<!-- Ngôn ngữ Tiếng Việt -->
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
-
 
   <!-- Choices.js CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
@@ -315,7 +308,7 @@
       <label>📆 Các ngày nghỉ:</label>
       <div id="multiDatesContainer">
         <div class="multi-date-group">
-          <input type="date" class="multiDate" />
+<input type="date" class="multiDate" lang="vi" />
           <button type="button" class="add-date-btn" onclick="addDateInput()">+</button>
         </div>
       </div>
@@ -481,20 +474,16 @@
     nameSelect.disabled = true;
   });
 
- window.addDateInput = () => {
-  const div = document.createElement("div");
-  div.className = "multi-date-group";
-  div.innerHTML = `
-    <input type="text" class="multiDate" />
-    <button type="button" class="add-date-btn" onclick="addDateInput()">+</button>
-  `;
-  document.getElementById("multiDatesContainer").appendChild(div);
-  flatpickr(div.querySelector(".multiDate"), {
-    locale: "vn",
-    dateFormat: "l, d/m",
-  });
-};
-  
+  window.addDateInput = () => {
+    const div = document.createElement("div");
+    div.className = "multi-date-group";
+    div.innerHTML = `
+<input type="date" class="multiDate" lang="vi" />
+      <button type="button" class="add-date-btn" onclick="addDateInput()">+</button>
+    `;
+    document.getElementById("multiDatesContainer").appendChild(div);
+  };
+
   function loadData() {
     const dbRef = ref(db, "lichnghi/");
     onValue(dbRef, snapshot => {
@@ -575,10 +564,6 @@
   }
 
   main();
-flatpickr(".multiDate", {
-  locale: "vn",
-  dateFormat: "l, d/m", // Hiển thị Thứ, ngày/tháng
-});
 
   // Áp dụng thư viện Choices.js
   new Choices("#name", {
