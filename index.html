@@ -266,8 +266,8 @@
       <option value="Nghi|ca sáng">Nghi</option>
       <option value="Vân|ca sáng">Vân</option>
       <option value="Hằng|ca sáng">Hằng</option>
-      <option value="Uyên|ca sáng">Uyên</option>
-     <option value="Yến|ca sáng">Yến</option>
+      <option value="Uyên|ca sáng">Uyên</option>     
+       <option value="Yến|ca sáng">Yến</option>
 
     </optgroup>
 
@@ -294,7 +294,7 @@
     <select id="type">
       <option value="">-- Chọn --</option>
       <option value="1">Nghỉ 1 ngày</option>
-      <option value="many">Nghỉ nhiều ngày</option>
+      <option value="many">Nghỉ thứ 7 chủ nhật hoặc nhiều ngày</option>
     </select>
   </div>
 
@@ -565,7 +565,28 @@
     loadData();
   }
 
-  main();
+    main();
+
+  // ❗Ẩn phần chọn nhân viên nếu không đúng thời gian
+  const now = new Date();
+  const isThursday = now.getDay() === 4;
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  const isAfter8AM = hour > 8 || (hour === 8 && minute >= 0);
+
+  if (!(isThursday && isAfter8AM)) {
+    document.getElementById("name").style.display = "none";
+    document.getElementById("typeContainer").style.display = "none";
+    document.getElementById("leaveForm").style.display = "none";
+
+    // ❗Tuỳ chọn: Thêm thông báo cho người dùng
+    const info = document.createElement("p");
+    info.style.textAlign = "center";
+    info.style.color = "#e74c3c";
+    info.style.fontWeight = "bold";
+    info.textContent = "⚠️ Chỉ mở vào Thứ 5 từ 08:00 sáng!";
+    document.querySelector(".container").appendChild(info);
+  }
 
   // Áp dụng thư viện Choices.js
   new Choices("#name", {
