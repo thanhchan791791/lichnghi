@@ -160,6 +160,7 @@
 <div class="container">
   <h2><i class="fa-solid fa-umbrella-beach"></i> Đăng ký nghỉ phép</h2>
 
+ <div id="requestSection">
   <h3><i class="fa-solid fa-list"></i> Danh sách đã gửi yêu cầu</h3>
   <table>
     <thead>
@@ -174,6 +175,8 @@
       <tr><td colspan="4">Đang tải...</td></tr>
     </tbody>
   </table>
+</div>
+
 
   <label for="name">👤 Chọn tên của bạn:</label>
   <select id="name">
@@ -422,7 +425,12 @@
     onValue(dbRef, snapshot => {
       const data = snapshot.val();
       tableBody.innerHTML = "";
-      if (!data) return tableBody.innerHTML = "<tr><td colspan='4'>Không có dữ liệu</td></tr>";
+     if (!data) {
+  document.getElementById("requestSection").style.display = "none";
+  return;
+}
+document.getElementById("requestSection").style.display = "block";
+
 
       const grouped = {};
 
