@@ -16,7 +16,7 @@
 
     .container {
       background: #fff;
-      padding: 30px;
+      padding: 20px;
       border-radius: 20px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
       max-width: 1000px;
@@ -29,32 +29,52 @@
       margin-bottom: 20px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    .request-card {
+      background: #fffaf5;
+      border: 1px solid #f0d1b5;
+      border-left: 6px solid #e67e22;
+      border-radius: 10px;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .request-card h5 {
+      margin: 0 0 5px;
+      font-size: 16px;
+      color: #d35400;
+    }
+
+    .request-card .shift {
+      font-size: 14px;
+      color: #888;
+    }
+
+    .request-card .dates {
+      margin: 5px 0;
       font-size: 14px;
     }
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 12px;
-      text-align: center;
-      vertical-align: top;
+    .request-card .reason {
+      font-style: italic;
+      color: #555;
+      font-size: 14px;
     }
 
-    th {
-      background-color: #f8f9fa;
+    .request-card .status-action {
+      margin-top: 10px;
+      text-align: right;
     }
 
-    .name-tag {
-      background-color: #fdebd0;
-      margin: 2px 0;
-      padding: 4px 6px;
-      border-radius: 6px;
-      display: block;
-      color: #a04000;
-      font-weight: 500;
+    .request-card .status-action span,
+    .request-card .status-action i {
+      font-weight: bold;
+      cursor: pointer;
     }
+
+    .text-success { color: #27ae60 !important; }
+    .text-danger { color: #e74c3c !important; }
+    .text-warning { color: #f39c12 !important; }
 
     .delete-all-btn {
       background-color: #e67e22;
@@ -71,18 +91,7 @@
       background-color: #cf711c;
     }
 
-    .status-approved { color: #27ae60; background: #eafaf1; }
-    .status-rejected { color: #e74c3c; background: #fdecea; }
-    .status-pending  { color: #f39c12; background: #fff6e5; }
-
-    .status-badge {
-      font-weight: bold;
-      padding: 5px 10px;
-      border-radius: 8px;
-      display: inline-block;
-      cursor: pointer;
-    }
-
+    /* Popup xử lý */
     .popup-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -118,25 +127,29 @@
 
     .approve-btn { background-color: #27ae60; color: white; }
     .reject-btn  { background-color: #e74c3c; color: white; }
+
+    #toast {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #000;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      display: none;
+      z-index: 9999;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2><i class="fa-solid fa-shield-halved"></i> Quản lý nghỉ phép</h2>
-    <table class="table table-bordered">
-      <thead class="table-light">
-        <tr>
-          <th>Họ tên + Ca</th>
-          <th>Ngày</th>
-          <th>Lý do</th>
-          <th>Trạng thái</th>
-                    <th></th>
-        </tr>
-      </thead>
-      <tbody id="adminTableBody">
-        <tr><td colspan="4">Đang tải...</td></tr>
-      </tbody>
-    </table>
+
+    <div id="requestList">
+      <!-- Các thẻ yêu cầu nghỉ sẽ được render tại đây -->
+    </div>
+
     <button id="clearAllBtn" class="delete-all-btn">
       <i class="fa-solid fa-trash"></i> Xoá tất cả yêu cầu nghỉ
     </button>
@@ -149,16 +162,21 @@
       </table>
     </div>
   </div>
-
-  <div id="actionPopup" class="popup-overlay">
-    <div class="popup-content">
-      <p>Bạn muốn xử lý yêu cầu này?</p>
-      <div class="popup-buttons">
-        <button id="approveBtn" class="approve-btn">Duyệt</button>
-        <button id="rejectBtn" class="reject-btn">Từ chối</button>
-      </div>
+<!-- Popup xử lý -->
+<div id="actionPopup" class="popup-overlay">
+  <div class="popup-content">
+    <p>Bạn muốn xử lý yêu cầu này?</p>
+    <div class="popup-buttons">
+      <button id="approveBtn" class="approve-btn"><i class="fa fa-check"></i> Duyệt</button>
+      <button id="rejectBtn" class="reject-btn"><i class="fa fa-times"></i> Từ chối</button>
     </div>
   </div>
+</div>
+
+<!-- Toast thông báo -->
+<div id="toast"></div>
+
+<!-- Firebase + Script -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
   import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
@@ -175,7 +193,7 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const tableBody = document.getElementById("adminTableBody");
+  const requestList = document.getElementById("requestList");
 
   let currentRequests = [];
   let currentShift = "";
@@ -183,21 +201,21 @@
   function showToast(message) {
     const toast = document.getElementById("toast");
     toast.textContent = message;
-    toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 3000);
+    toast.style.display = "block";
+    setTimeout(() => toast.style.display = "none", 3000);
   }
 
   window.showActionPopup = function (requests, shift) {
     currentRequests = requests;
     currentShift = shift;
-    document.getElementById("actionPopup").style.display = "flex";
+    document.getElementById("actionPopup").classList.add("show");
   };
 
   document.getElementById("approveBtn").addEventListener("click", async () => {
     for (const { date, id } of currentRequests) {
       await update(ref(db, `lichnghi/${date}/${currentShift}/${id}`), { status: "đã duyệt" });
     }
-    document.getElementById("actionPopup").style.display = "none";
+    document.getElementById("actionPopup").classList.remove("show");
     showToast("✅ Đã duyệt thành công.");
   });
 
@@ -205,7 +223,7 @@
     for (const { date, id } of currentRequests) {
       await update(ref(db, `lichnghi/${date}/${currentShift}/${id}`), { status: "từ chối" });
     }
-    document.getElementById("actionPopup").style.display = "none";
+    document.getElementById("actionPopup").classList.remove("show");
     showToast("❌ Đã từ chối yêu cầu.");
   });
 
@@ -223,6 +241,69 @@
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     return `${dayName}, ${day}/${month}`;
+  }
+
+  function loadRequests() {
+    onValue(ref(db, "lichnghi/"), snapshot => {
+      const data = snapshot.val();
+      requestList.innerHTML = "";
+
+      if (!data) {
+        requestList.innerHTML = "<p class='text-center text-muted'>Không có yêu cầu nghỉ nào.</p>";
+        return;
+      }
+
+      summarizeNextWeek(data);
+      const entries = [];
+
+      for (const date in data) {
+        for (const shift in data[date]) {
+          for (const id in data[date][shift]) {
+            const req = data[date][shift][id];
+            const name = req.name;
+            const reason = req.reason || "-";
+            const status = req.status || "chờ duyệt";
+            const formattedDate = formatVietnameseDate(date);
+            const key = `${name}|${shift}|${status}|${reason}`;
+
+            const existing = entries.find(e => e.key === key);
+            if (existing) {
+              existing.requests.push({ date, id });
+              existing.dates.push(formattedDate);
+            } else {
+              entries.push({
+                key, name, shift, status, reason,
+                dates: [formattedDate],
+                requests: [{ date, id }]
+              });
+            }
+          }
+        }
+      }
+
+      for (const entry of entries) {
+        const { name, shift, status, reason, dates, requests } = entry;
+        let statusContent = "";
+
+        if (status === "đã duyệt") {
+          statusContent = `<i class="fa-solid fa-circle-check text-success" title="Đã duyệt" onclick='showActionPopup(${JSON.stringify(requests)}, "${shift}")'></i>`;
+        } else if (status === "từ chối") {
+          statusContent = `<i class="fa-solid fa-circle-xmark text-danger" title="Từ chối" onclick='showActionPopup(${JSON.stringify(requests)}, "${shift}")'></i>`;
+        } else {
+          statusContent = `<span class="text-warning" onclick='showActionPopup(${JSON.stringify(requests)}, "${shift}")'>Chờ duyệt</span>`;
+        }
+
+        const card = document.createElement("div");
+        card.className = "request-card";
+        card.innerHTML = `
+          <h5>${name} <span class="shift">(${shift})</span></h5>
+          <div class="dates">📅 ${dates.sort().join("<br>")}</div>
+          <div class="reason">📝 ${reason}</div>
+          <div class="status-action">${statusContent}</div>
+        `;
+        requestList.appendChild(card);
+      }
+    });
   }
 
   function summarizeNextWeek(data) {
@@ -271,96 +352,7 @@
     }
   }
 
-  function loadRequests() {
-    onValue(ref(db, "lichnghi/"), snapshot => {
-      const data = snapshot.val();
-      tableBody.innerHTML = "";
-      if (!data) {
-        tableBody.innerHTML = "<tr><td colspan='5'>Không có dữ liệu</td></tr>";
-        return;
-      }
-
-      summarizeNextWeek(data);
-
-      const entries = [];
-
-      for (const date in data) {
-        for (const shift in data[date]) {
-          for (const id in data[date][shift]) {
-            const req = data[date][shift][id];
-            const name = req.name;
-            const reason = req.reason || "-";
-            const status = req.status || "chờ duyệt";
-            const formattedDate = formatVietnameseDate(date);
-
-            const key = `${name}|${shift}|${status}|${reason}`;
-            const existing = entries.find(e => e.key === key);
-            if (existing) {
-              existing.requests.push({ date, id });
-              existing.dates.push(formattedDate);
-            } else {
-              entries.push({
-                key, name, shift, status, reason,
-                dates: [formattedDate],
-                requests: [{ date, id }]
-              });
-            }
-          }
-        }
-      }
-
-      for (const entry of entries) {
-        const { name, shift, status, reason, dates, requests } = entry;
-        let statusContent = "";
-if (status === "đã duyệt") {
-  statusContent = `<i class="fa-solid fa-circle-check text-success fs-3" role="button" title="Đã duyệt" onclick='showActionPopup(${JSON.stringify(requests)}, "${shift}")'></i>`;
-} else if (status === "từ chối") {
-  statusContent = `<i class="fa-solid fa-circle-xmark text-danger fs-3" role="button" title="Từ chối" onclick='showActionPopup(${JSON.stringify(requests)}, "${shift}")'></i>`;
-} else {
-  statusContent = `<span class="text-warning fw-bold" role="button" onclick='showActionPopup(${JSON.stringify(requests)}, "${shift}")'>Chờ duyệt</span>`;
-}
-
-const tr = document.createElement("tr");
-tr.innerHTML = `
-  <td>${name} <br><span class="text-muted">${shift}</span></td>
-  <td>${dates.sort().join("<br>")}</td>
-  <td>${reason}</td>
-  <td>${statusContent}</td>
-  <td><i class="fa fa-ellipsis-h text-muted"></i></td>
-`;
-
-        tableBody.appendChild(tr);
-      }
-    });
-  }
-
   loadRequests();
-</script>
-<!-- Toast thông báo -->
-<div id="toast" class="toast position-fixed top-0 start-50 translate-middle-x bg-dark text-white px-4 py-2 rounded" style="display: none; z-index: 9999;"></div>
-
-<!-- Popup xử lý -->
-<div id="actionPopup" class="popup-overlay" style="display: none;">
-  <div class="popup-content">
-    <p>Bạn muốn xử lý yêu cầu này?</p>
-    <div class="popup-buttons">
-      <button id="approveBtn" class="approve-btn">
-        <i class="fa fa-check"></i> Duyệt
-      </button>
-      <button id="rejectBtn" class="reject-btn">
-        <i class="fa fa-times"></i> Từ chối
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Bootstrap JS + Tooltip -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  // Kích hoạt tooltip nếu có
-  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
-    new bootstrap.Tooltip(el);
-  });
 </script>
 </body>
 </html>
