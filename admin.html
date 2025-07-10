@@ -222,10 +222,7 @@
       <!-- Các thẻ yêu cầu nghỉ sẽ được render tại đây -->
     </div>
 
-    <button id="clearAllBtn" class="delete-all-btn">
-      <i class="fa-solid fa-trash"></i> Xoá tất cả yêu cầu nghỉ
-    </button>
-
+   
     <h3>🗓️ Lịch nghỉ tuần tới (Đã duyệt)</h3>
     <div id="weekSchedule" class="mt-4">
       <!-- Các thẻ ngày sẽ được render tại đây -->
@@ -300,32 +297,7 @@
       showToast("❌ Đã từ chối yêu cầu.");
     });
 
-    document.getElementById("clearAllBtn").addEventListener("click", async () => {
-      if (!confirm("Bạn có chắc muốn xoá các yêu cầu từ Thứ Hai đến Thứ Tư của tuần này?")) return;
-
-      onValue(ref(db, "lichnghi/"), async (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-
-        const today = new Date();
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - today.getDay());
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 6);
-
-        for (const dateKey in data) {
-          const date = new Date(dateKey);
-          const dayOfWeek = date.getDay();
-          const isInThisWeek = date >= weekStart && date <= weekEnd;
-          const isThuHaiToThuTu = dayOfWeek >= 1 && dayOfWeek <= 3;
-          if (isInThisWeek && isThuHaiToThuTu) {
-            await set(ref(db, `lichnghi/${dateKey}`), null);
-          }
-        }
-
-        showToast("🗑️ Đã xoá yêu cầu Thứ 2 → Thứ 4 của tuần này.");
-      }, { onlyOnce: true });
-    });
+   
 
     function formatVietnameseDate(dateStr) {
       const date = new Date(dateStr);
