@@ -178,25 +178,37 @@
   <label for="name">👤 Chọn tên của bạn:</label>
   <select id="name">
     <option value="">-- Chọn nhân viên --</option>
-    <option value="Thành|ca sáng">Thành - ca sáng</option>
-    <option value="Nghi|ca sáng">Nghi - ca sáng</option>
-    <option value="Vân|ca sáng">Vân - ca sáng</option>
-    <option value="An|spa">An - spa</option>
-    <option value="Uyên|spa">Uyên - spa</option>
-    <option value="Vỹ|petdog">Vỹ - petdog</option>
-    <option value="Toàn|petdog">Toàn - petdog</option>
-    <option value="Hằng|ca sáng">Hằng - ca sáng</option>
-    <option value="Vy|ca tối">Vy - ca tối</option>
-    <option value="Khang|ca tối">Khang - ca tối</option>
-    <option value="Thông|ca tối">Thông - ca tối</option>
-  </select>
 
-  <label for="type">📅 Hình thức nghỉ:</label>
-  <select id="type">
-    <option value="">-- Chọn --</option>
-    <option value="1">Nghỉ 1 ngày</option>
-    <option value="many">Nghỉ nhiều ngày</option>
+<!-- Ca sáng -->
+<option value="Thành|ca sáng">Thành - ca sáng</option>
+<option value="Nghi|ca sáng">Nghi - ca sáng</option>
+<option value="Vân|ca sáng">Vân - ca sáng</option>
+<option value="Hằng|ca sáng">Hằng - ca sáng</option>
+<option value="Uyên|ca sáng">Uyên - ca sáng</option>
+
+<!-- Spa -->
+<option value="An|spa">An - spa</option>
+<option value="Uyên|spa">Uyên - spa</option>
+
+<!-- Petdog -->
+<option value="Vỹ|petdog">Vỹ - petdog</option>
+<option value="Toàn|petdog">Toàn - petdog</option>
+
+<!-- Ca tối -->
+<option value="Vy|ca tối">Vy - ca tối</option>
+<option value="Khang|ca tối">Khang - ca tối</option>
+<option value="Thông|ca tối">Thông - ca tối</option>
+
   </select>
+  <div id="typeContainer" class="hidden">
+    <label for="type">📅 Hình thức nghỉ:</label>
+    <select id="type">
+      <option value="">-- Chọn --</option>
+      <option value="1">Nghỉ 1 ngày</option>
+      <option value="many">Nghỉ nhiều ngày</option>
+    </select>
+  </div>
+
   <form id="leaveForm" class="hidden">
     <div id="singleSection" class="hidden">
       <h4>🗓 Vui lòng chọn ngày nghỉ</h4>
@@ -243,6 +255,7 @@
   const tableBody = document.getElementById("tableBody");
   const nameSelect = document.getElementById("name");
   const typeSelect = document.getElementById("type");
+  const typeContainer = document.getElementById("typeContainer");
   const form = document.getElementById("leaveForm");
   const statusEl = document.getElementById("status");
   const singleSection = document.getElementById("singleSection");
@@ -292,9 +305,23 @@
     return data && Object.values(data).some(e => e.status === "chờ duyệt");
   }
 
+  nameSelect.addEventListener("change", () => {
+    const nameRaw = nameSelect.value;
+    if (nameRaw) {
+      typeContainer.classList.remove("hidden");
+      typeSelect.value = "";
+      form.classList.add("hidden");
+      singleSection.classList.add("hidden");
+      multiSection.classList.add("hidden");
+    } else {
+      typeContainer.classList.add("hidden");
+      form.classList.add("hidden");
+    }
+  });
+
   typeSelect.addEventListener("change", async () => {
     const nameRaw = nameSelect.value;
-    if (!nameRaw) return alert("Vui lòng chọn tên nhân viên!");
+    if (!nameRaw) return;
 
     form.classList.remove("hidden");
 
@@ -309,7 +336,7 @@
         const dateStr = d.toISOString().split("T")[0];
         const [_, shift] = nameRaw.split("|");
         const conflict = await checkDuplicate(dateStr, shift);
-        const label = `${formatVietnameseDate(dateStr)}${conflict ? " (Đã đầy)" : ""}`;
+        const label = `${formatVietnameseDate(dateStr)}${conflict ? " (Đã có người chọn)" : ""}`;
         weekdaySelect.innerHTML += `<option value="${dateStr}" ${conflict ? "disabled" : ""}>${label}</option>`;
       }
     } else {
@@ -317,7 +344,6 @@
       singleSection.classList.add("hidden");
     }
   });
-
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const [name, shift] = nameSelect.value.split("|");
@@ -431,13 +457,23 @@
           entry.status === "đã duyệt" ? "success" :
           entry.status === "từ chối" ? "error" : "pending";
 
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${entry.name}</td>
-          <td>${entry.dates.sort().join(", ")}</td>
-          <td>${entry.shift}</td>
-          <td class="${statusClass}">${entry.status}</td>
-        `;
+       let statusContent = "";
+if (entry.status === "đã duyệt") {
+  statusContent = `<i class="fa-solid fa-circle-check" style="color: #27ae60; font-size: 28px;" title="Đã duyệt"></i>`;
+} else if (entry.status === "từ chối") {
+  statusContent = `<i class="fa-solid fa-circle-xmark" style="color: #e74c3c; font-size: 28px;" title="Từ chối"></i>`;
+} else {
+  statusContent = `<span style="color: #f39c12; font-weight: bold;">Chờ duyệt</span>`;
+}
+
+const tr = document.createElement("tr");
+tr.innerHTML = `
+  <td>${entry.name}</td>
+  <td>${entry.dates.sort().join(", ")}</td>
+  <td>${entry.shift}</td>
+  <td>${statusContent}</td>
+`;
+
         tableBody.appendChild(tr);
       }
     });
