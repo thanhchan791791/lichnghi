@@ -13,6 +13,19 @@
       background: linear-gradient(to right, #ffe0e0, #fff2d6);
       padding: 20px;
     }
+.name-tag {
+  background-color: #fdebd0;
+  margin: 2px 0;
+  padding: 4px 6px;
+  border-radius: 6px;
+  display: block; /* Chuyển từ inline-block sang block để xuống dòng tự nhiên */
+  color: #a04000;
+  font-weight: 500;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+}
+
 
     .container {
       background: #fff;
@@ -29,15 +42,18 @@
       margin-bottom: 20px;
     }
 
-    .request-card {
-      background: #fffaf5;
-      border: 1px solid #f0d1b5;
-      border-left: 6px solid #e67e22;
-      border-radius: 10px;
-      padding: 15px 20px;
-      margin-bottom: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
+   .request-card {
+  background: #fffaf5;
+  border: 1px solid #f0d1b5;
+  border-left: 6px solid #e67e22;
+  border-radius: 10px;
+  padding: 15px 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 
     .request-card h5 {
       margin: 0 0 5px;
@@ -155,12 +171,10 @@
     </button>
 
     <h3>🗓️ Lịch nghỉ tuần tới (Đã duyệt)</h3>
-    <div class="table-responsive">
-      <table class="table table-striped" id="timetable">
-        <thead><tr id="dayHeaderRow"></tr></thead>
-        <tbody><tr id="dayDataRow"></tr></tbody>
-      </table>
-    </div>
+    <div id="weekSchedule" class="mt-4">
+  <!-- Các thẻ ngày sẽ được render tại đây -->
+</div>
+
   </div>
 <!-- Popup xử lý -->
 <div id="actionPopup" class="popup-overlay">
@@ -307,50 +321,50 @@
   }
 
   function summarizeNextWeek(data) {
-    const dayHeaderRow = document.getElementById("dayHeaderRow");
-    const dayDataRow = document.getElementById("dayDataRow");
-    dayHeaderRow.innerHTML = "";
-    dayDataRow.innerHTML = "";
+  const weekSchedule = document.getElementById("weekSchedule");
+  weekSchedule.innerHTML = "";
 
-    const today = new Date();
-    const nextWeek = {};
+  const today = new Date();
+  const nextWeek = {};
 
-    for (let i = 1; i <= 7; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + ((8 - today.getDay()) % 7) + i - 1);
-      const dateKey = date.toISOString().split("T")[0];
-      const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][date.getDay()];
-      nextWeek[dateKey] = {
-        label: `${weekday}<br><small>${dateKey}</small>`,
-        names: []
-      };
-    }
+  for (let i = 1; i <= 7; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + ((8 - today.getDay()) % 7) + i - 1);
+    const dateKey = date.toISOString().split("T")[0];
+    const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][date.getDay()];
+    nextWeek[dateKey] = {
+      label: `${weekday}, ${dateKey}`,
+      names: []
+    };
+  }
 
-    for (const date in data) {
-      if (!nextWeek[date]) continue;
-      for (const shift in data[date]) {
-        for (const id in data[date][shift]) {
-          const req = data[date][shift][id];
-          if (req.status === "đã duyệt") {
-            nextWeek[date].names.push(req.name);
-          }
+  for (const date in data) {
+    if (!nextWeek[date]) continue;
+    for (const shift in data[date]) {
+      for (const id in data[date][shift]) {
+        const req = data[date][shift][id];
+        if (req.status === "đã duyệt") {
+          nextWeek[date].names.push(`${req.name} (${shift})`);
         }
       }
     }
-
-    for (const date in nextWeek) {
-      const th = document.createElement("th");
-      th.innerHTML = nextWeek[date].label;
-      dayHeaderRow.appendChild(th);
-
-      const td = document.createElement("td");
-      const nameList = nextWeek[date].names;
-      td.innerHTML = nameList.length === 0
-        ? "<i>Không có</i>"
-        : nameList.map(name => `<div class="d-block text-truncate name-tag">${name}</div>`).join("");
-      dayDataRow.appendChild(td);
-    }
   }
+
+  for (const date in nextWeek) {
+    const dayCard = document.createElement("div");
+    dayCard.className = "request-card";
+    dayCard.innerHTML = `
+      <h5>${nextWeek[date].label}</h5>
+      ${
+        nextWeek[date].names.length === 0
+        ? "<div class='text-muted'><i>Không có ai nghỉ</i></div>"
+        : nextWeek[date].names.map(name => `<div class="name-tag">${name}</div>`).join("")
+      }
+    `;
+    weekSchedule.appendChild(dayCard);
+  }
+}
+
 
   loadRequests();
 </script>
