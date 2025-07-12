@@ -342,13 +342,16 @@
 
   <!-- Popup yêu cầu đã xử lý -->
   <div id="popupDaXuLy" class="popup-overlay">
-    <div class="popup-content" style="max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
-      <h5 class="mb-3"><i class="fa fa-list-check"></i> Danh sách yêu cầu đã xử lý</h5>
-      <div id="daXuLyList"></div>
-      <div class="popup-buttons mt-3" style="border-top: 1px solid #eee; padding-top: 12px;">
-        <button class="reject-btn" onclick="anDanhSachDaXuLy()">Đóng</button>
-      </div>
-    </div>
+    <div class="popup-content" style="max-width: 600px; width: 90%; max-height: 90vh; display: flex; flex-direction: column;">
+  <h5 class="mb-3"><i class="fa fa-list-check"></i> Danh sách yêu cầu đã xử lý</h5>
+
+  <div id="daXuLyList" style="overflow-y: auto; flex: 1; padding-right: 6px; margin-bottom: 12px;"></div>
+
+  <div class="popup-buttons" style="border-top: 1px solid #eee; padding-top: 12px;">
+    <button class="reject-btn" onclick="anDanhSachDaXuLy()">Đóng</button>
+  </div>
+</div>
+
   </div>
   <!-- Popup thêm nhân viên -->
   <div id="popupNhanVien" class="popup-overlay">
