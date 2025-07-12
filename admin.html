@@ -143,7 +143,6 @@
     animation: slideIn 0.3s ease;
   }
 
-  /* === ĐÃ SỬA: popup danh sách nhân viên có max-height + cuộn === */
   #popupDanhSach .popup-content {
     width: 320px;
     max-height: 90vh;
@@ -234,14 +233,12 @@
       font-size: 20px;
     }
   }
-
   #popupNhanVien input,
   #popupNhanVien select {
     padding: 10px;
     font-size: 15px;
   }
 
-  /* Thiết kế bảng danh sách nhân viên */
   .nhanvien-table {
     background-color: #fffefc;
     border-radius: 12px;
@@ -277,7 +274,6 @@
     gap: 8px;
   }
 
-  /* Popup xác nhận xoá nhân viên */
   #confirmDeletePopup {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -299,23 +295,26 @@
     background: #fff;
     animation: slideIn 0.3s ease;
   }
-</style>
-
+  </style>
 </head>
 <body>
   <div class="container">
     <h2><i class="fa-solid fa-shield-halved"></i> Quản lý nghỉ phép</h2>
 
-    <!-- Nút Thêm & Xem danh sách nhân viên -->
+    <!-- Nút Thêm & Xem danh sách nhân viên & Nút xem yêu cầu đã xử lý -->
     <div class="d-flex justify-content-end gap-2 mb-3">
       <button class="btn btn-primary px-4 py-2" onclick="hienDanhSachNhanVien()">
         <i class="fa fa-users"></i> Danh sách nhân viên
+      </button>
+      <button class="btn btn-secondary px-4 py-2" onclick="hienDanhSachDaXuLy()">
+        <i class="fa fa-check-double"></i> Yêu cầu đã xử lý
       </button>
       <button class="btn btn-success px-4 py-2" onclick="hienFormNhanVien()">
         <i class="fa fa-plus"></i> Thêm nhân viên
       </button>
     </div>
 
+    <!-- Danh sách yêu cầu đang chờ duyệt -->
     <div id="requestList">
       <!-- Các thẻ yêu cầu nghỉ sẽ được render tại đây -->
     </div>
@@ -341,6 +340,16 @@
     </div>
   </div>
 
+  <!-- Popup yêu cầu đã xử lý -->
+  <div id="popupDaXuLy" class="popup-overlay">
+    <div class="popup-content" style="max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+      <h5 class="mb-3"><i class="fa fa-list-check"></i> Danh sách yêu cầu đã xử lý</h5>
+      <div id="daXuLyList"></div>
+      <div class="popup-buttons mt-3" style="border-top: 1px solid #eee; padding-top: 12px;">
+        <button class="reject-btn" onclick="anDanhSachDaXuLy()">Đóng</button>
+      </div>
+    </div>
+  </div>
   <!-- Popup thêm nhân viên -->
   <div id="popupNhanVien" class="popup-overlay">
     <div class="popup-content" style="width: 360px; max-width: 90%;">
@@ -362,21 +371,18 @@
 
   <!-- Popup danh sách nhân viên -->
   <div id="popupDanhSach" class="popup-overlay">
-  <div class="popup-content">
-    <h5 class="mb-3"><i class="fa fa-user-group"></i> Danh sách nhân viên</h5>
-    
-    <!-- Phần cuộn nội dung -->
-    <div id="danhSachNhanVienContent" style="overflow-y: auto; flex: 1; padding-right: 6px;">
-      <!-- Danh sách sẽ render tại đây -->
-    </div>
-    
-    <!-- Nút Đóng luôn nằm dưới cùng -->
-    <div class="popup-buttons mt-3" style="border-top: 1px solid #eee; padding-top: 12px;">
-      <button class="reject-btn" onclick="anDanhSachNhanVien()">Đóng</button>
+    <div class="popup-content">
+      <h5 class="mb-3"><i class="fa fa-user-group"></i> Danh sách nhân viên</h5>
+      
+      <div id="danhSachNhanVienContent" style="overflow-y: auto; flex: 1; padding-right: 6px;">
+        <!-- Danh sách sẽ render tại đây -->
+      </div>
+      
+      <div class="popup-buttons mt-3" style="border-top: 1px solid #eee; padding-top: 12px;">
+        <button class="reject-btn" onclick="anDanhSachNhanVien()">Đóng</button>
+      </div>
     </div>
   </div>
-</div>
-
 
   <!-- Popup xác nhận xoá nhân viên -->
   <div id="confirmDeletePopup" class="popup-overlay">
@@ -391,6 +397,7 @@
 
   <!-- Toast thông báo -->
   <div id="toast"></div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
   import { getDatabase, ref, onValue, update, set, remove } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
@@ -424,7 +431,6 @@
     document.getElementById("tenNhanVienMoi").value = "";
     document.getElementById("caLamMoi").value = "";
   };
-
   window.luuNhanVienMoi = async () => {
     const ten = document.getElementById("tenNhanVienMoi").value.trim();
     const ca = document.getElementById("caLamMoi").value;
@@ -448,6 +454,7 @@
     }
   };
 
+  // Xử lý danh sách nhân viên
   const danhSachNhanVienContent = document.getElementById("danhSachNhanVienContent");
   window.hienDanhSachNhanVien = () => {
     loadDanhSachNhanVien();
@@ -538,6 +545,7 @@
     }, { onlyOnce: true });
   }
 
+  // Hiện popup xử lý yêu cầu
   const requestList = document.getElementById("requestList");
   let currentRequests = [];
   let currentShift = "";
@@ -548,22 +556,27 @@
     document.getElementById("actionPopup").classList.add("show");
   };
 
+  // Duyệt
   document.getElementById("approveBtn").addEventListener("click", async () => {
     for (const { date, id } of currentRequests) {
       await update(ref(db, `lichnghi/${date}/${currentShift}/${id}`), { status: "đã duyệt" });
     }
     document.getElementById("actionPopup").classList.remove("show");
     showToast("✅ Đã duyệt thành công.");
+    loadRequests();
   });
 
+  // Từ chối
   document.getElementById("rejectBtn").addEventListener("click", async () => {
     for (const { date, id } of currentRequests) {
       await update(ref(db, `lichnghi/${date}/${currentShift}/${id}`), { status: "từ chối" });
     }
     document.getElementById("actionPopup").classList.remove("show");
     showToast("❌ Đã từ chối yêu cầu.");
+    loadRequests();
   });
 
+  // Xử lý định dạng ngày
   function formatVietnameseDate(dateStr) {
     const date = new Date(dateStr);
     const days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
@@ -573,7 +586,8 @@
     return `${dayName}, ${day}/${month}`;
   }
 
-  function loadRequests() {
+  // Tải yêu cầu nghỉ
+  function loadRequests(showProcessed = false) {
     onValue(ref(db, "lichnghi/"), snapshot => {
       const data = snapshot.val();
       requestList.innerHTML = "";
@@ -590,7 +604,12 @@
         for (const shift in data[date]) {
           for (const id in data[date][shift]) {
             const req = data[date][shift][id];
-            const key = `${req.name}|${shift}|${req.status || "chờ duyệt"}|${req.reason || "-"}`;
+            const status = req.status || "chờ duyệt";
+            const isProcessed = status === "đã duyệt" || status === "từ chối";
+            if (!showProcessed && isProcessed) continue;
+            if (showProcessed && status === "chờ duyệt") continue;
+
+            const key = `${req.name}|${shift}|${status}|${req.reason || "-"}`;
             const formattedDate = formatVietnameseDate(date);
 
             const existing = entries.find(e => e.key === key);
@@ -599,7 +618,7 @@
               existing.dates.push(formattedDate);
             } else {
               entries.push({
-                key, name: req.name, shift, status: req.status || "chờ duyệt",
+                key, name: req.name, shift, status: status,
                 reason: req.reason || "-", dates: [formattedDate],
                 requests: [{ date, id }]
               });
@@ -623,12 +642,16 @@
           <div class="dates">📅 ${dates.sort().join("<br>")}</div>
           <div class="reason">📝 ${reason}</div>
           <div class="status-action">${statusHTML}</div>`;
+
+        // ✅ Cho cả yêu cầu đã xử lý được click chỉnh sửa
         card.addEventListener("click", () => showActionPopup(requests, shift));
+
         requestList.appendChild(card);
       }
     });
   }
 
+  // Tóm tắt lịch nghỉ tuần tới
   function summarizeNextWeek(data) {
     const weekSchedule = document.getElementById("weekSchedule");
     weekSchedule.innerHTML = "";
@@ -641,7 +664,7 @@
       date.setDate(today.getDate() + ((8 - today.getDay()) % 7) + i - 1);
       const dateKey = date.toISOString().split("T")[0];
       const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][date.getDay()];
-      nextWeek[dateKey] = { label: `${weekday}, ${dateKey}`, names: [] };
+      nextWeek[dateKey] = { label: `${weekday}`, names: [] };
     }
 
     for (const date in data) {
@@ -667,7 +690,91 @@
     }
   }
 
+  // Mặc định chỉ hiện chờ duyệt
   loadRequests();
+
+  // Các nút ngoài
+  window.hienYeuCauDaXuLy = () => loadRequests(true);
+  window.hienYeuCauChoDuyet = () => loadRequests(false);
+  const popupDaXuLy = document.getElementById("popupDaXuLy");
+const daXuLyList = document.getElementById("daXuLyList");
+
+// Hiện danh sách yêu cầu đã xử lý
+window.hienDanhSachDaXuLy = () => {
+  daXuLyList.innerHTML = "<p class='text-center text-muted'>Đang tải...</p>";
+  popupDaXuLy.classList.add("show");
+
+  onValue(ref(db, "lichnghi/"), snapshot => {
+    const data = snapshot.val();
+    daXuLyList.innerHTML = "";
+
+    if (!data) {
+      daXuLyList.innerHTML = "<p class='text-center text-muted'>Không có yêu cầu nào.</p>";
+      return;
+    }
+
+    const entries = [];
+
+    for (const date in data) {
+      for (const shift in data[date]) {
+        for (const id in data[date][shift]) {
+          const req = data[date][shift][id];
+          const status = req.status;
+          if (status !== "đã duyệt" && status !== "từ chối") continue;
+
+          const key = `${req.name}|${shift}|${status}|${req.reason || "-"}`;
+          const formattedDate = formatVietnameseDate(date);
+
+          const existing = entries.find(e => e.key === key);
+          if (existing) {
+            existing.requests.push({ date, id });
+            existing.dates.push(formattedDate);
+          } else {
+            entries.push({
+              key,
+              name: req.name,
+              shift,
+              status: status,
+              reason: req.reason || "-",
+              dates: [formattedDate],
+              requests: [{ date, id }]
+            });
+          }
+        }
+      }
+    }
+
+    for (const entry of entries) {
+      const { name, shift, status, reason, dates, requests } = entry;
+      const statusHTML = status === "đã duyệt"
+        ? `<i class="fa-solid fa-circle-check text-success" title="Đã duyệt"></i>`
+        : `<i class="fa-solid fa-circle-xmark text-danger" title="Từ chối"></i>`;
+
+      const card = document.createElement("div");
+      card.className = "request-card";
+      card.innerHTML = `
+        <h5>${name} <span class="shift">(${shift})</span></h5>
+        <div class="dates">📅 ${dates.sort().join("<br>")}</div>
+        <div class="reason">📝 ${reason}</div>
+        <div class="status-action">${statusHTML}</div>
+      `;
+      card.addEventListener("click", () => {
+        popupDaXuLy.classList.remove("show");  // Đóng danh sách đã xử lý
+        showActionPopup(requests, shift);      // Mở popup xử lý lại
+      });
+      daXuLyList.appendChild(card);
+    }
+
+    if (entries.length === 0) {
+      daXuLyList.innerHTML = "<p class='text-center text-muted'>Không có yêu cầu nào đã xử lý.</p>";
+    }
+  }, { onlyOnce: true });
+};
+
+window.anDanhSachDaXuLy = () => {
+  popupDaXuLy.classList.remove("show");
+};
+
 </script>
 </body>
 </html>
