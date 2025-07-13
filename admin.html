@@ -821,7 +821,7 @@ window.guiLichNghiTelegram = async () => {
     for (const date in nextWeek) {
       if (nextWeek[date].names.length > 0) {
         empty = false;
-message += `- ${nextWeek[date].label.slice(0,3)}: ${nextWeek[date].names.map(n => n.replace(/ \(.+?\)/, '')).join(", ")}\n`;
+message += `- ${nextWeek[date].label}: ${nextWeek[date].names.map(n => n.replace(/ \(.+?\)/, '')).join(", ")}\n`;
       }
     }
 
