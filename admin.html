@@ -156,6 +156,20 @@
     from { transform: translateY(-30px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.6; }
+}
+
+.pulse-text {
+  font-size: 14px;
+  font-style: italic;
+  color: #d35400;
+  text-align: center;
+  margin-top: 8px;
+  animation: pulse 1.6s infinite;
+}
 
   .popup-buttons {
     display: flex;
@@ -707,13 +721,16 @@
           ? `<i class="fa-solid fa-circle-xmark text-danger" title="Từ chối"></i>`
           : `<span class="text-warning">Chờ duyệt</span>`;
 
-        const card = document.createElement("div");
-        card.className = "request-card";
-        card.innerHTML = `
-          <h5>${name} <span class="shift">(${shift})</span></h5>
-          <div class="dates">📅 ${dates.sort().join("<br>")}</div>
-          <div class="reason">📝 ${reason}</div>
-          <div class="status-action">${statusHTML}</div>`;
+       const card = document.createElement("div");
+card.className = "request-card";
+card.innerHTML = `
+  <h5>${name} <span class="shift">(${shift})</span></h5>
+  <div class="dates"> ${dates.sort().join("<br>")}</div>
+  <div class="reason">📝Lí do - ${reason}</div>
+${status === "chờ duyệt" ? `<div class="pulse-text"> Ấn vào để duyệt hoặc từ chối</div>` : ""}
+  <div class="status-action">${statusHTML}</div>
+`;
+
 
         // ✅ Cho cả yêu cầu đã xử lý được click chỉnh sửa
         card.addEventListener("click", () => showActionPopup(requests, shift));
