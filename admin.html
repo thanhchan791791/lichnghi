@@ -716,68 +716,83 @@
     return `${dayName}, ${day}/${month}`;
   }
 
-  function loadRequests(showProcessed = false) {
-    onValue(ref(db, "lichnghi/"), snapshot => {
-      const data = snapshot.val();
-      requestList.innerHTML = "";
+ function loadRequests(showProcessed = false) {
+  onValue(ref(db, "lichnghi/"), snapshot => {
+    const data = snapshot.val();
+    requestList.innerHTML = "";
 
-      if (!data) {
-        requestList.innerHTML = "<p class='text-center text-muted'>Không có yêu cầu nghỉ nào.</p>";
-        return;
-      }
+    const entries = [];
+    const uniquePendingCards = new Set(); // ✅ Sử dụng Set để tránh trùng
 
-      summarizeNextWeek(data);
-      const entries = [];
+    if (!data) {
+      requestList.innerHTML = "<p class='text-center text-muted'>Không có yêu cầu nghỉ nào.</p>";
+      document.getElementById("pendingCount").textContent = 0;
+      return;
+    }
 
-      for (const date in data) {
-        for (const shift in data[date]) {
-          for (const id in data[date][shift]) {
-            const req = data[date][shift][id];
-            const status = req.status || "chờ duyệt";
-            const isProcessed = status === "đã duyệt" || status === "từ chối";
-            if (!showProcessed && isProcessed) continue;
-            if (showProcessed && status === "chờ duyệt") continue;
+    summarizeNextWeek(data);
 
-            const key = `${req.name}|${shift}|${status}|${req.reason || "-"}`;
-            const formattedDate = formatVietnameseDate(date);
+    for (const date in data) {
+      for (const shift in data[date]) {
+        for (const id in data[date][shift]) {
+          const req = data[date][shift][id];
+          const status = req.status || "chờ duyệt";
+          const isProcessed = status === "đã duyệt" || status === "từ chối";
+          if (!showProcessed && isProcessed) continue;
+          if (showProcessed && status === "chờ duyệt") continue;
 
-            const existing = entries.find(e => e.key === key);
-            if (existing) {
-              existing.requests.push({ date, id });
-              existing.dates.push(formattedDate);
-            } else {
-              entries.push({
-                key, name: req.name, shift, status,
-                reason: req.reason || "-", dates: [formattedDate],
-                requests: [{ date, id }]
-              });
-            }
+          // ✅ Key để gom nhóm thẻ
+          const key = `${req.name}|${shift}|${status}|${req.reason || "-"}`;
+          const formattedDate = formatVietnameseDate(date);
+
+          // ✅ Ghi nhận các thẻ đang chờ duyệt duy nhất
+          if (status === "chờ duyệt") {
+            uniquePendingCards.add(`${req.name}|${shift}|${status}`);
+          }
+
+          const existing = entries.find(e => e.key === key);
+          if (existing) {
+            existing.requests.push({ date, id });
+            existing.dates.push(formattedDate);
+          } else {
+            entries.push({
+              key, name: req.name, shift, status,
+              reason: req.reason || "-", dates: [formattedDate],
+              requests: [{ date, id }]
+            });
           }
         }
       }
+    }
 
-      for (const entry of entries) {
-        const { name, shift, status, reason, dates, requests } = entry;
-        const statusHTML = status === "đã duyệt"
-          ? `<i class="fa-solid fa-circle-check text-success" title="Đã duyệt"></i>`
-          : status === "từ chối"
-            ? `<i class="fa-solid fa-circle-xmark text-danger" title="Từ chối"></i>`
-            : `<span class="text-warning">Chờ duyệt</span>`;
+    // ✅ Cập nhật số lượng thẻ đang chờ duyệt
+    document.getElementById("pendingCount").textContent = uniquePendingCards.size;
 
-        const card = document.createElement("div");
-        card.className = "request-card";
-        card.innerHTML = `
-          <h5>${name} <span class="shift">(${shift})</span></h5>
-          <div class="dates">${dates.sort().join("<br>")}</div>
-          ${reason && reason.trim() !== "-" ? `<div class="reason">📝Lí do - ${reason}</div>` : ""}
-          ${status === "chờ duyệt" ? `<div class="pulse-text">Ấn vào để duyệt hoặc từ chối</div>` : ""}
-          <div class="status-action">${statusHTML}</div>
-        `;
+    for (const entry of entries) {
+      const { name, shift, status, reason, dates, requests } = entry;
+      const statusHTML = status === "đã duyệt"
+        ? `<i class="fa-solid fa-circle-check text-success" title="Đã duyệt"></i>`
+        : status === "từ chối"
+          ? `<i class="fa-solid fa-circle-xmark text-danger" title="Từ chối"></i>`
+          : `<span class="text-warning">Chờ duyệt</span>`;
+
+      const card = document.createElement("div");
+      card.className = "request-card";
+      card.innerHTML = `
+        <h5>${name} <span class="shift">(${shift})</span></h5>
+        <div class="dates">${dates.sort().join("<br>")}</div>
+        ${reason && reason.trim() !== "-" ? `<div class="reason">📝Lí do - ${reason}</div>` : ""}
+        ${status === "chờ duyệt" ? `<div class="pulse-text">Ấn vào để duyệt hoặc từ chối</div>` : ""}
+        <div class="status-action">${statusHTML}</div>
+      `;
+      if (status === "chờ duyệt") {
         card.addEventListener("click", () => showActionPopup(requests, shift));
-        requestList.appendChild(card);
       }
-    });
-  }
+      requestList.appendChild(card);
+    }
+  });
+}
+  
 
   function summarizeNextWeek(data) {
     const weekSchedule = document.getElementById("weekSchedule");
@@ -790,8 +805,11 @@
       const date = new Date(today);
       date.setDate(today.getDate() + ((8 - today.getDay()) % 7) + i - 1);
       const dateKey = date.toISOString().split("T")[0];
-      const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][date.getDay()];
-      nextWeek[dateKey] = { label: `${weekday}`, names: [] };
+     const day = String(date.getDate()).padStart(2, "0");
+const month = String(date.getMonth() + 1).padStart(2, "0");
+const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][date.getDay()];
+nextWeek[dateKey] = { label: `${weekday} (${day}/${month})`, names: [] };
+
     }
 
     for (const date in data) {
@@ -818,29 +836,7 @@
   }
 
 loadRequests();
-capNhatSoYeuCauChoDuyet();
-function capNhatSoYeuCauChoDuyet() {
-  const counter = document.getElementById("pendingCount");
-  onValue(ref(db, "lichnghi/"), snapshot => {
-    const data = snapshot.val();
-    let count = 0;
 
-    if (data) {
-      for (const date in data) {
-        for (const shift in data[date]) {
-          for (const id in data[date][shift]) {
-            const req = data[date][shift][id];
-            if (!req.status || req.status === "chờ duyệt") {
-              count++;
-            }
-          }
-        }
-      }
-    }
-
-    counter.textContent = count;
-  }, { onlyOnce: true });
-}
 
   window.hienYeuCauDaXuLy = () => loadRequests(true);
   window.hienYeuCauChoDuyet = () => loadRequests(false);
@@ -923,91 +919,115 @@ function capNhatSoYeuCauChoDuyet() {
     popupDaXuLy.classList.remove("show");
   };
 
-  window.guiLichNghiTelegram = async () => {
-    try {
-      const snapshot = await get(ref(db, "lichnghi/"));
-      const data = snapshot.val();
+ window.guiLichNghiTelegram = async () => {
+  try {
+    const snapshot = await get(ref(db, "lichnghi/"));
+    const data = snapshot.val();
 
-      if (!data) {
-        showToast("📭 Không có lịch nghỉ để gửi.");
-        return;
-      }
+    if (!data) {
+      showToast("📭 Không có lịch nghỉ để gửi.");
+      return;
+    }
 
-      const today = new Date();
-      const weekStart = new Date(today);
-      weekStart.setDate(today.getDate() + ((8 - today.getDay()) % 7));
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6);
+    const today = new Date();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() + ((8 - today.getDay()) % 7));
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
 
-      const nextWeek = {};
-      const futureDates = [];
+    const formatDate = (date) => {
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      return `${day}/${month}`;
+    };
 
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(weekStart);
-        date.setDate(weekStart.getDate() + i);
-        const dateKey = date.toISOString().split("T")[0];
-        const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][date.getDay()];
-        nextWeek[dateKey] = { label: `${weekday}`, names: [] };
-      }
+    const weekLabel = `${formatDate(weekStart)} → ${formatDate(weekEnd)}`;
+    const updatedAt = `${formatDate(today)} – ${today.getHours().toString().padStart(2, "0")}:${today.getMinutes().toString().padStart(2, "0")}`;
 
-      for (const date in data) {
-        const currentDate = new Date(date);
-        for (const shift in data[date]) {
-          for (const id in data[date][shift]) {
-            const req = data[date][shift][id];
-            if (req.status === "đã duyệt") {
-              const line = `- ${req.name} (${shift})`;
-              if (nextWeek[date]) {
-                nextWeek[date].names.push(line);
-              } else if (currentDate > weekEnd) {
-                const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][currentDate.getDay()];
-                const dateLabel = `${weekday}, ${date.split("-").reverse().join("/")}`;
-                futureDates.push({ raw: date, display: dateLabel, name: line });
-              }
+    const weekdayLabels = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+    const nextWeek = {};
+    const futureDates = [];
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + i);
+      const key = date.toISOString().split("T")[0];
+      const label = `*${weekdayLabels[date.getDay()]} – ${formatDate(date)}*`;
+      nextWeek[key] = { label, names: [] };
+    }
+
+    for (const date in data) {
+      const currentDate = new Date(date);
+      for (const shift in data[date]) {
+        for (const id in data[date][shift]) {
+          const req = data[date][shift][id];
+          if (req.status === "đã duyệt") {
+            const line = `${req.name} — ${shift}`;
+            if (nextWeek[date]) {
+              nextWeek[date].names.push(line);
+            } else if (currentDate > weekEnd) {
+              const label = `${weekdayLabels[currentDate.getDay()]} – ${formatDate(currentDate)}`;
+              futureDates.push({ raw: date, display: label, name: line });
             }
           }
         }
       }
-
-      let message = "📅 *Lịch nghỉ tuần tới:*\n\n";
-      let emptyWeek = true;
-      for (const date in nextWeek) {
-        if (nextWeek[date].names.length > 0) {
-          emptyWeek = false;
-          message += `📌 *${nextWeek[date].label}:*\n${nextWeek[date].names.map(n => `• ${n}`).join("\n")}\n\n`;
-        }
-      }
-
-      if (emptyWeek) message += "_Chưa có ai đăng ký nghỉ tuần tới._\n";
-
-      if (futureDates.length > 0) {
-        message += "\n🔮 *Các ngày nghỉ sau tuần tới:*\n";
-        futureDates.sort((a, b) => new Date(a.raw) - new Date(b.raw));
-        futureDates.forEach(f => {
-          message += `📍 ${f.display}\n• ${f.name}\n`;
-        });
-      }
-
-      const token = "7807531189:AAGhMQ9jjew7Q9ywMDSTaGDy4Ns6XtPQUrI";
-      const chatId = "-4716169472";
-      const url = `https://api.telegram.org/bot${token}/sendMessage`;
-
-      await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: message,
-          parse_mode: "Markdown"
-        })
-      });
-
-      showToast("📨 Đã gửi lịch nghỉ lên Telegram.");
-    } catch (err) {
-      console.error(err);
-      showToast("❌ Gửi thất bại.");
     }
-  };
+
+    let message = `*📅 LỊCH NGHỈ DỰ KIẾN TUẦN: ${weekLabel}*\n`;
+    message += `Được cập nhật lúc: __${updatedAt}__\n\n`;
+    message += `──────────────────────────────\n`;
+
+    let hasData = false;
+    for (const date in nextWeek) {
+      if (nextWeek[date].names.length > 0) {
+        hasData = true;
+        message += `${nextWeek[date].label}\n`;
+        nextWeek[date].names.forEach(name => {
+          message += `• ${name}\n`;
+        });
+        message += `\n`;
+      }
+    }
+
+    if (!hasData) {
+      message += `_Chưa có ai đăng ký nghỉ tuần tới._\n\n`;
+    }
+
+    if (futureDates.length > 0) {
+      message += `──────────────────────────────\n`;
+      message += `*Tạm ứng lịch tuần tới:*\n`;
+      futureDates.sort((a, b) => new Date(a.raw) - new Date(b.raw));
+      futureDates.forEach(f => {
+        message += `• ${f.display}: ${f.name}\n`;
+      });
+      message += `\n`;
+    }
+
+    message += `*Lưu ý:* Vui lòng kiểm tra lại lịch trước khi sắp xếp ca trực.`;
+
+    const token = "7807531189:AAGhMQ9jjew7Q9ywMDSTaGDy4Ns6XtPQUrI";
+    const chatId = "-4716169472";
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: "Markdown"
+      })
+    });
+
+    showToast("📨 Đã gửi lịch nghỉ lên Telegram.");
+  } catch (err) {
+    console.error(err);
+    showToast("❌ Gửi thất bại.");
+  }
+};
+
+
 </script>
 
 <div id="pendingCounter">
