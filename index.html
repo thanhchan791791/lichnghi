@@ -582,7 +582,7 @@
   main();
 
   const now = new Date();
-  const isThursday = now.getDay() === 4;
+  const isThursday = now.getDay() === 0;
   const hour = now.getHours();
   const minute = now.getMinutes();
   const isAfter8AM = hour > 8 || (hour === 8 && minute >= 0);
