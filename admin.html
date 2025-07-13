@@ -302,17 +302,21 @@
     <h2><i class="fa-solid fa-shield-halved"></i> Quản lý nghỉ phép</h2>
 
     <!-- Nút Thêm & Xem danh sách nhân viên & Nút xem yêu cầu đã xử lý -->
-    <div class="d-flex justify-content-end gap-2 mb-3">
-      <button class="btn btn-primary px-4 py-2" onclick="hienDanhSachNhanVien()">
-        <i class="fa fa-users"></i> Danh sách nhân viên
-      </button>
-      <button class="btn btn-secondary px-4 py-2" onclick="hienDanhSachDaXuLy()">
-        <i class="fa fa-check-double"></i> Yêu cầu đã xử lý
-      </button>
-      <button class="btn btn-success px-4 py-2" onclick="hienFormNhanVien()">
-        <i class="fa fa-plus"></i> Thêm nhân viên
-      </button>
-    </div>
+   <div class="d-flex justify-content-end gap-2 mb-3">
+  <button class="btn btn-primary px-4 py-2" onclick="hienDanhSachNhanVien()">
+    <i class="fa fa-users"></i> Danh sách nhân viên
+  </button>
+  <button class="btn btn-secondary px-4 py-2" onclick="hienDanhSachDaXuLy()">
+    <i class="fa fa-check-double"></i> Yêu cầu đã xử lý
+  </button>
+  <button class="btn btn-success px-4 py-2" onclick="hienFormNhanVien()">
+    <i class="fa fa-plus"></i> Thêm nhân viên
+  </button>
+  <button class="btn btn-warning px-4 py-2" onclick="guiLichNghiTelegram()">
+    <i class="fa-brands fa-telegram"></i> Gửi lịch nghỉ
+  </button>
+</div>
+
 
     <!-- Danh sách yêu cầu đang chờ duyệt -->
     <div id="requestList">
@@ -776,6 +780,75 @@ window.hienDanhSachDaXuLy = () => {
 
 window.anDanhSachDaXuLy = () => {
   popupDaXuLy.classList.remove("show");
+};
+window.guiLichNghiTelegram = async () => {
+  try {
+    const snapshot = await import('https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js').then(({ get, ref }) =>
+      get(ref(db, "lichnghi/"))
+    );
+    const data = snapshot.val();
+
+    if (!data) {
+      showToast("📭 Không có lịch nghỉ để gửi.");
+      return;
+    }
+
+    const today = new Date();
+    const nextWeek = {};
+
+    for (let i = 1; i <= 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + ((8 - today.getDay()) % 7) + i - 1);
+      const dateKey = date.toISOString().split("T")[0];
+      const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][date.getDay()];
+      nextWeek[dateKey] = { label: `${weekday}`, names: [] };
+    }
+
+    for (const date in data) {
+      if (!nextWeek[date]) continue;
+      for (const shift in data[date]) {
+        for (const id in data[date][shift]) {
+          const req = data[date][shift][id];
+          if (req.status === "đã duyệt") {
+            nextWeek[date].names.push(`- ${req.name} (${shift})`);
+          }
+        }
+      }
+    }
+
+    let message = "📅 *Lịch nghỉ tuần tới:*\n\n";
+    let empty = true;
+    for (const date in nextWeek) {
+      if (nextWeek[date].names.length > 0) {
+        empty = false;
+message += `- ${nextWeek[date].label.slice(0,3)}: ${nextWeek[date].names.map(n => n.replace(/ \(.+?\)/, '')).join(", ")}\n`;
+      }
+    }
+
+    if (empty) {
+      showToast("📭 Tuần tới chưa có ai đăng ký nghỉ.");
+      return;
+    }
+
+    const token = "7807531189:AAGhMQ9jjew7Q9ywMDSTaGDy4Ns6XtPQUrI"; // 🔁 Thay bằng token bot
+    const chatId = "-4716169472";  // 🔁 Thay bằng chat_id nhóm
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: "Markdown"
+      })
+    });
+
+    showToast("📨 Đã gửi lịch nghỉ lên Telegram.");
+  } catch (err) {
+    console.error(err);
+    showToast("❌ Gửi thất bại.");
+  }
 };
 
 </script>
