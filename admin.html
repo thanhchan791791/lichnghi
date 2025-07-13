@@ -52,6 +52,19 @@
     background-color: #fff5ec;
     transform: scale(1.01);
   }
+#pendingCounter {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  background: #fff8e1;
+  border: 2px solid #ffc107;
+  padding: 10px 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  font-weight: bold;
+  color: #d35400;
+  z-index: 9999;
+}
 
   .request-card h5 {
     margin: 0 0 5px;
@@ -486,7 +499,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-  import { getDatabase, ref, onValue, update, set, remove } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+  import { getDatabase, ref, onValue, update, set, remove, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
@@ -517,6 +530,7 @@
     document.getElementById("tenNhanVienMoi").value = "";
     document.getElementById("caLamMoi").value = "";
   };
+
   window.luuNhanVienMoi = async () => {
     const ten = document.getElementById("tenNhanVienMoi").value.trim();
     const ca = document.getElementById("caLamMoi").value;
@@ -631,6 +645,35 @@
     }, { onlyOnce: true });
   }
 
+  // Đếm số yêu cầu đang chờ duyệt
+  function demYeuCauChoDuyet() {
+    const badge = document.getElementById("badgeChoDuyet");
+    if (!badge) return;
+
+    get(ref(db, "lichnghi/")).then(snapshot => {
+      const data = snapshot.val();
+      let count = 0;
+
+      if (data) {
+        for (const date in data) {
+          for (const shift in data[date]) {
+            for (const id in data[date][shift]) {
+              const req = data[date][shift][id];
+              if (!req.status || req.status === "chờ duyệt") {
+                count++;
+              }
+            }
+          }
+        }
+      }
+
+      badge.textContent = count > 0 ? count : "";
+      badge.style.display = count > 0 ? "inline-block" : "none";
+    });
+  }
+
+  // Gọi hàm đếm mỗi khi load
+  demYeuCauChoDuyet();
   // Hiện popup xử lý yêu cầu
   const requestList = document.getElementById("requestList");
   let currentRequests = [];
@@ -650,6 +693,7 @@
     document.getElementById("actionPopup").classList.remove("show");
     showToast("✅ Đã duyệt thành công.");
     loadRequests();
+    demYeuCauChoDuyet();
   });
 
   // Từ chối
@@ -660,9 +704,9 @@
     document.getElementById("actionPopup").classList.remove("show");
     showToast("❌ Đã từ chối yêu cầu.");
     loadRequests();
+    demYeuCauChoDuyet();
   });
 
-  // Xử lý định dạng ngày
   function formatVietnameseDate(dateStr) {
     const date = new Date(dateStr);
     const days = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
@@ -672,7 +716,6 @@
     return `${dayName}, ${day}/${month}`;
   }
 
-  // Tải yêu cầu nghỉ
   function loadRequests(showProcessed = false) {
     onValue(ref(db, "lichnghi/"), snapshot => {
       const data = snapshot.val();
@@ -704,7 +747,7 @@
               existing.dates.push(formattedDate);
             } else {
               entries.push({
-                key, name: req.name, shift, status: status,
+                key, name: req.name, shift, status,
                 reason: req.reason || "-", dates: [formattedDate],
                 requests: [{ date, id }]
               });
@@ -718,29 +761,24 @@
         const statusHTML = status === "đã duyệt"
           ? `<i class="fa-solid fa-circle-check text-success" title="Đã duyệt"></i>`
           : status === "từ chối"
-          ? `<i class="fa-solid fa-circle-xmark text-danger" title="Từ chối"></i>`
-          : `<span class="text-warning">Chờ duyệt</span>`;
+            ? `<i class="fa-solid fa-circle-xmark text-danger" title="Từ chối"></i>`
+            : `<span class="text-warning">Chờ duyệt</span>`;
 
-       const card = document.createElement("div");
-card.className = "request-card";
-card.innerHTML = `
-  <h5>${name} <span class="shift">(${shift})</span></h5>
-  <div class="dates"> ${dates.sort().join("<br>")}</div>
-  <div class="reason">📝Lí do - ${reason}</div>
-${status === "chờ duyệt" ? `<div class="pulse-text"> Ấn vào để duyệt hoặc từ chối</div>` : ""}
-  <div class="status-action">${statusHTML}</div>
-`;
-
-
-        // ✅ Cho cả yêu cầu đã xử lý được click chỉnh sửa
+        const card = document.createElement("div");
+        card.className = "request-card";
+        card.innerHTML = `
+          <h5>${name} <span class="shift">(${shift})</span></h5>
+          <div class="dates">${dates.sort().join("<br>")}</div>
+          ${reason && reason.trim() !== "-" ? `<div class="reason">📝Lí do - ${reason}</div>` : ""}
+          ${status === "chờ duyệt" ? `<div class="pulse-text">Ấn vào để duyệt hoặc từ chối</div>` : ""}
+          <div class="status-action">${statusHTML}</div>
+        `;
         card.addEventListener("click", () => showActionPopup(requests, shift));
-
         requestList.appendChild(card);
       }
     });
   }
 
-  // Tóm tắt lịch nghỉ tuần tới
   function summarizeNextWeek(data) {
     const weekSchedule = document.getElementById("weekSchedule");
     weekSchedule.innerHTML = "";
@@ -779,160 +817,202 @@ ${status === "chờ duyệt" ? `<div class="pulse-text"> Ấn vào để duyệt
     }
   }
 
-  // Mặc định chỉ hiện chờ duyệt
-  loadRequests();
-
-  // Các nút ngoài
-  window.hienYeuCauDaXuLy = () => loadRequests(true);
-  window.hienYeuCauChoDuyet = () => loadRequests(false);
-  const popupDaXuLy = document.getElementById("popupDaXuLy");
-const daXuLyList = document.getElementById("daXuLyList");
-
-// Hiện danh sách yêu cầu đã xử lý
-window.hienDanhSachDaXuLy = () => {
-  daXuLyList.innerHTML = "<p class='text-center text-muted'>Đang tải...</p>";
-  popupDaXuLy.classList.add("show");
-
+loadRequests();
+capNhatSoYeuCauChoDuyet();
+function capNhatSoYeuCauChoDuyet() {
+  const counter = document.getElementById("pendingCount");
   onValue(ref(db, "lichnghi/"), snapshot => {
     const data = snapshot.val();
-    daXuLyList.innerHTML = "";
+    let count = 0;
 
-    if (!data) {
-      daXuLyList.innerHTML = "<p class='text-center text-muted'>Không có yêu cầu nào.</p>";
-      return;
-    }
-
-    const entries = [];
-
-    for (const date in data) {
-      for (const shift in data[date]) {
-        for (const id in data[date][shift]) {
-          const req = data[date][shift][id];
-          const status = req.status;
-          if (status !== "đã duyệt" && status !== "từ chối") continue;
-
-          const key = `${req.name}|${shift}|${status}|${req.reason || "-"}`;
-          const formattedDate = formatVietnameseDate(date);
-
-          const existing = entries.find(e => e.key === key);
-          if (existing) {
-            existing.requests.push({ date, id });
-            existing.dates.push(formattedDate);
-          } else {
-            entries.push({
-              key,
-              name: req.name,
-              shift,
-              status: status,
-              reason: req.reason || "-",
-              dates: [formattedDate],
-              requests: [{ date, id }]
-            });
+    if (data) {
+      for (const date in data) {
+        for (const shift in data[date]) {
+          for (const id in data[date][shift]) {
+            const req = data[date][shift][id];
+            if (!req.status || req.status === "chờ duyệt") {
+              count++;
+            }
           }
         }
       }
     }
 
-    for (const entry of entries) {
-      const { name, shift, status, reason, dates, requests } = entry;
-      const statusHTML = status === "đã duyệt"
-        ? `<i class="fa-solid fa-circle-check text-success" title="Đã duyệt"></i>`
-        : `<i class="fa-solid fa-circle-xmark text-danger" title="Từ chối"></i>`;
-
-      const card = document.createElement("div");
-      card.className = "request-card";
-      card.innerHTML = `
-        <h5>${name} <span class="shift">(${shift})</span></h5>
-        <div class="dates">📅 ${dates.sort().join("<br>")}</div>
-        <div class="reason">📝 ${reason}</div>
-        <div class="status-action">${statusHTML}</div>
-      `;
-      card.addEventListener("click", () => {
-        popupDaXuLy.classList.remove("show");  // Đóng danh sách đã xử lý
-        showActionPopup(requests, shift);      // Mở popup xử lý lại
-      });
-      daXuLyList.appendChild(card);
-    }
-
-    if (entries.length === 0) {
-      daXuLyList.innerHTML = "<p class='text-center text-muted'>Không có yêu cầu nào đã xử lý.</p>";
-    }
+    counter.textContent = count;
   }, { onlyOnce: true });
-};
+}
 
-window.anDanhSachDaXuLy = () => {
-  popupDaXuLy.classList.remove("show");
-};
-window.guiLichNghiTelegram = async () => {
-  try {
-    const snapshot = await import('https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js').then(({ get, ref }) =>
-      get(ref(db, "lichnghi/"))
-    );
-    const data = snapshot.val();
+  window.hienYeuCauDaXuLy = () => loadRequests(true);
+  window.hienYeuCauChoDuyet = () => loadRequests(false);
 
-    if (!data) {
-      showToast("📭 Không có lịch nghỉ để gửi.");
-      return;
-    }
+  const popupDaXuLy = document.getElementById("popupDaXuLy");
+  const daXuLyList = document.getElementById("daXuLyList");
 
-    const today = new Date();
-    const nextWeek = {};
+  window.hienDanhSachDaXuLy = () => {
+    daXuLyList.innerHTML = "<p class='text-center text-muted'>Đang tải...</p>";
+    popupDaXuLy.classList.add("show");
 
-    for (let i = 1; i <= 7; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + ((8 - today.getDay()) % 7) + i - 1);
-      const dateKey = date.toISOString().split("T")[0];
-      const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][date.getDay()];
-      nextWeek[dateKey] = { label: `${weekday}`, names: [] };
-    }
+    onValue(ref(db, "lichnghi/"), snapshot => {
+      const data = snapshot.val();
+      daXuLyList.innerHTML = "";
 
-    for (const date in data) {
-      if (!nextWeek[date]) continue;
-      for (const shift in data[date]) {
-        for (const id in data[date][shift]) {
-          const req = data[date][shift][id];
-          if (req.status === "đã duyệt") {
-            nextWeek[date].names.push(`- ${req.name} (${shift})`);
+      if (!data) {
+        daXuLyList.innerHTML = "<p class='text-center text-muted'>Không có yêu cầu nào.</p>";
+        return;
+      }
+
+      const entries = [];
+
+      for (const date in data) {
+        for (const shift in data[date]) {
+          for (const id in data[date][shift]) {
+            const req = data[date][shift][id];
+            const status = req.status;
+            if (status !== "đã duyệt" && status !== "từ chối") continue;
+
+            const key = `${req.name}|${shift}|${status}|${req.reason || "-"}`;
+            const formattedDate = formatVietnameseDate(date);
+
+            const existing = entries.find(e => e.key === key);
+            if (existing) {
+              existing.requests.push({ date, id });
+              existing.dates.push(formattedDate);
+            } else {
+              entries.push({
+                key,
+                name: req.name,
+                shift,
+                status,
+                reason: req.reason || "-",
+                dates: [formattedDate],
+                requests: [{ date, id }]
+              });
+            }
           }
         }
       }
-    }
 
-    let message = "📅 *Lịch nghỉ tuần tới:*\n\n";
-    let empty = true;
-    for (const date in nextWeek) {
-      if (nextWeek[date].names.length > 0) {
-        empty = false;
-message += `📌 *${nextWeek[date].label}:*\n${nextWeek[date].names.map(n => `• ${n}`).join("\n")}\n\n`;
+      for (const entry of entries) {
+        const { name, shift, status, reason, dates, requests } = entry;
+        const statusHTML = status === "đã duyệt"
+          ? `<i class="fa-solid fa-circle-check text-success" title="Đã duyệt"></i>`
+          : `<i class="fa-solid fa-circle-xmark text-danger" title="Từ chối"></i>`;
+
+        const card = document.createElement("div");
+        card.className = "request-card";
+        card.innerHTML = `
+          <h5>${name} <span class="shift">(${shift})</span></h5>
+          <div class="dates">📅 ${dates.sort().join("<br>")}</div>
+          <div class="reason">📝 ${reason}</div>
+          <div class="status-action">${statusHTML}</div>
+        `;
+        card.addEventListener("click", () => {
+          popupDaXuLy.classList.remove("show");
+          showActionPopup(requests, shift);
+        });
+        daXuLyList.appendChild(card);
       }
+
+      if (entries.length === 0) {
+        daXuLyList.innerHTML = "<p class='text-center text-muted'>Không có yêu cầu nào đã xử lý.</p>";
+      }
+    }, { onlyOnce: true });
+  };
+
+  window.anDanhSachDaXuLy = () => {
+    popupDaXuLy.classList.remove("show");
+  };
+
+  window.guiLichNghiTelegram = async () => {
+    try {
+      const snapshot = await get(ref(db, "lichnghi/"));
+      const data = snapshot.val();
+
+      if (!data) {
+        showToast("📭 Không có lịch nghỉ để gửi.");
+        return;
+      }
+
+      const today = new Date();
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() + ((8 - today.getDay()) % 7));
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+
+      const nextWeek = {};
+      const futureDates = [];
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(weekStart);
+        date.setDate(weekStart.getDate() + i);
+        const dateKey = date.toISOString().split("T")[0];
+        const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][date.getDay()];
+        nextWeek[dateKey] = { label: `${weekday}`, names: [] };
+      }
+
+      for (const date in data) {
+        const currentDate = new Date(date);
+        for (const shift in data[date]) {
+          for (const id in data[date][shift]) {
+            const req = data[date][shift][id];
+            if (req.status === "đã duyệt") {
+              const line = `- ${req.name} (${shift})`;
+              if (nextWeek[date]) {
+                nextWeek[date].names.push(line);
+              } else if (currentDate > weekEnd) {
+                const weekday = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][currentDate.getDay()];
+                const dateLabel = `${weekday}, ${date.split("-").reverse().join("/")}`;
+                futureDates.push({ raw: date, display: dateLabel, name: line });
+              }
+            }
+          }
+        }
+      }
+
+      let message = "📅 *Lịch nghỉ tuần tới:*\n\n";
+      let emptyWeek = true;
+      for (const date in nextWeek) {
+        if (nextWeek[date].names.length > 0) {
+          emptyWeek = false;
+          message += `📌 *${nextWeek[date].label}:*\n${nextWeek[date].names.map(n => `• ${n}`).join("\n")}\n\n`;
+        }
+      }
+
+      if (emptyWeek) message += "_Chưa có ai đăng ký nghỉ tuần tới._\n";
+
+      if (futureDates.length > 0) {
+        message += "\n🔮 *Các ngày nghỉ sau tuần tới:*\n";
+        futureDates.sort((a, b) => new Date(a.raw) - new Date(b.raw));
+        futureDates.forEach(f => {
+          message += `📍 ${f.display}\n• ${f.name}\n`;
+        });
+      }
+
+      const token = "7807531189:AAGhMQ9jjew7Q9ywMDSTaGDy4Ns6XtPQUrI";
+      const chatId = "-4716169472";
+      const url = `https://api.telegram.org/bot${token}/sendMessage`;
+
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message,
+          parse_mode: "Markdown"
+        })
+      });
+
+      showToast("📨 Đã gửi lịch nghỉ lên Telegram.");
+    } catch (err) {
+      console.error(err);
+      showToast("❌ Gửi thất bại.");
     }
-
-    if (empty) {
-      showToast("📭 Tuần tới chưa có ai đăng ký nghỉ.");
-      return;
-    }
-
-    const token = "7807531189:AAGhMQ9jjew7Q9ywMDSTaGDy4Ns6XtPQUrI"; // 🔁 Thay bằng token bot
-    const chatId = "-4716169472";  // 🔁 Thay bằng chat_id nhóm
-    const url = `https://api.telegram.org/bot${token}/sendMessage`;
-
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: message,
-        parse_mode: "Markdown"
-      })
-    });
-
-    showToast("📨 Đã gửi lịch nghỉ lên Telegram.");
-  } catch (err) {
-    console.error(err);
-    showToast("❌ Gửi thất bại.");
-  }
-};
-
+  };
 </script>
+
+<div id="pendingCounter">
+  📥 Đang chờ duyệt: <span id="pendingCount">0</span>
+</div>
+
 </body>
 </html>
