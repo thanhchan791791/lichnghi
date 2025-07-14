@@ -47,6 +47,30 @@
     overflow-wrap: break-word;
     word-break: break-word;
   }
+#toggleWeekScheduleBtn {
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  background: linear-gradient(145deg, #f8e8d6, #fddbb3);
+  color: #8b4500;
+  border: none;
+  border-radius: 30px;
+  box-shadow: 0 4px 12px rgba(255, 172, 90, 0.4);
+  transition: all 0.3s ease;
+}
+
+#toggleWeekScheduleBtn:hover {
+  background: linear-gradient(145deg, #ffa94d, #ffd9a0);
+  color: #4e2f0d;
+  box-shadow: 0 6px 16px rgba(255, 138, 0, 0.5);
+  transform: translateY(-1px);
+  cursor: pointer;
+}
+
+#toggleWeekScheduleBtn:active {
+  transform: scale(0.96);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
 
   .request-card:hover {
     background-color: #fff5ec;
@@ -413,7 +437,11 @@
     </div>
 
     <div id="weekScheduleContainer">
-  <h5>🗓️ Lịch nghỉ tuần tới (Đã duyệt)</h5>
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0">🗓️ Lịch nghỉ tuần tới (Đã duyệt)</h5>
+    <button id="toggleWeekScheduleBtn" class="btn btn-sm btn-outline-secondary" onclick="toggleWeekSchedule()">Ẩn</button>
+  </div>
+
   <div id="weekSchedule"></div>
 </div>
 
@@ -646,31 +674,24 @@
   }
 
   // Đếm số yêu cầu đang chờ duyệt
-  function demYeuCauChoDuyet() {
-    const badge = document.getElementById("badgeChoDuyet");
-    if (!badge) return;
+function demYeuCauChoDuyet() {
+  const badge = document.getElementById("badgeChoDuyet");
+  if (!badge) return;
 
-    get(ref(db, "lichnghi/")).then(snapshot => {
-      const data = snapshot.val();
-      let count = 0;
-
-      if (data) {
-        for (const date in data) {
-          for (const shift in data[date]) {
-            for (const id in data[date][shift]) {
-              const req = data[date][shift][id];
-              if (!req.status || req.status === "chờ duyệt") {
-                count++;
-              }
-            }
-          }
-        }
-      }
-
-      badge.textContent = count > 0 ? count : "";
-      badge.style.display = count > 0 ? "inline-block" : "none";
+  const danhSachChoDuyet = Array.from(document.querySelectorAll(".request-card"))
+    .filter(card => {
+      const statusEl = card.querySelector(".status-action");
+      const text = statusEl?.textContent?.trim() || "";
+      return text.includes("Chờ duyệt") && card.offsetParent !== null;
     });
-  }
+
+  const count = danhSachChoDuyet.length;
+  badge.textContent = count > 0 ? count : "";
+  badge.style.display = count > 0 ? "inline-block" : "none";
+}
+
+
+
 
   // Gọi hàm đếm mỗi khi load
   demYeuCauChoDuyet();
@@ -717,62 +738,67 @@
   }
 
  function loadRequests(showProcessed = false) {
-  onValue(ref(db, "lichnghi/"), snapshot => {
+  onValue(ref(db, "lichnghi/"), (snapshot) => {
     const data = snapshot.val();
     requestList.innerHTML = "";
 
     const entries = [];
-    const uniquePendingCards = new Set(); // ✅ Sử dụng Set để tránh trùng
 
+    // Nếu không có dữ liệu nghỉ
     if (!data) {
       requestList.innerHTML = "<p class='text-center text-muted'>Không có yêu cầu nghỉ nào.</p>";
       document.getElementById("pendingCount").textContent = 0;
       return;
     }
 
-    summarizeNextWeek(data);
+    summarizeNextWeek(data); // Tóm tắt tuần tiếp theo nếu cần
 
+    // Gom nhóm các yêu cầu nghỉ thành các thẻ
     for (const date in data) {
       for (const shift in data[date]) {
         for (const id in data[date][shift]) {
           const req = data[date][shift][id];
           const status = req.status || "chờ duyệt";
           const isProcessed = status === "đã duyệt" || status === "từ chối";
+
+          // Lọc theo trạng thái hiển thị
           if (!showProcessed && isProcessed) continue;
           if (showProcessed && status === "chờ duyệt") continue;
 
-          // ✅ Key để gom nhóm thẻ
-          const key = `${req.name}|${shift}|${status}|${req.reason || "-"}`;
           const formattedDate = formatVietnameseDate(date);
+          const key = `${req.name}|${shift}|${status}|${req.reason || "-"}`;
 
-          // ✅ Ghi nhận các thẻ đang chờ duyệt duy nhất
-          if (status === "chờ duyệt") {
-            uniquePendingCards.add(`${req.name}|${shift}|${status}`);
-          }
-
-          const existing = entries.find(e => e.key === key);
+          const existing = entries.find((e) => e.key === key);
           if (existing) {
             existing.requests.push({ date, id });
             existing.dates.push(formattedDate);
           } else {
             entries.push({
-              key, name: req.name, shift, status,
-              reason: req.reason || "-", dates: [formattedDate],
-              requests: [{ date, id }]
+              key,
+              name: req.name,
+              shift,
+              status,
+              reason: req.reason || "-",
+              dates: [formattedDate],
+              requests: [{ date, id }],
             });
           }
         }
       }
     }
 
-    // ✅ Cập nhật số lượng thẻ đang chờ duyệt
-    document.getElementById("pendingCount").textContent = uniquePendingCards.size;
+    // Đếm số thẻ có status là "chờ duyệt"
+    const pendingCardCount = entries.filter(e => e.status === "chờ duyệt").length;
+    document.getElementById("pendingCount").textContent = pendingCardCount;
 
+    // Hiển thị các thẻ yêu cầu nghỉ
     for (const entry of entries) {
       const { name, shift, status, reason, dates, requests } = entry;
-      const statusHTML = status === "đã duyệt"
-        ? `<i class="fa-solid fa-circle-check text-success" title="Đã duyệt"></i>`
-        : status === "từ chối"
+
+      const statusHTML =
+        status === "đã duyệt"
+          ? `<i class="fa-solid fa-circle-check text-success" title="Đã duyệt"></i>`
+          : status === "từ chối"
           ? `<i class="fa-solid fa-circle-xmark text-danger" title="Từ chối"></i>`
           : `<span class="text-warning">Chờ duyệt</span>`;
 
@@ -781,17 +807,28 @@
       card.innerHTML = `
         <h5>${name} <span class="shift">(${shift})</span></h5>
         <div class="dates">${dates.sort().join("<br>")}</div>
-        ${reason && reason.trim() !== "-" ? `<div class="reason">📝Lí do - ${reason}</div>` : ""}
-        ${status === "chờ duyệt" ? `<div class="pulse-text">Ấn vào để duyệt hoặc từ chối</div>` : ""}
+        ${
+          reason && reason.trim() !== "-"
+            ? `<div class="reason">📝Lí do - ${reason}</div>`
+            : ""
+        }
+        ${
+          status === "chờ duyệt"
+            ? `<div class="pulse-text">Ấn vào để duyệt hoặc từ chối</div>`
+            : ""
+        }
         <div class="status-action">${statusHTML}</div>
       `;
+
       if (status === "chờ duyệt") {
         card.addEventListener("click", () => showActionPopup(requests, shift));
       }
+
       requestList.appendChild(card);
     }
   });
 }
+
   
 
   function summarizeNextWeek(data) {
@@ -1027,6 +1064,17 @@ loadRequests();
   }
 };
 
+let isWeekScheduleVisible = true;
+
+window.toggleWeekSchedule = () => {
+  const schedule = document.getElementById("weekSchedule");
+  const toggleBtn = document.getElementById("toggleWeekScheduleBtn");
+
+  isWeekScheduleVisible = !isWeekScheduleVisible;
+
+  schedule.style.display = isWeekScheduleVisible ? "block" : "none";
+  toggleBtn.textContent = isWeekScheduleVisible ? "Ẩn" : "Hiện";
+};
 
 </script>
 
