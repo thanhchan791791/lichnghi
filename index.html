@@ -53,6 +53,7 @@
       max-width: 600px;
       box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
       animation: fadeInUp 0.8s ease;
+      position: relative;
     }
 
     @keyframes fadeInUp {
@@ -94,7 +95,6 @@
       color: #2c3e50;
       margin-bottom: 20px;
     }
-
     .styled-select {
       appearance: none;
       background: #f9f9f9 url('https://cdn-icons-png.flaticon.com/512/271/271210.png') no-repeat right 12px center;
@@ -228,6 +228,43 @@
       transition: top 0.6s ease;
       z-index: 9999;
     }
+
+    #btnViewApproved {
+      margin: 15px auto;
+      background: linear-gradient(to right, #8e44ad, #9b59b6);
+    }
+
+    #approvedOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #approvedContent {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      animation: fadeInUp 0.5s ease;
+    }
+
+    #approvedContent h3 {
+      margin-top: 0;
+      text-align: center;
+    }
+
+    #closeApproved {
+      display: block;
+      margin: 10px auto;
+      background: #e74c3c;
+    }
   </style>
 </head>
 <body>
@@ -235,6 +272,9 @@
 
   <div class="container">
     <h2><i class="fa-solid fa-umbrella-beach"></i> Đăng ký nghỉ phép</h2>
+
+    <!-- Nút xem lịch đã duyệt -->
+    <button id="btnViewApproved"><i class="fa-solid fa-calendar-check"></i> Xem lịch nghỉ đã duyệt</button>
 
     <div id="requestSection">
       <h3><i class="fa-solid fa-list"></i> Danh sách đã gửi yêu cầu</h3>
@@ -293,6 +333,17 @@
     </form>
 
     <p id="status"></p>
+  </div>
+
+  <!-- Overlay hiển thị lịch nghỉ đã duyệt -->
+  <div id="approvedOverlay">
+    <div id="approvedContent">
+      <h3><i class="fa-solid fa-calendar-week"></i> Lịch nghỉ đã duyệt</h3>
+      <div id="approvedTableContainer">
+        <!-- bảng sẽ được chèn bằng JS -->
+      </div>
+      <button id="closeApproved"><i class="fa-solid fa-xmark"></i> Đóng</button>
+    </div>
   </div>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
@@ -413,7 +464,6 @@
 
       showStatus("✅ Đã gửi yêu cầu nghỉ 1 ngày!", "success");
       showToast("✅ Gửi yêu cầu nghỉ 1 ngày thành công!");
-
     } else {
       const reason = document.getElementById("reason").value.trim();
       const dateInputs = document.querySelectorAll(".multiDate");
@@ -506,9 +556,74 @@
     });
   }
 
+  async function loadApprovedLeaves() {
+  const res = await fetch(`${firebaseConfig.databaseURL}/lichnghi.json`);
+  const data = await res.json();
+  if (!data) return;
+
+  // Chuẩn bị dữ liệu tuần hiện tại
+  const today = new Date();
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7)); // đưa về Thứ 2
+
+  const daysOfWeek = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + i);
+    return d.toISOString().split("T")[0];
+  });
+
+  // Chuẩn bị cấu trúc bảng
+  const shifts = ["Ca sáng", "Ca tối", "Spa", "Petdog"];
+  const shiftMap = {
+    "Ca sáng": "Sáng",
+    "Ca tối": "Tối",
+    "Spa": "Spa",
+    "Petdog": "Petdog"
+  };
+
+  const table = document.createElement("table");
+  const thead = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  headerRow.innerHTML = `<th>Ca / Ngày</th>`;
+  for (const day of daysOfWeek) {
+    const d = new Date(day);
+    const dayStr = formatVietnameseDate(day);
+    headerRow.innerHTML += `<th>${dayStr}</th>`;
+  }
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+
+  for (const shift of shifts) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td><strong>${shiftMap[shift] || shift}</strong></td>`;
+    for (const day of daysOfWeek) {
+      let cellContent = "";
+      if (data[day] && data[day][shift]) {
+        const requests = Object.values(data[day][shift])
+          .filter(req => req.status === "đã duyệt")
+          .map(req => req.name);
+        cellContent = requests.join(", ");
+      }
+      tr.innerHTML += `<td>${cellContent || "-"}</td>`;
+    }
+    tbody.appendChild(tr);
+  }
+
+  table.appendChild(tbody);
+
+  // Gắn vào HTML
+  const container = document.getElementById("approvedTableContainer");
+  container.innerHTML = "";
+  container.appendChild(table);
+  document.getElementById("approvedOverlay").style.display = "flex";
+}
+
+
   async function deleteOldRequests() {
     const today = new Date();
-    if (today.getDay() !== 4) return; // Chỉ chạy vào Thứ 5
+    if (today.getDay() !== 4) return;
 
     const res = await fetch(`${firebaseConfig.databaseURL}/lichnghi.json`);
     const data = await res.json();
@@ -600,12 +715,12 @@
     document.querySelector(".container").appendChild(info);
   }
 
-  new Choices("#name", {
-    searchEnabled: false,
-    itemSelectText: '',
-    shouldSort: false,
-    classNames: { containerOuter: 'choices styled-dropdown' }
+  // Nút xem lịch đã duyệt
+  document.getElementById("btnViewApproved").addEventListener("click", loadApprovedLeaves);
+  document.getElementById("closeApproved").addEventListener("click", () => {
+    document.getElementById("approvedOverlay").style.display = "none";
   });
+
 </script>
 </body>
 </html>
