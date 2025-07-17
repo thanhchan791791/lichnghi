@@ -401,11 +401,12 @@
     });
   };
 
-  const checkDuplicate = async (date, shift) => {
-    const res = await fetch(`${firebaseConfig.databaseURL}/lichnghi/${date}/${shift}.json`);
-    const data = await res.json();
-    return data && Object.values(data).some(d => d.status === "chờ duyệt");
-  };
+  const checkDuplicate = async (date, shift, name) => {
+  const res = await fetch(`${firebaseConfig.databaseURL}/lichnghi/${date}/${shift}.json`);
+  const data = await res.json();
+  return data && Object.values(data).some(d => d.status === "chờ duyệt" && d.name === name);
+};
+
 
   nameSelect.addEventListener("change", () => {
     const value = nameSelect.value;
@@ -420,6 +421,7 @@
 
   typeSelect.addEventListener("change", async () => {
     const nameRaw = nameSelect.value;
+    
     if (!nameRaw) return;
     const [_, shift] = nameRaw.split("|");
 
@@ -430,12 +432,13 @@
       multiSection.classList.add("hidden");
       const weekdays = getNextWeekdays();
       weekdaySelect.innerHTML = '<option value="">-- Chọn ngày --</option>';
-      for (const d of weekdays) {
-        const dateStr = d.toISOString().split("T")[0];
-        const disabled = await checkDuplicate(dateStr, shift);
-        const label = `${formatVietnameseDate(dateStr)}${disabled ? " (Đã có người chọn)" : ""}`;
-        weekdaySelect.innerHTML += `<option value="${dateStr}" ${disabled ? "disabled" : ""}>${label}</option>`;
-      }
+     for (const d of weekdays) {
+  const dateStr = d.toISOString().split("T")[0];
+  const disabled = await checkDuplicate(dateStr, shift, name);
+  const label = `${formatVietnameseDate(dateStr)}${disabled ? " (Bạn đã đăng ký)" : ""}`;
+  weekdaySelect.innerHTML += `<option value="${dateStr}" ${disabled ? "disabled" : ""}>${label}</option>`;
+}
+
     } else {
       multiSection.classList.remove("hidden");
       singleSection.classList.add("hidden");
