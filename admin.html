@@ -1078,6 +1078,20 @@ window.toggleWeekSchedule = () => {
   schedule.style.display = isWeekScheduleVisible ? "block" : "none";
   toggleBtn.textContent = isWeekScheduleVisible ? "Ẩn" : "Hiện";
 };
+// Ẩn popup khi bấm ra ngoài nội dung popup
+// Ẩn popup khi bấm ra ngoài popup-content
+document.addEventListener("click", function (e) {
+  const popup = document.getElementById("actionPopup");
+  const content = popup.querySelector(".popup-content");
+
+  // Nếu popup đang hiện, người dùng click vào popup-overlay nhưng không phải bên trong popup-content
+  if (
+    popup.classList.contains("show") &&
+    e.target === popup // Click chính xác vào vùng nền
+  ) {
+    popup.classList.remove("show");
+  }
+});
 
 </script>
 
