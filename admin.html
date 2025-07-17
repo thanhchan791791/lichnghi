@@ -333,6 +333,9 @@
     max-height: 40vh;
     overflow-y: auto;
   }
+#weekSchedule {
+  display: none;
+}
 
   #weekScheduleContainer h5 {
     margin-bottom: 10px;
@@ -439,7 +442,7 @@
     <div id="weekScheduleContainer">
   <div class="d-flex justify-content-between align-items-center mb-2">
     <h5 class="mb-0">🗓️ Lịch nghỉ tuần tới (Đã duyệt)</h5>
-    <button id="toggleWeekScheduleBtn" class="btn btn-sm btn-outline-secondary" onclick="toggleWeekSchedule()">Ẩn</button>
+    <button id="toggleWeekScheduleBtn" class="btn btn-sm btn-outline-secondary" onclick="toggleWeekSchedule()">Hiện</button>
   </div>
 
   <div id="weekSchedule"></div>
@@ -1054,7 +1057,7 @@ loadRequests();
         chat_id: chatId,
         text: message,
         parse_mode: "Markdown"
-      })
+        })
     });
 
     showToast("📨 Đã gửi lịch nghỉ lên Telegram.");
@@ -1064,7 +1067,7 @@ loadRequests();
   }
 };
 
-let isWeekScheduleVisible = true;
+let isWeekScheduleVisible = false ;
 
 window.toggleWeekSchedule = () => {
   const schedule = document.getElementById("weekSchedule");
