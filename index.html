@@ -561,18 +561,13 @@
   const data = await res.json();
   if (!data) return;
 
-  // Chuẩn bị dữ liệu tuần hiện tại
   const today = new Date();
-  const weekStart = new Date(today);
-  weekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7)); // đưa về Thứ 2
+  const currentWeekStart = new Date(today);
+  currentWeekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7));
 
-  const daysOfWeek = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart);
-    d.setDate(d.getDate() + i);
-    return d.toISOString().split("T")[0];
-  });
+  const nextWeekStart = new Date(currentWeekStart);
+  nextWeekStart.setDate(currentWeekStart.getDate() + 7);
 
-  // Chuẩn bị cấu trúc bảng
   const shifts = ["Ca sáng", "Ca tối", "Spa", "Petdog"];
   const shiftMap = {
     "Ca sáng": "Sáng",
@@ -581,42 +576,57 @@
     "Petdog": "Petdog"
   };
 
-  const table = document.createElement("table");
-  const thead = document.createElement("thead");
-  const headerRow = document.createElement("tr");
-  headerRow.innerHTML = `<th>Ca / Ngày</th>`;
-  for (const day of daysOfWeek) {
-    const d = new Date(day);
-    const dayStr = formatVietnameseDate(day);
-    headerRow.innerHTML += `<th>${dayStr}</th>`;
-  }
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
+  function generateWeekTable(startDate, label) {
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate() + i);
+      return d.toISOString().split("T")[0];
+    });
 
-  const tbody = document.createElement("tbody");
-
-  for (const shift of shifts) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td><strong>${shiftMap[shift] || shift}</strong></td>`;
-    for (const day of daysOfWeek) {
-      let cellContent = "";
-      if (data[day] && data[day][shift]) {
-        const requests = Object.values(data[day][shift])
-          .filter(req => req.status === "đã duyệt")
-          .map(req => req.name);
-        cellContent = requests.join(", ");
-      }
-      tr.innerHTML += `<td>${cellContent || "-"}</td>`;
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    headerRow.innerHTML = `<th>Ca / Ngày</th>`;
+    for (const day of days) {
+      const dayStr = formatVietnameseDate(day);
+      headerRow.innerHTML += `<th>${dayStr}</th>`;
     }
-    tbody.appendChild(tr);
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    for (const shift of shifts) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td><strong>${shiftMap[shift] || shift}</strong></td>`;
+      for (const day of days) {
+        let cellContent = "";
+        if (data[day] && data[day][shift]) {
+          const requests = Object.values(data[day][shift])
+            .filter(req => req.status === "đã duyệt")
+            .map(req => req.name);
+          cellContent = requests.join(", ");
+        }
+        tr.innerHTML += `<td>${cellContent || "-"}</td>`;
+      }
+      tbody.appendChild(tr);
+    }
+
+    table.appendChild(tbody);
+
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = `<h4 style="text-align:center; margin-top:20px;">${label}</h4>`;
+    wrapper.appendChild(table);
+    return wrapper;
   }
 
-  table.appendChild(tbody);
-
-  // Gắn vào HTML
   const container = document.getElementById("approvedTableContainer");
   container.innerHTML = "";
-  container.appendChild(table);
+
+  // Thêm bảng tuần này và tuần sau
+  container.appendChild(generateWeekTable(currentWeekStart, "🗓 Tuần này"));
+  container.appendChild(generateWeekTable(nextWeekStart, "📅 Tuần sau"));
+
   document.getElementById("approvedOverlay").style.display = "flex";
 }
 
