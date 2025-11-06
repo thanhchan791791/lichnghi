@@ -1,184 +1,376 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<title>💰 Quản Lý Chi Tiêu Nâng Cấp</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>
-/* Reset và Font chữ */
-body {
-    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    padding: 0;
-    margin: 0;
-    background: #f8f8fa; /* Nền trắng xám nhẹ nhàng */
-    color: #1c1c1e; /* Màu chữ đậm */
-    padding-bottom: 80px; /* Khoảng cách cho thiết bị có thanh gesture bar */
-}
+    <meta charset="UTF-8">
+    <title>💰 Quản Lý Chi Tiêu Nâng Cấp iOS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ====================================
+           I. BIẾN CSS VÀ RESET CHUẨN IOS
+           ==================================== */
+        :root {
+            /* 1. Màu sắc theo chuẩn Apple */
+            --ios-blue: #007AFF;
+            --ios-blue-active: #005ac9;
+            --ios-red: #FF3B30;
+            --ios-green: #34C759;
+            --ios-orange: #FF9500;
+            --ios-background: #F5F5F7; /* Nền nhạt, tinh tế */
+            --ios-card-bg: rgba(255, 255, 255, 0.78); /* Nền mờ (Glassmorphism) */
+            --ios-text-primary: #1C1C1E;
+            --ios-text-secondary: #8E8E93;
+            --ios-separator: rgba(60, 60, 67, 0.16); /* Màu phân cách nhẹ */
 
-/* Thanh Header đơn giản như iOS */
-.header {
-    padding: 16px 20px;
-    background: #ffffff;
-    border-bottom: 0.5px solid #ebebeb; /* Đường viền nhẹ */
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
+            /* 2. Bố cục & Bo góc */
+            --breathing-space: 20px;
+            --card-border-radius: 18px; /* Góc bo lớn */
+            --input-border-radius: 12px;
+            --button-border-radius: 14px;
+            --bottom-bar-height: 80px; /* Chiều cao Tab Bar */
 
-h1 {
-    font-size: 24px;
-    font-weight: 700;
-    margin: 0;
-    color: #007aff; /* Màu xanh dương chủ đạo của iOS */
-}
+            /* 3. Hiệu ứng & Animation */
+            --ios-easing: cubic-bezier(0.25, 0.1, 0.25, 1);
+            --ios-shadow-soft: 0 6px 20px rgba(0,0,0,0.08); /* Bóng mềm */
+        }
 
-/* Các Box/Card */
-.container {
-    padding: 0 15px;
-}
+        /* Reset và Font chữ Inter (thay cho SF Pro) */
+        * {
+            box-sizing: border-box;
+        }
 
-.box {
-    background: white;
-    padding: 18px 15px;
-    border-radius: 12px; /* Góc bo tròn lớn hơn */
-    margin-top: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Bóng đổ tinh tế */
-}
+        body {
+            font-family: 'Inter', -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            padding: 0;
+            margin: 0;
+            background: var(--ios-background);
+            color: var(--ios-text-primary);
+            /* Đảm bảo khoảng cách an toàn cho Bottom Tab Bar và Gesture Bar */
+            padding-bottom: calc(var(--bottom-bar-height) + env(safe-area-inset-bottom, 20px));
+            line-height: 1.4;
+        }
 
-h2 {
-    font-size: 18px;
-    font-weight: 600;
-    margin-top: 0;
-    margin-bottom: 12px;
-    color: #3a3a3c;
-}
+        /* Thiết lập responsive chuẩn iPhone */
+        .container {
+            padding: 0 var(--breathing-space);
+            max-width: 430px; /* Max width của iPhone Pro Max */
+            margin: 0 auto;
+        }
 
-/* Input, Select */
-input[type="text"], input[type="number"], select {
-    padding: 12px 15px;
-    border-radius: 8px;
-    border: 1px solid #d1d1d6;
-    margin-top: 8px;
-    width: 100%;
-    box-sizing: border-box;
-    font-size: 16px;
-    background: #f9f9f9;
-    transition: border-color 0.2s ease;
-}
+        /* ====================================
+           II. HEADER (Tương tự Large Title iOS)
+           ==================================== */
+        .header {
+            padding: 60px var(--breathing-space) 20px; /* Padding lớn cho Large Title style */
+            background: var(--ios-background);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: background-color 0.3s var(--ios-easing);
+            /* Bỏ border-bottom để tạo cảm giác trong suốt khi không scroll */
+        }
 
-input:focus, select:focus {
-    border-color: #007aff;
-    outline: none;
-    background: #ffffff;
-}
+        h1 {
+            font-size: 26px; /* Title: 20–28px, đậm */
+            font-weight: 700;
+            margin: 0;
+            color: var(--ios-text-primary);
+            letter-spacing: -0.5px;
+        }
 
-/* Nút bấm (Buttons) */
-button {
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    margin-top: 15px;
-    width: 100%;
-    font-size: 16px;
-    font-weight: 600;
-    color: white;
-    cursor: pointer;
-    background: #007aff; /* Màu xanh dương chính */
-    box-shadow: 0 4px 8px rgba(0, 122, 255, 0.3);
-    transition: background 0.2s ease, transform 0.1s ease;
-}
+        /* ====================================
+           III. CARD (Glassmorphism/Card mờ đục)
+           ==================================== */
+        .box {
+            background: var(--ios-card-bg);
+            /* Hiệu ứng Mờ (Glassmorphism) */
+            backdrop-filter: blur(15px) saturate(180%);
+            -webkit-backdrop-filter: blur(15px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: var(--breathing-space);
+            border-radius: var(--card-border-radius);
+            margin-top: var(--breathing-space);
+            box-shadow: var(--ios-shadow-soft);
+            transition: transform 0.3s var(--ios-easing), box-shadow 0.3s var(--ios-easing);
+        }
 
-button:active {
-    background: #005ac9; /* Màu đậm hơn khi nhấn */
-    transform: scale(0.99); /* Hiệu ứng nhấn mượt mà */
-    box-shadow: 0 2px 4px rgba(0, 122, 255, 0.4);
-}
+        .box:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
 
-/* Khu vực danh sách khoản chi & Thống kê */
-#categoryList, #categorySummary, #expenseHistory {
-    padding: 10px 0;
-    color: #636366;
-    font-size: 14px;
-    line-height: 1.6;
-}
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--ios-text-primary);
+        }
 
-#categoryList span {
-    display: inline-block;
-    background: #f0f0f5;
-    padding: 4px 10px;
-    border-radius: 6px;
-    margin-right: 8px;
-    margin-bottom: 6px;
-    font-weight: 500;
-}
+        /* ====================================
+           IV. INPUT/SELECT (Bo tròn & Glow nhẹ)
+           ==================================== */
+        input[type="text"], input[type="number"], input[type="date"], select {
+            padding: 14px 15px;
+            border-radius: var(--input-border-radius);
+            border: 1px solid var(--ios-separator);
+            margin-top: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 16px;
+            background: #FFFFFF; /* Màu trắng cho input */
+            color: var(--ios-text-primary);
+            transition: border-color 0.3s var(--ios-easing), box-shadow 0.3s var(--ios-easing), background 0.3s;
+            -webkit-appearance: none; /* Bỏ style mặc định của trình duyệt */
+        }
 
-.summary span, .summary-item, .expense-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 0.5px solid #ebebeb;
-    font-size: 16px;
-}
-.summary-item:last-child, .expense-item:last-child {
-    border-bottom: none;
-}
-.summary strong {
-    font-weight: 600;
-}
-.summary-item .label, .expense-item .label {
-    flex-grow: 1;
-}
+        input:focus, select:focus {
+            border-color: var(--ios-blue);
+            outline: none;
+            /* Animation focus glow nhẹ */
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.2);
+            background: #FFFFFF;
+        }
+        
+        select {
+            /* Tùy chỉnh mũi tên thả xuống cho đẹp hơn */
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3e%3cpath fill='%238E8E93' d='M5 8l5 5 5-5z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 35px;
+        }
 
-/* Chi tiết Chi tiêu */
-.expense-item {
-    align-items: center;
-    font-size: 14px;
-}
-.expense-item .amount {
-    font-weight: 600;
-    color: #ff3b30;
-    margin-right: 10px;
-}
-.expense-item .date {
-    font-size: 12px;
-    color: #8e8e93;
-    margin-right: 10px;
-    white-space: nowrap;
-}
-.delete-btn {
-    padding: 6px 10px;
-    margin-top: 0;
-    width: auto;
-    background: #ff3b30;
-    font-size: 12px;
-    font-weight: 500;
-    border-radius: 6px;
-    box-shadow: none;
-    transition: background 0.1s;
-}
-.delete-btn:active {
-    background: #c90a00;
-}
+        /* Group input và button */
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        .input-group input[type="date"] {
+            flex-grow: 1;
+            margin-top: 0;
+        }
+        .input-group button {
+            width: auto;
+            min-width: 80px;
+            margin-top: 0;
+            font-size: 15px;
+            padding: 10px 15px;
+        }
+        /* Fix input date padding khi nằm trong group */
+        .box .input-group > input[type="date"] {
+            padding: 14px 15px;
+            margin-top: 10px;
+        }
 
-/* Giá trị màu */
-.income-value { color: #34c759; } 
-.expense-value { color: #ff3b30; } 
-.remain-value { font-size: 18px; font-weight: 700; color: #007aff; } 
-.today-spent-value { color: #ff9500; } 
-.category-summary-amount { font-weight: 600; color: #ff3b30; }
-</style>
+
+        /* ====================================
+           V. BUTTONS (Spring Scale Effect)
+           ==================================== */
+        button {
+            padding: 15px;
+            border-radius: var(--button-border-radius);
+            border: none;
+            margin-top: 20px;
+            width: 100%;
+            font-size: 17px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            background: var(--ios-blue);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            transition: background 0.2s var(--ios-easing), transform 0.2s var(--ios-easing), box-shadow 0.2s var(--ios-easing);
+            -webkit-tap-highlight-color: transparent; /* Bỏ highlight khi chạm trên iOS */
+        }
+
+        /* Button khi nhấn (Spring Scale 0.97) */
+        button:active {
+            background: var(--ios-blue-active);
+            transform: scale(0.97); 
+            box-shadow: 0 2px 4px rgba(0, 122, 255, 0.4);
+            transition: transform 0.1s cubic-bezier(0.4, 0.0, 0.2, 1.4); /* Hiệu ứng spring-like */
+        }
+        
+        /* Nút Xóa (Delete Button) */
+        .delete-btn {
+            padding: 8px 12px;
+            margin-top: 0;
+            width: auto;
+            background: var(--ios-red);
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 8px;
+            box-shadow: none;
+        }
+        .delete-btn:active {
+            background: #c90a00;
+            transform: scale(0.97);
+        }
+        /* Nút lọc */
+        #filterExpenseBtn {
+            background: var(--ios-orange);
+            box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+        }
+        #filterExpenseBtn:active {
+            background: #cc7400;
+        }
+
+        /* ====================================
+           VI. LISTS & SUMMARY (Kiểu Cell iOS)
+           ==================================== */
+        #categoryList {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        #categoryList span {
+            display: inline-block;
+            background: rgba(0, 122, 255, 0.1);
+            color: var(--ios-blue);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 15px;
+        }
+        
+        /* Summary Item & Expense Item */
+        .summary-item, .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 0.5px solid var(--ios-separator);
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        .summary-item:last-child, .expense-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .summary-item:first-child, .expense-item:first-child {
+            padding-top: 0;
+        }
+        
+        /* Màu giá trị */
+        .income-value { color: var(--ios-green); font-weight: 600; }
+        .expense-value { color: var(--ios-red); font-weight: 600; }
+        .remain-value { font-size: 18px; font-weight: 700; color: var(--ios-blue); }
+        .today-spent-value { color: var(--ios-orange); font-weight: 600; }
+        .category-summary-amount { font-weight: 600; color: var(--ios-red); }
+
+        .expense-item .label {
+            flex-grow: 1;
+            font-size: 15px;
+        }
+        .expense-item .date {
+            font-size: 12px;
+            color: var(--ios-text-secondary);
+            margin-right: 15px;
+            white-space: nowrap;
+        }
+        .expense-item .amount {
+            font-weight: 600;
+            color: var(--ios-red);
+            margin-right: 15px;
+            white-space: nowrap;
+        }
+
+        /* ====================================
+           VII. BOTTOM TAB BAR (Thanh Điều Hướng Dưới)
+           ==================================== */
+        .bottom-tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--bottom-bar-height);
+            background: var(--ios-card-bg);
+            /* Glassmorphism */
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-top: 0.5px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding: 10px 0;
+            /* Khoảng cách an toàn dưới cùng */
+            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+            z-index: 200;
+        }
+        
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--ios-text-secondary);
+            font-size: 10px;
+            font-weight: 500;
+            transition: color 0.2s var(--ios-easing);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .tab-item.active {
+            color: var(--ios-blue);
+        }
+
+        .tab-icon {
+            font-size: 24px;
+            margin-bottom: 3px;
+            line-height: 1;
+        }
+
+        /* ====================================
+           VIII. CÁC HIỆU ỨNG KHÁC (JavaScript/Scroll)
+           ==================================== */
+        /* Hiệu ứng Header trong suốt khi scroll */
+        .header.scrolled {
+            background-color: var(--ios-card-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 0.5px solid var(--ios-separator);
+            padding: 15px var(--breathing-space); /* Giảm padding khi scroll */
+        }
+        .header.scrolled h1 {
+            font-size: 20px; /* Giảm cỡ chữ */
+        }
+
+        /* Toast Notification (Demo) */
+        .ios-toast {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translate(-50%, -150%); /* Ẩn đi */
+            background: rgba(45, 45, 45, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            z-index: 300;
+            transition: transform 0.5s var(--ios-easing), opacity 0.5s var(--ios-easing);
+            opacity: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .ios-toast.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+
+    </style>
 </head>
 <body>
 
-<div class="header">
+<div class="header" id="mainHeader">
     <h1>💰 Quản Lý Chi Tiêu</h1>
 </div>
 
 <div class="container">
     <div class="box">
         <h2>💵 Doanh thu tháng</h2>
-        <input type="number" id="monthlyIncome" placeholder="Nhập số tiền doanh thu tháng...">
+        <input type="text" id="monthlyIncome" placeholder="Nhập số tiền doanh thu tháng...">
         <input type="date" id="incomeDateInput" value="<?php echo date('Y-m-d'); ?>">
         <button id="saveIncome">Lưu Doanh Thu</button>
     </div>
@@ -194,17 +386,17 @@ button:active {
         <h2>📝 Ghi chi tiêu</h2>
         <select id="selectCategory">
             </select>
-        <input type="number" id="expenseAmount" placeholder="Nhập số tiền đã chi...">
+        <input type="text" id="expenseAmount" placeholder="Nhập số tiền đã chi...">
         <button id="addExpense">Ghi Chi Tiêu</button>
     </div>
 
     <div class="box summary">
         <h2>📈 Tổng quan</h2>
-        <span id="showIncome">Doanh thu tháng: <strong class="income-value">0 đ</strong></span>
-        <span id="showIncomeDate">Ngày ghi nhận: <strong style="color:#8e8e93;">N/A</strong></span>
-        <span id="showTotalSpent">Tổng chi: <strong class="expense-value">0 đ</strong></span>
-        <span id="showRemain">Còn lại: <strong class="remain-value">0 đ</strong></span>
-        <span id="showTodaySpent">Chi hôm nay: <strong class="today-spent-value">0 đ</strong></span>
+        <div class="summary-item" id="showIncome">Doanh thu tháng: <strong class="income-value">0 đ</strong></div>
+        <div class="summary-item" id="showIncomeDate">Ngày ghi nhận: <strong style="color:var(--ios-text-secondary);">N/A</strong></div>
+        <div class="summary-item" id="showTotalSpent">Tổng chi: <strong class="expense-value">0 đ</strong></div>
+        <div class="summary-item" id="showRemain">Còn lại: <strong class="remain-value">0 đ</strong></div>
+        <div class="summary-item" id="showTodaySpent">Chi hôm nay: <strong class="today-spent-value">0 đ</strong></div>
     </div>
     
     <div class="box">
@@ -212,13 +404,44 @@ button:active {
         <div id="categorySummary">
             </div>
     </div>
+    
+    <div class="box">
+        <h2>🔎 Lọc Chi tiêu theo ngày</h2>
+        <div class="input-group">
+             <input type="date" id="filterDateInput" value="<?php echo date('Y-m-d'); ?>">
+             <button id="filterExpenseBtn">Lọc</button>
+        </div>
+        
+        <div id="filteredExpenseSummary" class="summary-item" style="margin-top: 20px; font-weight: 500; padding: 0;">
+             Tổng chi ngày <span id="filteredDateValue">Hôm nay</span>: <strong class="expense-value" id="filteredTotalAmount">0 đ</strong>
+        </div>
+        
+    </div>
 
     <div class="box" id="expenseHistoryBox">
-        <h2>⏳ Lịch sử Chi tiêu</h2>
+        <h2>⏳ Lịch sử Chi tiêu (<span id="historyTitle">Toàn bộ</span>)</h2>
         <div id="expenseHistory">
             </div>
     </div>
 </div>
+
+<div class="bottom-tab-bar">
+    <a href="#" class="tab-item active">
+        <span class="tab-icon">📊</span>
+        <span>Tổng quan</span>
+    </a>
+    <a href="#" class="tab-item">
+        <span class="tab-icon">➕</span>
+        <span>Ghi chi</span>
+    </a>
+    <a href="#" class="tab-item">
+        <span class="tab-icon">⚙️</span>
+        <span>Cài đặt</span>
+    </a>
+</div>
+
+<div class="ios-toast" id="iosToast">Thành công!</div>
+
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -261,6 +484,22 @@ const showTodaySpent = document.getElementById("showTodaySpent");
 const categorySummaryDiv = document.getElementById("categorySummary");
 const expenseHistoryDiv = document.getElementById("expenseHistory");
 
+const mainHeader = document.getElementById("mainHeader");
+const iosToast = document.getElementById("iosToast");
+
+// Elements mới cho lọc theo ngày
+const filterDateInput = document.getElementById("filterDateInput");
+const filterExpenseBtn = document.getElementById("filterExpenseBtn");
+const historyTitle = document.getElementById("historyTitle");
+const filteredDateValue = document.getElementById("filteredDateValue");
+const filteredTotalAmount = document.getElementById("filteredTotalAmount");
+
+// Biến lưu trữ lịch sử chi tiêu gốc (dùng cho việc lọc)
+let allExpenses = {};
+let currentFilterDate = null; // Biến lưu trữ ngày đang lọc
+
+// --- HÀM HỖ TRỢ ---
+
 // Format tiền tệ
 const formatCurrency = (amount) => {
     return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }).replace('₫', ' đ');
@@ -268,27 +507,96 @@ const formatCurrency = (amount) => {
 
 // Hàm định dạng ngày
 const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
     return new Date(dateString).toLocaleDateString('vi-VN', options);
 };
 
+// Hàm xử lý định dạng số tiền khi nhập (thêm dấu chấm)
+const formatInput = (inputElement) => {
+    let value = inputElement.value.replace(/[^0-9]/g, ''); // Chỉ giữ lại số
+    if (value) {
+        // Định dạng số (thêm dấu .)
+        inputElement.value = new Intl.NumberFormat('vi-VN').format(Number(value));
+    }
+};
+
+// Hàm lấy giá trị số nguyên từ input
+const getNumericValue = (inputElement) => {
+    const value = inputElement.value.replace(/[^0-9]/g, '');
+    return Number(value);
+};
+
+
+// --- ANIMATION VÀ UX THÊM ---
+
+// 1. Header trong suốt khi scroll
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 10) { // Khoảng cách scroll để kích hoạt
+        mainHeader.classList.add('scrolled');
+    } else {
+        mainHeader.classList.remove('scrolled');
+    }
+});
+
+// 2. Toast Notification
+const showToast = (message) => {
+    iosToast.textContent = message;
+    iosToast.classList.add('show');
+    
+    // Tự động ẩn sau 3 giây
+    setTimeout(() => {
+        iosToast.classList.remove('show');
+    }, 3000);
+};
+
+// 3. Hiệu ứng Spring Scale cho buttons (đã có trong CSS :active)
+document.querySelectorAll('button').forEach(button => {
+    button.addEventListener('mousedown', () => {
+        button.style.transform = 'scale(0.97)';
+        button.style.transition = 'transform 0.1s cubic-bezier(0.4, 0.0, 0.2, 1.4)';
+    });
+    button.addEventListener('mouseup', () => {
+        button.style.transform = 'scale(1.0)';
+        button.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1)';
+    });
+    button.addEventListener('touchstart', () => {
+        button.style.transform = 'scale(0.97)';
+        button.style.transition = 'transform 0.1s cubic-bezier(0.4, 0.0, 0.2, 1.4)';
+    });
+    button.addEventListener('touchend', () => {
+        button.style.transform = 'scale(1.0)';
+        button.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1)';
+    });
+});
+
+// 4. Tự động định dạng số tiền khi nhập
+monthlyIncomeInput.addEventListener('input', () => formatInput(monthlyIncomeInput));
+expenseAmountInput.addEventListener('input', () => formatInput(expenseAmountInput));
+
+
 // --- CHỨC NĂNG XÓA (DELETE) ---
 window.deleteExpense = (key) => {
     if (confirm("Bạn có chắc chắn muốn xóa khoản chi này?")) {
-        remove(ref(db, "expenses/" + key));
+        remove(ref(db, "expenses/" + key))
+            .then(() => showToast("Xóa chi tiêu thành công!"))
+            .catch(() => showToast("Lỗi khi xóa!"));
     }
 };
 
 // Save income
 saveIncomeBtn.onclick = () => {
-    const incomeValue = Number(monthlyIncomeInput.value.replace(/[^0-9]/g, ''));
+    const incomeValue = getNumericValue(monthlyIncomeInput);
     const incomeDate = incomeDateInput.value;
     if (!isNaN(incomeValue) && incomeDate) {
         set(ref(db, "budget/monthlyIncome"), {
             amount: incomeValue,
             date: incomeDate
-        });
-        // Hiển thị thông báo hoặc hiệu ứng thành công
+        })
+        .then(() => showToast("Lưu Doanh Thu thành công!"))
+        .catch(() => showToast("Lỗi khi lưu Doanh Thu!"));
+    } else {
+        showToast("Vui lòng nhập số tiền hợp lệ và ngày!");
     }
 };
 
@@ -296,8 +604,14 @@ saveIncomeBtn.onclick = () => {
 addCategoryBtn.onclick = () => {
   const category = categoryInput.value.trim();
   if (category) {
-    set(ref(db, "budget/categories/" + category), true);
-    categoryInput.value = "";
+    set(ref(db, "budget/categories/" + category), true)
+        .then(() => {
+            categoryInput.value = "";
+            showToast("Thêm Hạng Mục thành công!");
+        })
+        .catch(() => showToast("Lỗi khi thêm Hạng Mục!"));
+  } else {
+      showToast("Vui lòng nhập tên hạng mục!");
   }
 };
 
@@ -310,26 +624,120 @@ onValue(ref(db, "budget/categories"), snap => {
       categorySelect.innerHTML += `<option value="${c}">${c}</option>`;
       categoryList.innerHTML += `<span>${c}</span>`;
     });
+  } else {
+      categorySelect.innerHTML = `<option value="">Chưa có hạng mục</option>`;
   }
 });
 
 // Add expense
 addExpenseBtn.onclick = () => {
-  const amountValue = Number(expenseAmountInput.value.replace(/[^0-9]/g, ''));
+  const amountValue = getNumericValue(expenseAmountInput);
   if (categorySelect.value && !isNaN(amountValue) && amountValue > 0) {
     push(ref(db, "expenses"), {
       category: categorySelect.value,
       amount: amountValue,
       date: new Date().toISOString().split("T")[0] // Ghi ngày chi tiêu
-    });
-    expenseAmountInput.value = "";
-    // Hiển thị thông báo hoặc hiệu ứng thành công
+    })
+    .then(() => {
+        expenseAmountInput.value = "";
+        showToast("Ghi Chi Tiêu thành công!");
+    })
+    .catch(() => showToast("Lỗi khi ghi Chi Tiêu!"));
+  } else {
+      showToast("Vui lòng chọn hạng mục và nhập số tiền hợp lệ!");
   }
 };
 
-// Stats
+
+// --- CHỨC NĂNG LỌC VÀ HIỂN THỊ LỊCH SỬ ---
+
+// Hàm chung để hiển thị lịch sử chi tiêu
+const renderExpenseHistory = (expensesToRender, filterDate = null) => {
+    expenseHistoryDiv.innerHTML = "";
+    
+    // Cập nhật tiêu đề
+    if (filterDate) {
+        const displayDate = filterDate === new Date().toISOString().split("T")[0] ? "Hôm nay" : formatDate(filterDate);
+        historyTitle.textContent = `Ngày ${displayDate}`;
+    } else {
+        historyTitle.textContent = "Toàn bộ";
+    }
+
+    if (Object.keys(expensesToRender).length > 0) {
+        let items = Object.keys(expensesToRender).map(key => ({ key: key, ...expensesToRender[key] }));
+        
+        // Sắp xếp theo ngày mới nhất lên trước
+        items.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        items.forEach(item => {
+            expenseHistoryDiv.innerHTML += `
+                <div class="expense-item">
+                    <span class="label">${item.category}</span>
+                    <span class="date">${formatDate(item.date)}</span>
+                    <span class="amount">${formatCurrency(item.amount)}</span>
+                    <button class="delete-btn" onclick="deleteExpense('${item.key}')">Xóa</button>
+                </div>
+            `;
+        });
+    } else {
+        expenseHistoryDiv.innerHTML = "<p style='text-align:center; color:var(--ios-text-secondary);'>Không có lịch sử chi tiêu nào cho ngày này.</p>";
+    }
+};
+
+// Hàm xử lý việc lọc (chỉ filter expenseHistory)
+const filterExpenses = (date) => {
+    currentFilterDate = date;
+    let filteredExpenses = {};
+    let totalFilteredAmount = 0;
+    const today = new Date().toISOString().split("T")[0];
+    const displayDate = date === today ? "Hôm nay" : formatDate(date);
+
+    Object.keys(allExpenses).forEach(key => {
+        const e = allExpenses[key];
+        if (e.date === date) {
+            filteredExpenses[key] = e;
+            totalFilteredAmount += e.amount;
+        }
+    });
+
+    // Cập nhật hiển thị tổng chi ngày lọc
+    filteredDateValue.textContent = displayDate;
+    filteredTotalAmount.textContent = formatCurrency(totalFilteredAmount);
+
+    renderExpenseHistory(filteredExpenses, date);
+};
+
+// Event click nút Lọc
+filterExpenseBtn.onclick = () => {
+    const selectedDate = filterDateInput.value;
+    if (selectedDate) {
+        filterExpenses(selectedDate);
+    } else {
+        showToast("Vui lòng chọn một ngày để lọc!");
+    }
+};
+
+// Mặc định hiển thị chi hôm nay ngay khi load
+window.onload = () => {
+    filterExpenses(new Date().toISOString().split("T")[0]);
+};
+
+
+// Stats Listener (Cập nhật Tổng quan và Tổng chi theo khoản)
 onValue(ref(db, "/"), snap => {
-  if (!snap.exists()) return;
+  if (!snap.exists()) {
+      allExpenses = {}; // Reset lịch sử
+      // Set default values if data doesn't exist
+      showIncome.innerHTML = `Doanh thu tháng: <strong class="income-value">${formatCurrency(0)}</strong>`;
+      showIncomeDate.innerHTML = `Ngày ghi nhận: <strong style="color:var(--ios-text-secondary);">Chưa có</strong>`;
+      showTotalSpent.innerHTML = `Tổng chi: <strong class="expense-value">${formatCurrency(0)}</strong>`;
+      showRemain.innerHTML = `Còn lại: <strong class="remain-value">${formatCurrency(0)}</strong>`;
+      showTodaySpent.innerHTML = `Chi hôm nay: <strong class="today-spent-value">${formatCurrency(0)}</strong>`;
+      categorySummaryDiv.innerHTML = "<p style='text-align:center; color:var(--ios-text-secondary);'>Chưa có khoản chi nào.</p>";
+      renderExpenseHistory({}); // Hiển thị lịch sử trống
+      return;
+  }
+  
   const data = snap.val();
   
   // Lấy thông tin thu nhập
@@ -337,16 +745,15 @@ onValue(ref(db, "/"), snap => {
   const income = incomeData.amount || 0;
   const incomeDate = incomeData.date;
   
-  const expenses = data.expenses || {};
+  allExpenses = data.expenses || {}; // LƯU TOÀN BỘ EXPENSES
 
   let totalSpent = 0;
   let todaySpent = 0;
   const today = new Date().toISOString().split("T")[0];
   const categorySummaries = {}; // Thống kê theo khoản
-  const expenseHistoryItems = []; // Lịch sử chi tiêu
 
-  Object.keys(expenses).forEach(key => {
-    const e = expenses[key];
+  Object.keys(allExpenses).forEach(key => {
+    const e = allExpenses[key];
     totalSpent += e.amount;
     
     // Thống kê chi hôm nay
@@ -354,28 +761,20 @@ onValue(ref(db, "/"), snap => {
     
     // Thống kê theo khoản
     categorySummaries[e.category] = (categorySummaries[e.category] || 0) + e.amount;
-    
-    // Lịch sử chi tiêu
-    expenseHistoryItems.push({
-        key: key,
-        category: e.category,
-        amount: e.amount,
-        date: e.date
-    });
   });
 
   const remaining = income - totalSpent;
 
   // --- HIỂN THỊ THỐNG KÊ CHUNG ---
   showIncome.innerHTML = `Doanh thu tháng: <strong class="income-value">${formatCurrency(income)}</strong>`;
-  showIncomeDate.innerHTML = `Ngày ghi nhận: <strong style="color:#8e8e93;">${incomeDate ? formatDate(incomeDate) : 'Chưa có'}</strong>`;
+  showIncomeDate.innerHTML = `Ngày ghi nhận: <strong style="color:var(--ios-text-secondary);">${incomeDate ? formatDate(incomeDate) : 'Chưa có'}</strong>`;
   showTotalSpent.innerHTML = `Tổng chi: <strong class="expense-value">${formatCurrency(totalSpent)}</strong>`;
   showRemain.innerHTML = `Còn lại: <strong class="remain-value">${formatCurrency(remaining)}</strong>`;
   showTodaySpent.innerHTML = `Chi hôm nay: <strong class="today-spent-value">${formatCurrency(todaySpent)}</strong>`;
 
   // Cập nhật lại giá trị input doanh thu nếu đã có
   if(income > 0) {
-      monthlyIncomeInput.value = income;
+      monthlyIncomeInput.value = new Intl.NumberFormat('vi-VN').format(income); // Định dạng số tiền
   }
   if(incomeDate) {
       incomeDateInput.value = incomeDate;
@@ -393,28 +792,12 @@ onValue(ref(db, "/"), snap => {
           `;
       });
   } else {
-      categorySummaryDiv.innerHTML = "<p style='text-align:center; color:#8e8e93;'>Chưa có khoản chi nào.</p>";
+      categorySummaryDiv.innerHTML = "<p style='text-align:center; color:var(--ios-text-secondary);'>Chưa có khoản chi nào.</p>";
   }
 
-  // --- HIỂN THỊ LỊCH SỬ CHI TIÊU VÀ NÚT XÓA ---
-  expenseHistoryDiv.innerHTML = "";
-  if (expenseHistoryItems.length > 0) {
-      // Sắp xếp theo ngày mới nhất lên trước
-      expenseHistoryItems.sort((a, b) => new Date(b.date) - new Date(a.date));
-      
-      expenseHistoryItems.forEach(item => {
-          expenseHistoryDiv.innerHTML += `
-              <div class="expense-item">
-                  <span class="label">${item.category}</span>
-                  <span class="date">${formatDate(item.date)}</span>
-                  <span class="amount">${formatCurrency(item.amount)}</span>
-                  <button class="delete-btn" onclick="deleteExpense('${item.key}')">Xóa</button>
-              </div>
-          `;
-      });
-  } else {
-      expenseHistoryDiv.innerHTML = "<p style='text-align:center; color:#8e8e93;'>Chưa có lịch sử chi tiêu nào.</p>";
-  }
+  // --- ÁP DỤNG BỘ LỌC ĐÃ CHỌN (hoặc lọc ngày hôm nay) ---
+  const dateToFilter = currentFilterDate || today;
+  filterExpenses(dateToFilter);
 });
 </script>
 
