@@ -1,0 +1,422 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>💰 Quản Lý Chi Tiêu Nâng Cấp</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+/* Reset và Font chữ */
+body {
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    padding: 0;
+    margin: 0;
+    background: #f8f8fa; /* Nền trắng xám nhẹ nhàng */
+    color: #1c1c1e; /* Màu chữ đậm */
+    padding-bottom: 80px; /* Khoảng cách cho thiết bị có thanh gesture bar */
+}
+
+/* Thanh Header đơn giản như iOS */
+.header {
+    padding: 16px 20px;
+    background: #ffffff;
+    border-bottom: 0.5px solid #ebebeb; /* Đường viền nhẹ */
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    color: #007aff; /* Màu xanh dương chủ đạo của iOS */
+}
+
+/* Các Box/Card */
+.container {
+    padding: 0 15px;
+}
+
+.box {
+    background: white;
+    padding: 18px 15px;
+    border-radius: 12px; /* Góc bo tròn lớn hơn */
+    margin-top: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Bóng đổ tinh tế */
+}
+
+h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #3a3a3c;
+}
+
+/* Input, Select */
+input[type="text"], input[type="number"], select {
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid #d1d1d6;
+    margin-top: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 16px;
+    background: #f9f9f9;
+    transition: border-color 0.2s ease;
+}
+
+input:focus, select:focus {
+    border-color: #007aff;
+    outline: none;
+    background: #ffffff;
+}
+
+/* Nút bấm (Buttons) */
+button {
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    margin-top: 15px;
+    width: 100%;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    background: #007aff; /* Màu xanh dương chính */
+    box-shadow: 0 4px 8px rgba(0, 122, 255, 0.3);
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+button:active {
+    background: #005ac9; /* Màu đậm hơn khi nhấn */
+    transform: scale(0.99); /* Hiệu ứng nhấn mượt mà */
+    box-shadow: 0 2px 4px rgba(0, 122, 255, 0.4);
+}
+
+/* Khu vực danh sách khoản chi & Thống kê */
+#categoryList, #categorySummary, #expenseHistory {
+    padding: 10px 0;
+    color: #636366;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+#categoryList span {
+    display: inline-block;
+    background: #f0f0f5;
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-right: 8px;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.summary span, .summary-item, .expense-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 0.5px solid #ebebeb;
+    font-size: 16px;
+}
+.summary-item:last-child, .expense-item:last-child {
+    border-bottom: none;
+}
+.summary strong {
+    font-weight: 600;
+}
+.summary-item .label, .expense-item .label {
+    flex-grow: 1;
+}
+
+/* Chi tiết Chi tiêu */
+.expense-item {
+    align-items: center;
+    font-size: 14px;
+}
+.expense-item .amount {
+    font-weight: 600;
+    color: #ff3b30;
+    margin-right: 10px;
+}
+.expense-item .date {
+    font-size: 12px;
+    color: #8e8e93;
+    margin-right: 10px;
+    white-space: nowrap;
+}
+.delete-btn {
+    padding: 6px 10px;
+    margin-top: 0;
+    width: auto;
+    background: #ff3b30;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 6px;
+    box-shadow: none;
+    transition: background 0.1s;
+}
+.delete-btn:active {
+    background: #c90a00;
+}
+
+/* Giá trị màu */
+.income-value { color: #34c759; } 
+.expense-value { color: #ff3b30; } 
+.remain-value { font-size: 18px; font-weight: 700; color: #007aff; } 
+.today-spent-value { color: #ff9500; } 
+.category-summary-amount { font-weight: 600; color: #ff3b30; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>💰 Quản Lý Chi Tiêu</h1>
+</div>
+
+<div class="container">
+    <div class="box">
+        <h2>💵 Doanh thu tháng</h2>
+        <input type="number" id="monthlyIncome" placeholder="Nhập số tiền doanh thu tháng...">
+        <input type="date" id="incomeDateInput" value="<?php echo date('Y-m-d'); ?>">
+        <button id="saveIncome">Lưu Doanh Thu</button>
+    </div>
+
+    <div class="box">
+        <h2>➕ Thêm khoản chi</h2>
+        <input type="text" id="categoryInput" placeholder="Ví dụ: Ăn uống, Xăng, Cafe, Tiết kiệm...">
+        <button id="addCategory">Thêm Hạng Mục</button>
+        <div id="categoryList"></div>
+    </div>
+
+    <div class="box">
+        <h2>📝 Ghi chi tiêu</h2>
+        <select id="selectCategory">
+            </select>
+        <input type="number" id="expenseAmount" placeholder="Nhập số tiền đã chi...">
+        <button id="addExpense">Ghi Chi Tiêu</button>
+    </div>
+
+    <div class="box summary">
+        <h2>📈 Tổng quan</h2>
+        <span id="showIncome">Doanh thu tháng: <strong class="income-value">0 đ</strong></span>
+        <span id="showIncomeDate">Ngày ghi nhận: <strong style="color:#8e8e93;">N/A</strong></span>
+        <span id="showTotalSpent">Tổng chi: <strong class="expense-value">0 đ</strong></span>
+        <span id="showRemain">Còn lại: <strong class="remain-value">0 đ</strong></span>
+        <span id="showTodaySpent">Chi hôm nay: <strong class="today-spent-value">0 đ</strong></span>
+    </div>
+    
+    <div class="box">
+        <h2>🏷️ Tổng chi theo khoản</h2>
+        <div id="categorySummary">
+            </div>
+    </div>
+
+    <div class="box" id="expenseHistoryBox">
+        <h2>⏳ Lịch sử Chi tiêu</h2>
+        <div id="expenseHistory">
+            </div>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+// Vẫn giữ nguyên cấu hình và logic Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
+  authDomain: "lichnghi-4c665.firebaseapp.com",
+  databaseURL: "https://lichnghi-4c665-default-rtdb.firebaseio.com",
+  projectId: "lichnghi-4c665",
+  storageBucket: "lichnghi-4c665.firebasestorage.app",
+  messagingSenderId: "86673813509",
+  appId: "1:86673813509:web:168376408dfcbf14e16c6c",
+  measurementId: "G-2G08MRQY1V"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth();
+signInAnonymously(auth);
+
+// Elements
+const monthlyIncomeInput = document.getElementById("monthlyIncome");
+const incomeDateInput = document.getElementById("incomeDateInput");
+const saveIncomeBtn = document.getElementById("saveIncome");
+const categoryInput = document.getElementById("categoryInput");
+const addCategoryBtn = document.getElementById("addCategory");
+const categoryList = document.getElementById("categoryList");
+const categorySelect = document.getElementById("selectCategory");
+const expenseAmountInput = document.getElementById("expenseAmount");
+const addExpenseBtn = document.getElementById("addExpense");
+
+const showIncome = document.getElementById("showIncome");
+const showIncomeDate = document.getElementById("showIncomeDate");
+const showTotalSpent = document.getElementById("showTotalSpent");
+const showRemain = document.getElementById("showRemain");
+const showTodaySpent = document.getElementById("showTodaySpent");
+const categorySummaryDiv = document.getElementById("categorySummary");
+const expenseHistoryDiv = document.getElementById("expenseHistory");
+
+// Format tiền tệ
+const formatCurrency = (amount) => {
+    return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }).replace('₫', ' đ');
+};
+
+// Hàm định dạng ngày
+const formatDate = (dateString) => {
+    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+    return new Date(dateString).toLocaleDateString('vi-VN', options);
+};
+
+// --- CHỨC NĂNG XÓA (DELETE) ---
+window.deleteExpense = (key) => {
+    if (confirm("Bạn có chắc chắn muốn xóa khoản chi này?")) {
+        remove(ref(db, "expenses/" + key));
+    }
+};
+
+// Save income
+saveIncomeBtn.onclick = () => {
+    const incomeValue = Number(monthlyIncomeInput.value.replace(/[^0-9]/g, ''));
+    const incomeDate = incomeDateInput.value;
+    if (!isNaN(incomeValue) && incomeDate) {
+        set(ref(db, "budget/monthlyIncome"), {
+            amount: incomeValue,
+            date: incomeDate
+        });
+        // Hiển thị thông báo hoặc hiệu ứng thành công
+    }
+};
+
+// Add category
+addCategoryBtn.onclick = () => {
+  const category = categoryInput.value.trim();
+  if (category) {
+    set(ref(db, "budget/categories/" + category), true);
+    categoryInput.value = "";
+  }
+};
+
+// Listen categories
+onValue(ref(db, "budget/categories"), snap => {
+  categorySelect.innerHTML = "";
+  categoryList.innerHTML = "";
+  if (snap.exists()) {
+    Object.keys(snap.val()).forEach(c => {
+      categorySelect.innerHTML += `<option value="${c}">${c}</option>`;
+      categoryList.innerHTML += `<span>${c}</span>`;
+    });
+  }
+});
+
+// Add expense
+addExpenseBtn.onclick = () => {
+  const amountValue = Number(expenseAmountInput.value.replace(/[^0-9]/g, ''));
+  if (categorySelect.value && !isNaN(amountValue) && amountValue > 0) {
+    push(ref(db, "expenses"), {
+      category: categorySelect.value,
+      amount: amountValue,
+      date: new Date().toISOString().split("T")[0] // Ghi ngày chi tiêu
+    });
+    expenseAmountInput.value = "";
+    // Hiển thị thông báo hoặc hiệu ứng thành công
+  }
+};
+
+// Stats
+onValue(ref(db, "/"), snap => {
+  if (!snap.exists()) return;
+  const data = snap.val();
+  
+  // Lấy thông tin thu nhập
+  const incomeData = data.budget?.monthlyIncome || { amount: 0, date: null };
+  const income = incomeData.amount || 0;
+  const incomeDate = incomeData.date;
+  
+  const expenses = data.expenses || {};
+
+  let totalSpent = 0;
+  let todaySpent = 0;
+  const today = new Date().toISOString().split("T")[0];
+  const categorySummaries = {}; // Thống kê theo khoản
+  const expenseHistoryItems = []; // Lịch sử chi tiêu
+
+  Object.keys(expenses).forEach(key => {
+    const e = expenses[key];
+    totalSpent += e.amount;
+    
+    // Thống kê chi hôm nay
+    if (e.date === today) todaySpent += e.amount;
+    
+    // Thống kê theo khoản
+    categorySummaries[e.category] = (categorySummaries[e.category] || 0) + e.amount;
+    
+    // Lịch sử chi tiêu
+    expenseHistoryItems.push({
+        key: key,
+        category: e.category,
+        amount: e.amount,
+        date: e.date
+    });
+  });
+
+  const remaining = income - totalSpent;
+
+  // --- HIỂN THỊ THỐNG KÊ CHUNG ---
+  showIncome.innerHTML = `Doanh thu tháng: <strong class="income-value">${formatCurrency(income)}</strong>`;
+  showIncomeDate.innerHTML = `Ngày ghi nhận: <strong style="color:#8e8e93;">${incomeDate ? formatDate(incomeDate) : 'Chưa có'}</strong>`;
+  showTotalSpent.innerHTML = `Tổng chi: <strong class="expense-value">${formatCurrency(totalSpent)}</strong>`;
+  showRemain.innerHTML = `Còn lại: <strong class="remain-value">${formatCurrency(remaining)}</strong>`;
+  showTodaySpent.innerHTML = `Chi hôm nay: <strong class="today-spent-value">${formatCurrency(todaySpent)}</strong>`;
+
+  // Cập nhật lại giá trị input doanh thu nếu đã có
+  if(income > 0) {
+      monthlyIncomeInput.value = income;
+  }
+  if(incomeDate) {
+      incomeDateInput.value = incomeDate;
+  }
+  
+  // --- HIỂN THỊ TỔNG CHI THEO KHOẢN ---
+  categorySummaryDiv.innerHTML = "";
+  if (Object.keys(categorySummaries).length > 0) {
+      Object.keys(categorySummaries).sort().forEach(category => {
+          categorySummaryDiv.innerHTML += `
+              <div class="summary-item">
+                  <span class="label">${category}:</span>
+                  <span class="category-summary-amount">${formatCurrency(categorySummaries[category])}</span>
+              </div>
+          `;
+      });
+  } else {
+      categorySummaryDiv.innerHTML = "<p style='text-align:center; color:#8e8e93;'>Chưa có khoản chi nào.</p>";
+  }
+
+  // --- HIỂN THỊ LỊCH SỬ CHI TIÊU VÀ NÚT XÓA ---
+  expenseHistoryDiv.innerHTML = "";
+  if (expenseHistoryItems.length > 0) {
+      // Sắp xếp theo ngày mới nhất lên trước
+      expenseHistoryItems.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      expenseHistoryItems.forEach(item => {
+          expenseHistoryDiv.innerHTML += `
+              <div class="expense-item">
+                  <span class="label">${item.category}</span>
+                  <span class="date">${formatDate(item.date)}</span>
+                  <span class="amount">${formatCurrency(item.amount)}</span>
+                  <button class="delete-btn" onclick="deleteExpense('${item.key}')">Xóa</button>
+              </div>
+          `;
+      });
+  } else {
+      expenseHistoryDiv.innerHTML = "<p style='text-align:center; color:#8e8e93;'>Chưa có lịch sử chi tiêu nào.</p>";
+  }
+});
+</script>
+
+</body>
+</html>
