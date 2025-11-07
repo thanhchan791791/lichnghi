@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -160,6 +161,21 @@
             padding: 14px 15px;
             margin-top: 10px;
         }
+        
+        /* Cải tiến giao diện lọc theo khoảng thời gian */
+        .date-range-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .date-range-group input {
+            margin-top: 0;
+        }
+        .date-range-group span {
+            font-weight: 500;
+            color: var(--ios-text-secondary);
+        }
 
 
         /* ====================================
@@ -208,6 +224,7 @@
         #filterExpenseBtn {
             background: var(--ios-orange);
             box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+            margin-top: 10px; /* Điều chỉnh lại margin */
         }
         #filterExpenseBtn:active {
             background: #cc7400;
@@ -274,6 +291,31 @@
             margin-right: 15px;
             white-space: nowrap;
         }
+        
+        /* CSS cho phần thống kê theo ngày được lọc */
+        #dailyCategorySummaryBox {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--ios-separator);
+        }
+        #dailyCategorySummaryBox h3 {
+            font-size: 17px;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .daily-summary-item {
+            padding: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+        }
+        .daily-summary-item .amount {
+            font-weight: 600;
+            color: var(--ios-red);
+        }
+
 
         /* ====================================
            VII. BOTTOM TAB BAR (Thanh Điều Hướng Dưới)
@@ -400,20 +442,29 @@
     </div>
     
     <div class="box">
-        <h2>🏷️ Tổng chi theo khoản</h2>
+        <h2>🏷️ Tổng chi theo khoản (Toàn bộ)</h2>
         <div id="categorySummary">
             </div>
     </div>
     
     <div class="box">
-        <h2>🔎 Lọc Chi tiêu theo ngày</h2>
-        <div class="input-group">
-             <input type="date" id="filterDateInput" value="<?php echo date('Y-m-d'); ?>">
-             <button id="filterExpenseBtn">Lọc</button>
+        <h2>🔎 Lọc Chi tiêu theo khoảng ngày</h2>
+        <div class="date-range-group">
+             <input type="date" id="startDateInput" value="<?php echo date('Y-m-d'); ?>">
+             <span>đến</span>
+             <input type="date" id="endDateInput" value="<?php echo date('Y-m-d'); ?>">
         </div>
         
+        <button id="filterExpenseBtn">Lọc Theo Khoảng Ngày</button>
+        
         <div id="filteredExpenseSummary" class="summary-item" style="margin-top: 20px; font-weight: 500; padding: 0;">
-             Tổng chi ngày <span id="filteredDateValue">Hôm nay</span>: <strong class="expense-value" id="filteredTotalAmount">0 đ</strong>
+             Tổng chi <span id="filteredDateRangeValue">Hôm nay</span>: <strong class="expense-value" id="filteredTotalAmount">0 đ</strong>
+        </div>
+        
+        <div id="dailyCategorySummaryBox" style="display: none;">
+             <h3>Chi tiết theo khoản:</h3>
+             <div id="dailyCategorySummary">
+                 </div>
         </div>
         
     </div>
@@ -488,15 +539,21 @@ const mainHeader = document.getElementById("mainHeader");
 const iosToast = document.getElementById("iosToast");
 
 // Elements mới cho lọc theo ngày
-const filterDateInput = document.getElementById("filterDateInput");
+const startDateInput = document.getElementById("startDateInput"); // NEW
+const endDateInput = document.getElementById("endDateInput"); // NEW
 const filterExpenseBtn = document.getElementById("filterExpenseBtn");
 const historyTitle = document.getElementById("historyTitle");
-const filteredDateValue = document.getElementById("filteredDateValue");
+const filteredDateRangeValue = document.getElementById("filteredDateRangeValue"); // Renamed
 const filteredTotalAmount = document.getElementById("filteredTotalAmount");
+const dailyCategorySummaryBox = document.getElementById("dailyCategorySummaryBox"); 
+const dailyCategorySummaryDiv = document.getElementById("dailyCategorySummary"); 
+
 
 // Biến lưu trữ lịch sử chi tiêu gốc (dùng cho việc lọc)
 let allExpenses = {};
-let currentFilterDate = null; // Biến lưu trữ ngày đang lọc
+let currentFilterStart = null; // Biến lưu trữ ngày bắt đầu đang lọc
+let currentFilterEnd = null; // Biến lưu trữ ngày kết thúc đang lọc
+
 
 // --- HÀM HỖ TRỢ ---
 
@@ -649,18 +706,28 @@ addExpenseBtn.onclick = () => {
 };
 
 
-// --- CHỨC NĂNG LỌC VÀ HIỂN THỊ LỊCH SỬ ---
+// --- CHỨC NĂNG LỌC VÀ HIỂN THỊ LỊCH SỬ (UPDATED FOR DATE RANGE) ---
 
 // Hàm chung để hiển thị lịch sử chi tiêu
-const renderExpenseHistory = (expensesToRender, filterDate = null) => {
+const renderExpenseHistory = (expensesToRender, filterStart = null, filterEnd = null) => {
     expenseHistoryDiv.innerHTML = "";
     
     // Cập nhật tiêu đề
-    if (filterDate) {
-        const displayDate = filterDate === new Date().toISOString().split("T")[0] ? "Hôm nay" : formatDate(filterDate);
-        historyTitle.textContent = `Ngày ${displayDate}`;
+    if (filterStart && filterEnd) {
+        const startDisplay = formatDate(filterStart);
+        const endDisplay = formatDate(filterEnd);
+        
+        if (filterStart === filterEnd) {
+             historyTitle.textContent = `Ngày ${startDisplay}`;
+             filteredDateRangeValue.textContent = `Ngày ${startDisplay}`;
+        } else {
+             historyTitle.textContent = `Từ ${startDisplay} đến ${endDisplay}`;
+             filteredDateRangeValue.textContent = `Từ ${startDisplay} đến ${endDisplay}`;
+        }
+       
     } else {
         historyTitle.textContent = "Toàn bộ";
+        filteredDateRangeValue.textContent = "Toàn bộ";
     }
 
     if (Object.keys(expensesToRender).length > 0) {
@@ -680,46 +747,84 @@ const renderExpenseHistory = (expensesToRender, filterDate = null) => {
             `;
         });
     } else {
-        expenseHistoryDiv.innerHTML = "<p style='text-align:center; color:var(--ios-text-secondary);'>Không có lịch sử chi tiêu nào cho ngày này.</p>";
+        expenseHistoryDiv.innerHTML = "<p style='text-align:center; color:var(--ios-text-secondary);'>Không có lịch sử chi tiêu nào trong khoảng thời gian này.</p>";
     }
 };
 
-// Hàm xử lý việc lọc (chỉ filter expenseHistory)
-const filterExpenses = (date) => {
-    currentFilterDate = date;
+// Hàm xử lý việc lọc theo khoảng ngày
+const filterExpenses = (startDate, endDate) => {
+    currentFilterStart = startDate;
+    currentFilterEnd = endDate;
+    
+    // Chuyển đổi sang đối tượng Date để so sánh
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (start > end) {
+        showToast("Ngày bắt đầu không thể sau Ngày kết thúc!");
+        // Giữ nguyên hiển thị trước đó
+        return;
+    }
+
     let filteredExpenses = {};
     let totalFilteredAmount = 0;
-    const today = new Date().toISOString().split("T")[0];
-    const displayDate = date === today ? "Hôm nay" : formatDate(date);
+    const dailyCategorySummaries = {}; // Thống kê theo khoản cho khoảng ngày lọc
+    
 
     Object.keys(allExpenses).forEach(key => {
         const e = allExpenses[key];
-        if (e.date === date) {
+        const expenseDate = new Date(e.date);
+
+        // Kiểm tra xem ngày chi tiêu có nằm trong khoảng [startDate, endDate] không
+        if (expenseDate >= start && expenseDate <= end) {
             filteredExpenses[key] = e;
             totalFilteredAmount += e.amount;
+            
+            // Thống kê theo khoản cho khoảng ngày lọc
+            dailyCategorySummaries[e.category] = (dailyCategorySummaries[e.category] || 0) + e.amount;
         }
     });
-
-    // Cập nhật hiển thị tổng chi ngày lọc
-    filteredDateValue.textContent = displayDate;
+    
+    // --- HIỂN THỊ THỐNG KÊ CHI TIẾT THEO KHOẢN (NEW) ---
+    dailyCategorySummaryDiv.innerHTML = "";
+    if (Object.keys(dailyCategorySummaries).length > 0) {
+        dailyCategorySummaryBox.style.display = 'block'; // Hiển thị box
+        Object.keys(dailyCategorySummaries).sort().forEach(category => {
+            dailyCategorySummaryDiv.innerHTML += `
+                <div class="daily-summary-item">
+                    <span>${category}:</span>
+                    <span class="amount">${formatCurrency(dailyCategorySummaries[category])}</span>
+                </div>
+            `;
+        });
+    } else {
+        // Ẩn box nếu không có chi tiêu nào trong ngày
+        dailyCategorySummaryBox.style.display = 'none'; 
+    }
+    
+    // Cập nhật hiển thị tổng chi
     filteredTotalAmount.textContent = formatCurrency(totalFilteredAmount);
 
-    renderExpenseHistory(filteredExpenses, date);
+    renderExpenseHistory(filteredExpenses, startDate, endDate);
 };
 
 // Event click nút Lọc
 filterExpenseBtn.onclick = () => {
-    const selectedDate = filterDateInput.value;
-    if (selectedDate) {
-        filterExpenses(selectedDate);
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+    if (startDate && endDate) {
+        filterExpenses(startDate, endDate);
     } else {
-        showToast("Vui lòng chọn một ngày để lọc!");
+        showToast("Vui lòng chọn cả Ngày bắt đầu và Ngày kết thúc để lọc!");
     }
 };
 
 // Mặc định hiển thị chi hôm nay ngay khi load
 window.onload = () => {
-    filterExpenses(new Date().toISOString().split("T")[0]);
+    const today = new Date().toISOString().split("T")[0];
+    startDateInput.value = today;
+    endDateInput.value = today;
+    filterExpenses(today, today);
 };
 
 
@@ -734,6 +839,7 @@ onValue(ref(db, "/"), snap => {
       showRemain.innerHTML = `Còn lại: <strong class="remain-value">${formatCurrency(0)}</strong>`;
       showTodaySpent.innerHTML = `Chi hôm nay: <strong class="today-spent-value">${formatCurrency(0)}</strong>`;
       categorySummaryDiv.innerHTML = "<p style='text-align:center; color:var(--ios-text-secondary);'>Chưa có khoản chi nào.</p>";
+      dailyCategorySummaryBox.style.display = 'none'; // NEW: Ẩn box lọc
       renderExpenseHistory({}); // Hiển thị lịch sử trống
       return;
   }
@@ -750,7 +856,7 @@ onValue(ref(db, "/"), snap => {
   let totalSpent = 0;
   let todaySpent = 0;
   const today = new Date().toISOString().split("T")[0];
-  const categorySummaries = {}; // Thống kê theo khoản
+  const categorySummaries = {}; // Thống kê theo khoản (cả tháng/toàn bộ)
 
   Object.keys(allExpenses).forEach(key => {
     const e = allExpenses[key];
@@ -759,7 +865,7 @@ onValue(ref(db, "/"), snap => {
     // Thống kê chi hôm nay
     if (e.date === today) todaySpent += e.amount;
     
-    // Thống kê theo khoản
+    // Thống kê theo khoản (cả tháng)
     categorySummaries[e.category] = (categorySummaries[e.category] || 0) + e.amount;
   });
 
@@ -780,7 +886,7 @@ onValue(ref(db, "/"), snap => {
       incomeDateInput.value = incomeDate;
   }
   
-  // --- HIỂN THỊ TỔNG CHI THEO KHOẢN ---
+  // --- HIỂN THỊ TỔNG CHI THEO KHOẢN (TOÀN BỘ) ---
   categorySummaryDiv.innerHTML = "";
   if (Object.keys(categorySummaries).length > 0) {
       Object.keys(categorySummaries).sort().forEach(category => {
@@ -796,8 +902,8 @@ onValue(ref(db, "/"), snap => {
   }
 
   // --- ÁP DỤNG BỘ LỌC ĐÃ CHỌN (hoặc lọc ngày hôm nay) ---
-  const dateToFilter = currentFilterDate || today;
-  filterExpenses(dateToFilter);
+  const dateToFilter = currentFilterStart || today;
+  filterExpenses(dateToFilter, currentFilterEnd || today);
 });
 </script>
 
