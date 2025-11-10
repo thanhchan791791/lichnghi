@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="manifest" href="manifest.json">
+  <title>Notebook — Lưu ý tưởng</title>
+  <style>
+    /* 🎨 Biến CSS & Font chữ iOS */
+    :root{
+      --bg-light: #f9f9f9; /* Nền sáng dịu */
+      --bg-dark: #ebebeb; /* Nền tối hơn cho gradient/element */
+      --card-bg: rgba(255, 255, 255, 0.9); /* Nền thẻ bán trong suốt */
+      --accent-color: #007aff; /* Màu xanh Apple */
+      --muted-color: #8e8e93; /* Màu chữ phụ iOS */
+      --text-color: #1c1c1e;
+      --radius-lg: 18px; /* Bo cong lớn */
+      --radius-xl: 24px; /* Bo cong siêu lớn */
+      --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05); /* Shadow mềm */
+      --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.12), 0 4px 6px rgba(0, 0, 0, 0.08); /* Shadow nổi khi hover */
+      --padding-app: 20px;
+      --header-height: 52px;
+      --header-large-height: 96px;
+      --bottom-nav-height: 70px; /* Thanh nav dưới cùng */
+
+      /* Font hệ thống iOS */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    }
+
+    /* 📱 Thiết kế Mobile-First */
+    body{
+      margin: 0;
+      /* Gradient nền iOS tinh tế */
+      background: linear-gradient(180deg, var(--bg-light) 0%, var(--bg-dark) 100%); 
+      color: var(--text-color);
+      padding: 0 0 var(--bottom-nav-height); /* Bổ sung padding cho thanh nav dưới */
+      min-height: 100vh;
+      box-sizing: border-box;
+      /* Scroll mềm mại */
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* 📦 Container */
+    .container{ 
+      max-width: 1000px; 
+      margin: 0 auto; 
+      display: grid; 
+      grid-template-columns: 1fr; /* Mobile mặc định 1 cột */
+      gap: 16px; 
+      padding: 0 var(--padding-app);
+      padding-top: var(--header-height); /* Dành chỗ cho header cố định */
+    }
+    
+    /* 🖥️ Responsive cho Desktop */
+    @media (min-width: 900px){ 
+      .container{ 
+        grid-template-columns: 1fr 380px; 
+        gap: 20px;
+        padding-top: var(--header-height);
+      } 
+      aside.card{ align-self: start; position: sticky; top: calc(var(--header-height) + 20px); }
+    }
+
+    /* 🚀 Header & Navigation */
+    header{ 
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      z-index: 10;
+      padding: 0 var(--padding-app);
+      height: var(--header-height);
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      background-color: var(--card-bg); /* Nền bán trong suốt */
+      /* Hiệu ứng kính mờ (Glassmorphism) */
+      backdrop-filter: blur(12px); 
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05); /* Đường kẻ mờ */
+      transition: height 0.3s ease, background-color 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    h1{ 
+      margin: 0; 
+      font-size: 20px; 
+      color: var(--text-color); 
+      font-weight: 700; /* Font đậm hơn kiểu iOS */
+      transition: font-size 0.3s ease;
+    }
+
+    /* 🃏 Card Layout */
+    .card{ 
+      background: var(--card-bg); 
+      border-radius: var(--radius-xl); /* Bo cong lớn */
+      box-shadow: var(--shadow-soft); 
+      padding: var(--padding-app); 
+      border: 1px solid rgba(255, 255, 255, 0.8); /* Viền mờ nhẹ */
+      transition: all 0.2s ease-out; /* Animation tổng thể */
+    }
+    
+    .card:hover{
+      box-shadow: var(--shadow-hover); /* Nổi lên khi hover */
+      transform: translateY(-2px);
+    }
+    
+    /* 🏷️ Label & Input Field */
+    label{ 
+      display: block; 
+      font-size: 14px; 
+      margin-bottom: 8px; 
+      color: var(--muted-color); 
+      font-weight: 500;
+    }
+    input, textarea, select{ 
+      width: 100%; 
+      border: 1px solid #e0e0e0; 
+      background: #f7f7f7;
+      padding: 12px 14px; 
+      border-radius: var(--radius-lg); /* Bo cong lớn cho input */
+      font-size: 16px;
+      color: var(--text-color);
+      transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+      box-sizing: border-box;
+    }
+    input:focus, textarea:focus, select:focus{
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+      outline: none;
+      background: #fff;
+    }
+    textarea{ 
+      min-height: 140px; 
+      resize: vertical; 
+    }
+    
+    /* 🫧 Placeholder Animation */
+    input::placeholder, textarea::placeholder {
+      transition: opacity 0.3s ease-in-out;
+      opacity: 0.7;
+    }
+    /* Placeholder fade-in/fade-out không được hỗ trợ dễ dàng bằng CSS/HTML đơn thuần */
+
+    /* 🔘 Buttons */
+    button{ 
+      border: 0; 
+      padding: 12px 18px; 
+      border-radius: var(--radius-lg); 
+      cursor: pointer; 
+      font-weight: 600;
+      font-size: 15px;
+      transition: all 0.15s ease-out; /* Animation nhanh kiểu iOS */
+    }
+    
+    /* Hiệu ứng co giãn khi nhấn (tương tự :active) */
+    button:active{
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+
+    .btn-primary{ 
+      background: var(--accent-color); 
+      color: #fff; 
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+    }
+    .btn-primary:hover{ background: #0066cc; }
+    
+    .btn-ghost{ 
+      background: transparent; 
+      color: var(--accent-color); 
+      border: 1px solid rgba(0, 122, 255, 0.2); 
+    }
+    .btn-ghost:hover{ background: rgba(0, 122, 255, 0.05); }
+    
+    .btn-danger{ 
+      background: #ff3b30; /* Màu đỏ iOS */
+      color: #fff; 
+      box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+    }
+    .btn-danger:hover{ background: #cc2d26; }
+    
+    /* 📝 List Item */
+    .list{ 
+      display: flex; 
+      flex-direction: column; 
+      gap: 12px; 
+      margin-top: 16px; 
+      max-height: calc(100vh - var(--header-height) - var(--bottom-nav-height) - 150px); /* Điều chỉnh chiều cao */
+      overflow-y: auto;
+      padding-right: 4px; /* Dành chỗ cho scrollbar */
+    }
+    /* Scrollbar mềm mại (Webkit only) */
+    .list::-webkit-scrollbar { width: 8px; }
+    .list::-webkit-scrollbar-thumb { 
+        background-color: rgba(0, 0, 0, 0.1); 
+        border-radius: 10px; 
+    }
+
+    .item{ 
+      display: flex; 
+      justify-content: space-between; 
+      padding: 14px; 
+      border-radius: var(--radius-lg); 
+      background: #fff; 
+      border: 1px solid #eee;
+      cursor: pointer;
+      transition: all 0.2s ease-out; 
+    }
+    
+    .item:hover{
+      box-shadow: var(--shadow-soft);
+      transform: translateY(-1px);
+    }
+
+    .small{ 
+      font-size: 13px; 
+      color: var(--muted-color); 
+      margin-top: 4px; 
+    }
+
+    .pill-cat{ 
+      display: inline-block; 
+      background: #e5f1ff; /* Nền xanh nhạt */
+      color: var(--accent-color); 
+      padding: 4px 10px; 
+      border-radius: 12px; 
+      font-size: 13px; 
+      margin-top: 8px;
+      font-weight: 500;
+    }
+    
+    hr{ 
+      border: 0; 
+      border-top: 1px solid #efefef; 
+      margin: 16px 0; 
+    }
+
+    /* 🔍 Input Tìm kiếm */
+    #search{
+      width: auto;
+      min-width: 120px;
+      flex-grow: 1;
+      margin-left: 10px;
+      max-width: 250px;
+      padding: 8px 12px;
+      font-size: 15px;
+      border-radius: 10px;
+      background: #efefef;
+    }
+    
+    /* 底部导航栏 (Bottom Tab Bar) - Giả lập */
+    .bottom-tab-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: var(--bottom-nav-height);
+        background-color: var(--card-bg); 
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        padding-top: 10px;
+        box-sizing: border-box;
+        z-index: 10;
+        /* Thêm khoảng trống dưới cùng cho Safe Area trên iOS */
+        padding-bottom: env(safe-area-inset-bottom, 10px); 
+    }
+    
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: var(--muted-color);
+        font-size: 10px;
+        transition: color 0.2s;
+        padding: 5px;
+    }
+    
+    .nav-item.active {
+        color: var(--accent-color);
+    }
+    
+    .nav-item i {
+        font-size: 24px;
+        margin-bottom: 3px;
+    }
+    
+    /* Tạm thời ẩn thanh nav dưới trên desktop để giữ nguyên layout gốc */
+    @media (min-width: 900px){ .bottom-tab-bar{ display: none; } }
+    
+    /* 💫 Chuyển cảnh & Animation cho Form (Fade + Slide) */
+    @keyframes slideInFade {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #formArea {
+        animation: slideInFade 0.3s ease-out;
+    }
+    
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+  
+  <div class="container">
+
+    <header>
+      <h1>Notebook</h1> <button id="showFormBtn" class="btn-primary">
+        <i class="fas fa-plus"></i> Thêm mới 
+      </button> 
+    </header>
+
+    <section class="card" style="grid-column:1/-1; padding-top: 20px;"> 
+
+      <div id="formArea" style="display:none;">
+
+        <label for="category">Chọn loại nội dung</label>
+        <select id="category">
+          <option value="">-- Chọn --</option>
+          <option value="Ẩm thực Buôn Mê">Ẩm thực Buôn Mê</option>
+          <option value="CherryPet">CherryPet</option>
+        </select>
+
+        <label style="margin-top:16px;">Tiêu đề</label>
+        <input id="title" placeholder="Tiêu đề (ví dụ: Công thức cà phê cốt dừa)..." />
+
+        <label style="margin-top:16px;">Nội dung</label>
+        <textarea id="body" placeholder="Nội dung ý tưởng chi tiết..."></textarea>
+
+        <label style="margin-top:16px;">Tags (ngăn cách bởi dấu phẩy)</label>
+        <input id="tags" placeholder="chó, khách, cute, công thức" />
+
+        <div style="display:flex; gap:10px; margin-top:16px;">
+          <button id="saveBtn" class="btn-primary">Lưu</button>
+          <button id="clearBtn" class="btn-ghost">Xoá form</button>
+          <button id="cancelEditBtn" class="btn-ghost" style="display:none">Huỷ chỉnh sửa</button>
+        </div>
+        <hr>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
+        <strong style="font-size: 17px; font-weight: 600;">Danh sách nội dung</strong>
+        <input id="search" placeholder="Tìm kiếm..." type="text" style="padding:10px; border-radius:12px; border:1px solid #eee; background: #f0f0f0; max-width: 100%; flex-grow: 1;">
+      </div>
+
+      <div class="list" id="list"></div>
+    </section>
+    
+    <aside class="card">
+      <strong style="font-size: 17px; font-weight: 600;">Thông tin Project</strong>
+      <div style="margin-top: 10px; font-size: 14px; color: var(--muted-color);">Project: lichnghi-4c665</div>
+      <div style="margin-top: 8px; font-size: 14px; color: var(--muted-color);">Tình trạng: Đã kết nối Firebase</div>
+    </aside>
+
+  </div>
+
+  <div class="bottom-tab-bar">
+    <a href="#" class="nav-item active">
+      <i class="fas fa-list-alt"></i>
+      <span>Danh sách</span>
+    </a>
+    <a href="#" class="nav-item" onclick="document.getElementById('showFormBtn').click(); return false;">
+      <i class="fas fa-edit"></i>
+      <span>Thêm mới</span>
+    </a>
+    <a href="#" class="nav-item">
+      <i class="fas fa-cog"></i>
+      <span>Cài đặt</span>
+    </a>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import {
+    getDatabase, ref, push, set, onValue, remove, update
+  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
+    authDomain: "lichnghi-4c665.firebaseapp.com",
+    databaseURL: "https://lichnghi-4c665-default-rtdb.firebaseio.com",
+    projectId: "lichnghi-4c665",
+    storageBucket: "lichnghi-4c665.firebasestorage.app",
+    messagingSenderId: "86673813509",
+    appId: "1:86673813509:web:168376408dfcbf14e16c6c",
+    measurementId: "G-2G08MRQY1V"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const dbRef = ref(db, "contents");
+
+  const showFormBtn = document.getElementById("showFormBtn");
+  const formArea = document.getElementById("formArea");
+  const categoryEl = document.getElementById("category");
+  const titleEl = document.getElementById("title");
+  const bodyEl = document.getElementById("body");
+  const tagsEl = document.getElementById("tags");
+  const saveBtn = document.getElementById("saveBtn");
+  const clearBtn = document.getElementById("clearBtn");
+  const cancelEditBtn = document.getElementById("cancelEditBtn");
+  const listEl = document.getElementById("list");
+  const searchInput = document.getElementById("search");
+
+  let editingKey = null;
+  let localCache = {};
+
+  function nowISO(){ return new Date().toISOString(); }
+
+  showFormBtn.onclick = () => { formArea.style.display = "block"; window.scrollTo(0,0); };
+
+  function clearForm(){
+    categoryEl.value = "";
+    titleEl.value = "";
+    bodyEl.value = "";
+    tagsEl.value = "";
+    editingKey = null;
+    cancelEditBtn.style.display = "none";
+  }
+
+  async function saveContent(){
+    const cat = categoryEl.value;
+    const title = titleEl.value.trim();
+    const body = bodyEl.value.trim();
+    if(!cat){ alert("Vui lòng chọn loại nội dung."); return; }
+    if(!title && !body){ alert("Vui lòng nhập nội dung."); return; }
+
+    const tags = tagsEl.value.split(",").map(t=>t.trim()).filter(Boolean);
+    const data = { category: cat, title, body, tags, updatedAt: nowISO() };
+
+    if(editingKey){
+      await update(ref(db, "contents/"+editingKey), data);
+      editingKey = null;
+      saveBtn.textContent="Lưu";
+      cancelEditBtn.style.display="none";
+    } else {
+      await set(push(dbRef), { ...data, createdAt: nowISO() });
+    }
+    clearForm();
+  }
+
+  function startEdit(key, item){
+    formArea.style.display="block";
+    categoryEl.value = item.category || "";
+    titleEl.value=item.title||"";
+    bodyEl.value=item.body||"";
+    tagsEl.value=(item.tags||[]).join(", ");
+    editingKey=key;
+    saveBtn.textContent="Cập nhật";
+    cancelEditBtn.style.display="inline-block";
+    window.scrollTo(0,0); /* Scroll lên đầu khi chỉnh sửa */
+  }
+
+  async function removeContent(key){
+    if(confirm("Xoá nội dung này?")) remove(ref(db,"contents/"+key));
+  }
+
+  function renderList(q=""){
+    listEl.innerHTML = "";
+    q = q.toLowerCase();
+    Object.entries(localCache).sort((a,b)=> (b[1].updatedAt||"").localeCompare(a[1].updatedAt||""))
+    .forEach(([key,item])=>{
+      if(q && !((item.title||"")+item.body+(item.tags||[]).join(" ")).toLowerCase().includes(q)) return;
+      const div = document.createElement("div");
+      div.className="item";
+      div.innerHTML = `
+        <div>
+          <div style="font-weight: 600;">${item.title||"(Không tiêu đề)"}</div>
+          <div style="font-size: 14px; margin-top: 4px; color: var(--text-color);">${item.body||""}</div>
+          <div class="pill-cat">${item.category}</div>
+          <div class="small">${new Date(item.updatedAt).toLocaleString("vi-VN")}</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <button class="btn-ghost" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;" onclick='(${()=>{}});'>Sửa</button>
+          <button class="btn-danger" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;">Xoá</button>
+        </div>
+      `;
+      div.querySelector(".btn-ghost").onclick = ()=> startEdit(key,item);
+      div.querySelector(".btn-danger").onclick = ()=> removeContent(key);
+      listEl.appendChild(div);
+    });
+  }
+
+  onValue(dbRef, snap=>{
+    localCache = snap.val()||{};
+    renderList(searchInput.value);
+  });
+
+  saveBtn.onclick = saveContent;
+  clearBtn.onclick = ()=> clearForm();
+  cancelEditBtn.onclick = ()=>{ clearForm(); saveBtn.textContent="Lưu"; };
+  searchInput.oninput = () => renderList(searchInput.value);
+  
+  /* Logic Header thu nhỏ (Không thể làm mượt 100% chỉ bằng JS và CSS cơ bản) */
+  window.onscroll = () => {
+    const header = document.querySelector('header');
+    const h1 = document.querySelector('h1');
+    if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+      header.style.height = '52px';
+      h1.style.fontSize = '20px';
+    } else {
+      header.style.height = '52px'; /* Giữ nguyên 52px để ổn định header cố định */
+      h1.style.fontSize = '20px';
+    }
+  };
+  
+</script>
+</body>
+</html>
