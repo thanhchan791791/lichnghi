@@ -41,7 +41,6 @@
       /* Scroll mềm mại */
       scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
-      overflow-x: hidden; /* QUAN TRỌNG: Ngăn cuộn ngang trang chính */
     }
 
     /* 📦 Container */
@@ -184,7 +183,7 @@
       flex-direction: column; 
       gap: 12px; 
       margin-top: 16px; 
-      max-height: calc(100vh - var(--header-height) - 300px);
+      max-height: calc(100vh - var(--header-height) - 270px);
       overflow-y: auto;
       padding-right: 4px;
     }
@@ -202,7 +201,7 @@
       border-radius: var(--radius-lg); 
       background: #fff; 
       border: 1px solid #eee;
-      cursor: default;
+      cursor: pointer;
       transition: all 0.2s ease-out; 
     }
     
@@ -256,21 +255,19 @@
         animation: slideInFade 0.3s ease-out;
     }
 
-    /* 📊 Segmented Control Style iOS - Đảm bảo không cuộn ngang trang chính */
+    /* 📊 Segmented Control Style iOS */
     .segmented-control {
       display: flex;
       background: #e3e3e3;
       border-radius: 10px;
       padding: 3px;
       margin-bottom: 16px;
-      overflow-x: auto; /* Cho phép cuộn ngang *trong* Segmented Control */
-      -webkit-overflow-scrolling: touch; /* Tăng tốc cuộn trên iOS */
-      width: 100%; /* Đảm bảo nó chiếm đủ 100% width của cha */
-      box-sizing: border-box;
+      flex-wrap: wrap; /* Cho phép xuống dòng nếu nhiều danh mục */
+      gap: 3px;
     }
     .segmented-control-btn {
-      flex: 0 0 auto; /* Đảm bảo nút không bị co lại quá mức */
-      min-width: 100px; /* Độ rộng tối thiểu cho nút */
+      flex: 1 1 0; /* Đảm bảo nút co dãn */
+      min-width: 80px; /* Thêm min-width cho nút */
       text-align: center;
       padding: 8px 10px;
       font-size: 15px;
@@ -287,6 +284,43 @@
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
     
+    /* 💥 Modal Category */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      padding: var(--padding-app);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-hover);
+      max-width: 400px;
+      width: 90%;
+      transform: translateY(-20px);
+      transition: transform 0.3s ease-out;
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: translateY(0);
+    }
+
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
@@ -305,14 +339,16 @@
 
       <div id="formArea" style="display:none;">
 
-        <label for="category">Chọn loại nội dung</label>
-        <select id="category">
-          <option value="">-- Chọn --</option>
-          <option value="Ẩm thực Buôn Mê">Ẩm thực Buôn Mê</option>
-          <option value="CherryPet">CherryPet</option>
-          <option value="Chẻ ry pet">Chẻ ry pet</option>
-          <option value="2 hằng cc">2 hằng cc</option>
-        </select>
+        <div style="display:flex; justify-content: space-between; align-items: flex-end; gap:10px;">
+          <div style="flex-grow: 1;">
+            <label for="category">Chọn loại nội dung</label>
+            <select id="category">
+              </select>
+          </div>
+          <button id="manageCategoryBtn" class="btn-ghost" style="padding:12px 14px; font-size:14px; white-space: nowrap;">
+            <i class="fas fa-cog"></i> Quản lý danh mục
+          </button>
+        </div>
 
         <label style="margin-top:16px;">Tiêu đề</label>
         <input id="title" placeholder="Tiêu đề (ví dụ: Công thức cà phê cốt dừa)..." />
@@ -323,11 +359,6 @@
         <label style="margin-top:16px;">Tags (ngăn cách bởi dấu phẩy)</label>
         <input id="tags" placeholder="chó, khách, cute, công thức" />
 
-        <div style="margin-top: 16px; display: flex; align-items: center; justify-content: space-between; padding: 12px 0;">
-            <label for="isFilmed" style="margin-bottom: 0;">Đã quay (Đã hoàn thành)</label>
-            <input type="checkbox" id="isFilmed" style="width: 20px; height: 20px; flex-shrink: 0; margin: 0; accent-color: var(--accent-color);">
-        </div>
-        <hr style="margin-top: 0;">
         <div style="display:flex; gap:10px; margin-top:16px;">
           <button id="saveBtn" class="btn-primary">Lưu</button>
           <button id="clearBtn" class="btn-ghost">Xoá form</button>
@@ -341,24 +372,37 @@
         <input id="search" placeholder="Tìm kiếm..." type="text" style="padding:10px; border-radius:12px; border:1px solid #eee; background: #f0f0f0; max-width: 100%; flex-grow: 1;">
       </div>
 
-      <div class="segmented-control">
-        <button class="segmented-control-btn active" data-category="all" id="filterAll">Tất cả</button>
-        <button class="segmented-control-btn" data-category="Ẩm thực Buôn Mê" id="filterAmThuc">Ẩm thực Buôn Mê</button>
-        <button class="segmented-control-btn" data-category="CherryPet" id="filterCherryPet">CherryPet</button>
-        <button class="segmented-control-btn" data-category="Chẻ ry pet" id="filterCheRyPet">Chẻ ry pet</button>
-        <button class="segmented-control-btn" data-category="2 hằng cc" id="filter2HangCC">2 hằng cc</button>
-      </div>
+      <div class="segmented-control" id="categoryFilterControl">
+        </div>
       
       <div class="list" id="list"></div>
     </section>
-    
-    <aside class="card">
-      <strong style="font-size: 17px; font-weight: 600;">Thông tin Project</strong>
-      <div style="margin-top: 10px; font-size: 14px; color: var(--muted-color);">Project: lichnghi-4c665</div>
-      <div style="margin-top: 8px; font-size: 14px; color: var(--muted-color);">Tình trạng: Đã kết nối Firebase</div>
-    </aside>
-
   </div>
+  
+  <div id="categoryModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3 style="margin-top:0;">Quản lý Danh mục</h3>
+      
+      <label for="newCategoryInput">Tên Danh mục mới</label>
+      <input id="newCategoryInput" placeholder="Ví dụ: Công thức đồ uống" />
+
+      <div style="display:flex; gap:10px; margin-top:16px; justify-content: flex-end;">
+        <button id="closeCategoryModalBtn" class="btn-ghost" style="padding:10px 14px; font-size:14px;">Đóng</button>
+        <button id="addCategoryBtn" class="btn-primary" style="padding:10px 14px; font-size:14px;">
+          <i class="fas fa-plus"></i> Thêm Danh mục
+        </button>
+      </div>
+
+      <hr>
+      <div id="currentCategoryList">
+        <strong style="font-size: 15px;">Danh sách hiện tại:</strong>
+        <ul id="categoryListContainer" style="list-style: none; padding-left: 0; font-size: 14px; color: var(--text-color);">
+          </ul>
+      </div>
+
+    </div>
+  </div>
+
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
@@ -379,7 +423,8 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const dbRef = ref(db, "contents");
+  const contentsRef = ref(db, "contents");
+  const categoriesRef = ref(db, "categories"); // 🆕 Node mới cho danh mục
 
   const showFormBtn = document.getElementById("showFormBtn");
   const formArea = document.getElementById("formArea");
@@ -387,18 +432,27 @@
   const titleEl = document.getElementById("title");
   const bodyEl = document.getElementById("body");
   const tagsEl = document.getElementById("tags");
-  const isFilmedEl = document.getElementById("isFilmed");
   const saveBtn = document.getElementById("saveBtn");
   const clearBtn = document.getElementById("clearBtn");
   const cancelEditBtn = document.getElementById("cancelEditBtn");
   const listEl = document.getElementById("list");
   const searchInput = document.getElementById("search");
+  const categoryFilterControl = document.getElementById("categoryFilterControl"); // 🆕 Container cho segmented control
   
-  const filterBtns = document.querySelectorAll('.segmented-control-btn');
-  let currentFilterCategory = 'all';
+  // 🆕 Phần tử Modal Category
+  const manageCategoryBtn = document.getElementById("manageCategoryBtn");
+  const categoryModal = document.getElementById("categoryModal");
+  const closeCategoryModalBtn = document.getElementById("closeCategoryModalBtn");
+  const newCategoryInput = document.getElementById("newCategoryInput");
+  const addCategoryBtn = document.getElementById("addCategoryBtn");
+  const categoryListContainer = document.getElementById("categoryListContainer");
+
 
   let editingKey = null;
-  let localCache = {};
+  let localCacheContents = {};
+  let localCacheCategories = {}; // 🆕 Cache cho danh mục
+  let currentFilterCategory = 'all'; 
+  const defaultCategories = ["Ẩm thực Buôn Mê", "CherryPet", "Chẻ ry pet"]; // Danh mục mặc định
 
   function nowISO(){ return new Date().toISOString(); }
 
@@ -409,13 +463,8 @@
     titleEl.value = "";
     bodyEl.value = "";
     tagsEl.value = "";
-    isFilmedEl.checked = false;
     editingKey = null;
     cancelEditBtn.style.display = "none";
-  }
-
-  async function toggleFilmedStatus(key, currentStatus){
-      await update(ref(db, "contents/"+key), { isFilmed: !currentStatus, updatedAt: nowISO() });
   }
 
   async function saveContent(){
@@ -426,8 +475,7 @@
     if(!title && !body){ alert("Vui lòng nhập nội dung."); return; }
 
     const tags = tagsEl.value.split(",").map(t=>t.trim()).filter(Boolean);
-    const isFilmed = isFilmedEl.checked;
-    const data = { category: cat, title, body, tags, isFilmed, updatedAt: nowISO() };
+    const data = { category: cat, title, body, tags, updatedAt: nowISO() };
 
     if(editingKey){
       await update(ref(db, "contents/"+editingKey), data);
@@ -435,7 +483,7 @@
       saveBtn.textContent="Lưu";
       cancelEditBtn.style.display="none";
     } else {
-      await set(push(dbRef), { ...data, createdAt: nowISO() }); 
+      await set(push(contentsRef), { ...data, createdAt: nowISO() });
     }
     clearForm();
   }
@@ -446,84 +494,188 @@
     titleEl.value=item.title||"";
     bodyEl.value=item.body||"";
     tagsEl.value=(item.tags||[]).join(", ");
-    isFilmedEl.checked = item.isFilmed || false;
     editingKey=key;
     saveBtn.textContent="Cập nhật";
     cancelEditBtn.style.display="inline-block";
-    window.scrollTo(0,0);
+    window.scrollTo(0,0); /* Scroll lên đầu khi chỉnh sửa */
   }
 
   async function removeContent(key){
     if(confirm("Xoá nội dung này?")) remove(ref(db,"contents/"+key));
   }
+  
+  // 🆕 Hàm render danh mục cho thẻ <select>
+  function renderCategoryOptions(categories){
+    categoryEl.innerHTML = '<option value="">-- Chọn --</option>';
+    Object.keys(categories).forEach(cat => {
+        const option = document.createElement("option");
+        option.value = cat;
+        option.textContent = cat;
+        categoryEl.appendChild(option);
+    });
+    // Giữ lại giá trị đang chọn nếu có
+    if(categoryEl.value in categories) categoryEl.value = categoryEl.value;
+  }
 
+  // 🆕 Hàm render Segmented Control
+  function renderSegmentedControl(categories){
+    categoryFilterControl.innerHTML = '';
+    
+    // Nút "Tất cả"
+    const allBtn = document.createElement("button");
+    allBtn.className = `segmented-control-btn ${currentFilterCategory === 'all' ? 'active' : ''}`;
+    allBtn.setAttribute('data-category', 'all');
+    allBtn.textContent = 'Tất cả';
+    categoryFilterControl.appendChild(allBtn);
+
+    // Các nút danh mục
+    Object.keys(categories).forEach(cat => {
+        const btn = document.createElement("button");
+        btn.className = `segmented-control-btn ${currentFilterCategory === cat ? 'active' : ''}`;
+        btn.setAttribute('data-category', cat);
+        btn.textContent = cat;
+        categoryFilterControl.appendChild(btn);
+    });
+
+    // Gắn lại sự kiện lắng nghe
+    document.querySelectorAll('.segmented-control-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.segmented-control-btn').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            currentFilterCategory = e.currentTarget.getAttribute('data-category');
+            renderList(searchInput.value, currentFilterCategory);
+        });
+    });
+  }
+
+  // 🆕 Hàm render danh sách danh mục trong Modal
+  function renderCategoryListInModal(categories){
+      categoryListContainer.innerHTML = '';
+      Object.keys(categories).forEach(cat => {
+          const li = document.createElement('li');
+          li.style.display = 'flex';
+          li.style.justifyContent = 'space-between';
+          li.style.alignItems = 'center';
+          li.style.padding = '5px 0';
+          li.style.borderBottom = '1px dotted #eee';
+          li.innerHTML = `
+              <span>${cat}</span>
+              <button class="btn-danger" style="padding: 4px 8px; font-size: 12px; border-radius: 8px;">
+                <i class="fas fa-trash-alt"></i> Xoá
+              </button>
+          `;
+          li.querySelector('.btn-danger').onclick = () => removeCategory(cat);
+          categoryListContainer.appendChild(li);
+      });
+  }
+  
+  // 🆕 Hàm thêm danh mục
+  async function addCategory(){
+    const newCat = newCategoryInput.value.trim();
+    if(!newCat){ alert("Vui lòng nhập tên danh mục."); return; }
+    if(localCacheCategories[newCat]){ alert("Danh mục này đã tồn tại."); return; }
+    
+    // Lưu danh mục mới vào Firebase
+    await update(categoriesRef, { [newCat]: true });
+    newCategoryInput.value = "";
+    // Modal sẽ tự động cập nhật nhờ onValue(categoriesRef)
+  }
+
+  // 🆕 Hàm xoá danh mục
+  async function removeCategory(categoryName){
+      if(Object.keys(localCacheContents).some(([key, item]) => item.category === categoryName)){
+          alert("Không thể xóa. Vẫn còn nội dung sử dụng danh mục này.");
+          return;
+      }
+      if(confirm(`Xoá danh mục "${categoryName}"?`)){
+          await remove(ref(db, "categories/"+categoryName));
+      }
+  }
+
+
+  // 🔄 Hàm renderList được cập nhật để chấp nhận bộ lọc danh mục
   function renderList(q="", filterCat = currentFilterCategory){
     listEl.innerHTML = "";
     q = q.toLowerCase();
     
-    Object.entries(localCache)
+    Object.entries(localCacheContents)
     .sort((a,b)=> (b[1].updatedAt||"").localeCompare(a[1].updatedAt||""))
     .forEach(([key,item])=>{
       const searchContent = (item.title||"")+item.body+(item.tags||[]).join(" ");
       
+      // 1. Lọc theo ô tìm kiếm
       if(q && !searchContent.toLowerCase().includes(q)) return;
-      if(filterCat !== 'all' && item.category !== filterCat) return;
-
-      const isFilmed = item.isFilmed || false;
       
-      const filmedStatusText = isFilmed ? 
-        '<span style="font-size: 11px; font-weight: 600; color: #34c759; background: #e6ffe9; padding: 2px 6px; border-radius: 6px; margin-right: 8px;">Đã quay</span>' : 
-        '<span style="font-size: 11px; font-weight: 600; color: #ff9500; background: #fff5e6; padding: 2px 6px; border-radius: 6px; margin-right: 8px;">Chưa quay</span>';
-        
-      const toggleBtnBg = isFilmed ? '#ff3b30' : '#34c759'; 
-      const toggleBtnText = isFilmed ? 'Chưa quay' : 'Đã quay';
-
+      // 2. Lọc theo danh mục được chọn
+      if(filterCat !== 'all' && item.category !== filterCat) return;
+      
       const div = document.createElement("div");
       div.className="item";
       div.innerHTML = `
         <div>
-          <div style="font-weight: 600; display:flex; align-items: center;">
-            ${filmedStatusText} 
-            ${item.title||"(Không tiêu đề)"}
-          </div>
+          <div style="font-weight: 600;">${item.title||"(Không tiêu đề)"}</div>
           <div style="font-size: 14px; margin-top: 4px; color: var(--text-color);">${item.body||""}</div>
           <div class="pill-cat">${item.category}</div>
           <div class="small">${new Date(item.updatedAt).toLocaleString("vi-VN")}</div>
         </div>
-        <div style="display:flex; flex-direction:column; gap:6px; justify-content: flex-start;">
-          <button class="filmed-btn btn-primary" style="background: ${toggleBtnBg}; padding: 8px 12px; font-size: 13px; border-radius: 10px; box-shadow: none;">${toggleBtnText}</button>
-          <button class="btn-ghost" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;">Sửa</button>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <button class="btn-ghost" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;" onclick='(${()=>{}});'>Sửa</button>
           <button class="btn-danger" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;">Xoá</button>
         </div>
       `;
-      
-      div.querySelector(".filmed-btn").onclick = () => toggleFilmedStatus(key, isFilmed);
       div.querySelector(".btn-ghost").onclick = ()=> startEdit(key,item);
       div.querySelector(".btn-danger").onclick = ()=> removeContent(key);
       listEl.appendChild(div);
     });
   }
 
-  onValue(dbRef, snap=>{
-    localCache = snap.val()||{};
+
+  // 🎧 Lắng nghe sự kiện thay đổi Nội dung (Contents)
+  onValue(contentsRef, snap=>{
+    localCacheContents = snap.val()||{};
     renderList(searchInput.value, currentFilterCategory);
   });
+  
+  // 🎧 Lắng nghe sự kiện thay đổi Danh mục (Categories)
+  onValue(categoriesRef, snap => {
+      let categories = snap.val() || {};
+
+      // 🆕 Thêm danh mục mặc định nếu chưa có
+      let needsUpdate = false;
+      defaultCategories.forEach(cat => {
+          if(!categories[cat]){
+              categories[cat] = true; // Giá trị true chỉ mang tính đại diện
+              needsUpdate = true;
+          }
+      });
+      if(needsUpdate){
+          set(categoriesRef, categories); // Cập nhật lại Firebase
+      }
+
+      localCacheCategories = categories;
+      
+      // Cập nhật giao diện
+      renderCategoryOptions(localCacheCategories);
+      renderSegmentedControl(localCacheCategories);
+      renderCategoryListInModal(localCacheCategories);
+      
+      // Đảm bảo list nội dung được render lại khi danh mục thay đổi
+      renderList(searchInput.value, currentFilterCategory);
+  });
+
 
   saveBtn.onclick = saveContent;
   clearBtn.onclick = ()=> clearForm();
   cancelEditBtn.onclick = ()=>{ clearForm(); saveBtn.textContent="Lưu"; };
   searchInput.oninput = () => renderList(searchInput.value, currentFilterCategory);
   
-  /* Logic Lọc danh mục */
-  filterBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-          filterBtns.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          
-          currentFilterCategory = btn.getAttribute('data-category');
-          renderList(searchInput.value, currentFilterCategory);
-      });
-  });
+  // 🆕 Logic Modal Category
+  manageCategoryBtn.onclick = () => { categoryModal.classList.add('active'); };
+  closeCategoryModalBtn.onclick = () => { categoryModal.classList.remove('active'); };
+  categoryModal.onclick = (e) => { 
+      if(e.target === categoryModal) categoryModal.classList.remove('active');
+  };
+  addCategoryBtn.onclick = addCategory;
 
   /* Logic Header cố định */
   window.onscroll = () => {
