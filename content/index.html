@@ -41,6 +41,7 @@
       /* Scroll mềm mại */
       scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
+      overflow-x: hidden; /* QUAN TRỌNG: Ngăn cuộn ngang trang chính */
     }
 
     /* 📦 Container */
@@ -183,7 +184,7 @@
       flex-direction: column; 
       gap: 12px; 
       margin-top: 16px; 
-      max-height: calc(100vh - var(--header-height) - 270px);
+      max-height: calc(100vh - var(--header-height) - 300px);
       overflow-y: auto;
       padding-right: 4px;
     }
@@ -201,7 +202,7 @@
       border-radius: var(--radius-lg); 
       background: #fff; 
       border: 1px solid #eee;
-      cursor: pointer;
+      cursor: default;
       transition: all 0.2s ease-out; 
     }
     
@@ -255,16 +256,21 @@
         animation: slideInFade 0.3s ease-out;
     }
 
-    /* 📊 Segmented Control Style iOS */
+    /* 📊 Segmented Control Style iOS - Đảm bảo không cuộn ngang trang chính */
     .segmented-control {
       display: flex;
       background: #e3e3e3;
       border-radius: 10px;
       padding: 3px;
       margin-bottom: 16px;
+      overflow-x: auto; /* Cho phép cuộn ngang *trong* Segmented Control */
+      -webkit-overflow-scrolling: touch; /* Tăng tốc cuộn trên iOS */
+      width: 100%; /* Đảm bảo nó chiếm đủ 100% width của cha */
+      box-sizing: border-box;
     }
     .segmented-control-btn {
-      flex: 1;
+      flex: 0 0 auto; /* Đảm bảo nút không bị co lại quá mức */
+      min-width: 100px; /* Độ rộng tối thiểu cho nút */
       text-align: center;
       padding: 8px 10px;
       font-size: 15px;
@@ -304,7 +310,9 @@
           <option value="">-- Chọn --</option>
           <option value="Ẩm thực Buôn Mê">Ẩm thực Buôn Mê</option>
           <option value="CherryPet">CherryPet</option>
-          <option value="Chẻ ry pet">Chẻ ry pet</option> </select>
+          <option value="Chẻ ry pet">Chẻ ry pet</option>
+          <option value="2 hằng cc">2 hằng cc</option>
+        </select>
 
         <label style="margin-top:16px;">Tiêu đề</label>
         <input id="title" placeholder="Tiêu đề (ví dụ: Công thức cà phê cốt dừa)..." />
@@ -315,6 +323,11 @@
         <label style="margin-top:16px;">Tags (ngăn cách bởi dấu phẩy)</label>
         <input id="tags" placeholder="chó, khách, cute, công thức" />
 
+        <div style="margin-top: 16px; display: flex; align-items: center; justify-content: space-between; padding: 12px 0;">
+            <label for="isFilmed" style="margin-bottom: 0;">Đã quay (Đã hoàn thành)</label>
+            <input type="checkbox" id="isFilmed" style="width: 20px; height: 20px; flex-shrink: 0; margin: 0; accent-color: var(--accent-color);">
+        </div>
+        <hr style="margin-top: 0;">
         <div style="display:flex; gap:10px; margin-top:16px;">
           <button id="saveBtn" class="btn-primary">Lưu</button>
           <button id="clearBtn" class="btn-ghost">Xoá form</button>
@@ -332,12 +345,18 @@
         <button class="segmented-control-btn active" data-category="all" id="filterAll">Tất cả</button>
         <button class="segmented-control-btn" data-category="Ẩm thực Buôn Mê" id="filterAmThuc">Ẩm thực Buôn Mê</button>
         <button class="segmented-control-btn" data-category="CherryPet" id="filterCherryPet">CherryPet</button>
-        <button class="segmented-control-btn" data-category="Chẻ ry pet" id="filterCheRyPet">Chẻ ry pet</button> </div>
+        <button class="segmented-control-btn" data-category="Chẻ ry pet" id="filterCheRyPet">Chẻ ry pet</button>
+        <button class="segmented-control-btn" data-category="2 hằng cc" id="filter2HangCC">2 hằng cc</button>
+      </div>
       
       <div class="list" id="list"></div>
     </section>
     
-   
+    <aside class="card">
+      <strong style="font-size: 17px; font-weight: 600;">Thông tin Project</strong>
+      <div style="margin-top: 10px; font-size: 14px; color: var(--muted-color);">Project: lichnghi-4c665</div>
+      <div style="margin-top: 8px; font-size: 14px; color: var(--muted-color);">Tình trạng: Đã kết nối Firebase</div>
+    </aside>
 
   </div>
 
@@ -368,15 +387,15 @@
   const titleEl = document.getElementById("title");
   const bodyEl = document.getElementById("body");
   const tagsEl = document.getElementById("tags");
+  const isFilmedEl = document.getElementById("isFilmed");
   const saveBtn = document.getElementById("saveBtn");
   const clearBtn = document.getElementById("clearBtn");
   const cancelEditBtn = document.getElementById("cancelEditBtn");
   const listEl = document.getElementById("list");
   const searchInput = document.getElementById("search");
   
-  // 🆕 Thêm các phần tử lọc
   const filterBtns = document.querySelectorAll('.segmented-control-btn');
-  let currentFilterCategory = 'all'; // Mặc định là 'Tất cả'
+  let currentFilterCategory = 'all';
 
   let editingKey = null;
   let localCache = {};
@@ -390,8 +409,13 @@
     titleEl.value = "";
     bodyEl.value = "";
     tagsEl.value = "";
+    isFilmedEl.checked = false;
     editingKey = null;
     cancelEditBtn.style.display = "none";
+  }
+
+  async function toggleFilmedStatus(key, currentStatus){
+      await update(ref(db, "contents/"+key), { isFilmed: !currentStatus, updatedAt: nowISO() });
   }
 
   async function saveContent(){
@@ -402,7 +426,8 @@
     if(!title && !body){ alert("Vui lòng nhập nội dung."); return; }
 
     const tags = tagsEl.value.split(",").map(t=>t.trim()).filter(Boolean);
-    const data = { category: cat, title, body, tags, updatedAt: nowISO() };
+    const isFilmed = isFilmedEl.checked;
+    const data = { category: cat, title, body, tags, isFilmed, updatedAt: nowISO() };
 
     if(editingKey){
       await update(ref(db, "contents/"+editingKey), data);
@@ -410,7 +435,7 @@
       saveBtn.textContent="Lưu";
       cancelEditBtn.style.display="none";
     } else {
-      await set(push(dbRef), { ...data, createdAt: nowISO() });
+      await set(push(dbRef), { ...data, createdAt: nowISO() }); 
     }
     clearForm();
   }
@@ -421,17 +446,17 @@
     titleEl.value=item.title||"";
     bodyEl.value=item.body||"";
     tagsEl.value=(item.tags||[]).join(", ");
+    isFilmedEl.checked = item.isFilmed || false;
     editingKey=key;
     saveBtn.textContent="Cập nhật";
     cancelEditBtn.style.display="inline-block";
-    window.scrollTo(0,0); /* Scroll lên đầu khi chỉnh sửa */
+    window.scrollTo(0,0);
   }
 
   async function removeContent(key){
     if(confirm("Xoá nội dung này?")) remove(ref(db,"contents/"+key));
   }
 
-  // 🔄 Hàm renderList được cập nhật để chấp nhận bộ lọc danh mục
   function renderList(q="", filterCat = currentFilterCategory){
     listEl.innerHTML = "";
     q = q.toLowerCase();
@@ -441,26 +466,38 @@
     .forEach(([key,item])=>{
       const searchContent = (item.title||"")+item.body+(item.tags||[]).join(" ");
       
-      // 1. Lọc theo ô tìm kiếm
       if(q && !searchContent.toLowerCase().includes(q)) return;
-      
-      // 2. Lọc theo danh mục được chọn
       if(filterCat !== 'all' && item.category !== filterCat) return;
+
+      const isFilmed = item.isFilmed || false;
       
+      const filmedStatusText = isFilmed ? 
+        '<span style="font-size: 11px; font-weight: 600; color: #34c759; background: #e6ffe9; padding: 2px 6px; border-radius: 6px; margin-right: 8px;">Đã quay</span>' : 
+        '<span style="font-size: 11px; font-weight: 600; color: #ff9500; background: #fff5e6; padding: 2px 6px; border-radius: 6px; margin-right: 8px;">Chưa quay</span>';
+        
+      const toggleBtnBg = isFilmed ? '#ff3b30' : '#34c759'; 
+      const toggleBtnText = isFilmed ? 'Chưa quay' : 'Đã quay';
+
       const div = document.createElement("div");
       div.className="item";
       div.innerHTML = `
         <div>
-          <div style="font-weight: 600;">${item.title||"(Không tiêu đề)"}</div>
+          <div style="font-weight: 600; display:flex; align-items: center;">
+            ${filmedStatusText} 
+            ${item.title||"(Không tiêu đề)"}
+          </div>
           <div style="font-size: 14px; margin-top: 4px; color: var(--text-color);">${item.body||""}</div>
           <div class="pill-cat">${item.category}</div>
           <div class="small">${new Date(item.updatedAt).toLocaleString("vi-VN")}</div>
         </div>
-        <div style="display:flex; flex-direction:column; gap:6px;">
-          <button class="btn-ghost" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;" onclick='(${()=>{}});'>Sửa</button>
+        <div style="display:flex; flex-direction:column; gap:6px; justify-content: flex-start;">
+          <button class="filmed-btn btn-primary" style="background: ${toggleBtnBg}; padding: 8px 12px; font-size: 13px; border-radius: 10px; box-shadow: none;">${toggleBtnText}</button>
+          <button class="btn-ghost" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;">Sửa</button>
           <button class="btn-danger" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;">Xoá</button>
         </div>
       `;
+      
+      div.querySelector(".filmed-btn").onclick = () => toggleFilmedStatus(key, isFilmed);
       div.querySelector(".btn-ghost").onclick = ()=> startEdit(key,item);
       div.querySelector(".btn-danger").onclick = ()=> removeContent(key);
       listEl.appendChild(div);
@@ -469,7 +506,7 @@
 
   onValue(dbRef, snap=>{
     localCache = snap.val()||{};
-    renderList(searchInput.value, currentFilterCategory); // Cập nhật khi dữ liệu thay đổi
+    renderList(searchInput.value, currentFilterCategory);
   });
 
   saveBtn.onclick = saveContent;
@@ -477,14 +514,12 @@
   cancelEditBtn.onclick = ()=>{ clearForm(); saveBtn.textContent="Lưu"; };
   searchInput.oninput = () => renderList(searchInput.value, currentFilterCategory);
   
-  /* 🆕 Logic Lọc danh mục */
+  /* Logic Lọc danh mục */
   filterBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-          // Cập nhật trạng thái active
           filterBtns.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           
-          // Lấy danh mục và cập nhật danh sách
           currentFilterCategory = btn.getAttribute('data-category');
           renderList(searchInput.value, currentFilterCategory);
       });
