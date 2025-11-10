@@ -215,6 +215,24 @@
       color: var(--muted-color); 
       margin-top: 4px; 
     }
+    /* 🆕 Thêm style cho trạng thái */
+    .status-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    .status-completed {
+      background: #e3ffe5; /* Xanh lá nhạt */
+      color: #1abc9c; /* Xanh lá đậm */
+    }
+    .status-pending {
+      background: #ffe5e5; /* Đỏ nhạt */
+      color: #ff3b30; /* Đỏ đậm */
+    }
+
 
     .pill-cat{ 
       display: inline-block; 
@@ -320,6 +338,26 @@
     .modal-overlay.active .modal-content {
       transform: translateY(0);
     }
+    
+    /* Nút đóng/ẩn form */
+    #closeFormBtn {
+      position: absolute;
+      top: 15px; /* Điều chỉnh vị trí */
+      right: 15px; /* Điều chỉnh vị trí */
+      background: transparent;
+      color: var(--muted-color);
+      padding: 8px;
+      border: none; /* Bỏ border của btn-ghost */
+      border-radius: 50%;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      transition: all 0.15s ease-out;
+    }
+    #closeFormBtn:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--text-color);
+    }
 
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -335,11 +373,14 @@
       </button> 
     </header>
 
-    <section class="card" style="grid-column:1/-1; padding-top: 20px;"> 
+    <section class="card" style="grid-column:1/-1; padding-top: 20px; position: relative;"> 
 
       <div id="formArea" style="display:none;">
-
-        <div style="display:flex; justify-content: space-between; align-items: flex-end; gap:10px;">
+      
+        <button id="closeFormBtn" style="padding: 10px 14px; font-size: 14px;">
+            <i class="fas fa-times"></i> Đóng
+        </button>
+        <div style="display:flex; justify-content: space-between; align-items: flex-end; gap:10px; margin-bottom: 10px;">
           <div style="flex-grow: 1;">
             <label for="category">Chọn loại nội dung</label>
             <select id="category">
@@ -428,6 +469,7 @@
 
   const showFormBtn = document.getElementById("showFormBtn");
   const formArea = document.getElementById("formArea");
+  const closeFormBtn = document.getElementById("closeFormBtn"); // 🆕 Nút đóng form mới
   const categoryEl = document.getElementById("category");
   const titleEl = document.getElementById("title");
   const bodyEl = document.getElementById("body");
@@ -455,8 +497,15 @@
   const defaultCategories = ["Ẩm thực Buôn Mê", "CherryPet", "Chẻ ry pet"]; // Danh mục mặc định
 
   function nowISO(){ return new Date().toISOString(); }
+  
+  // 🆕 Hàm ẩn form
+  function hideForm() {
+    formArea.style.display = "none";
+    clearForm(); // Xóa form khi ẩn
+  }
 
   showFormBtn.onclick = () => { formArea.style.display = "block"; window.scrollTo(0,0); };
+  closeFormBtn.onclick = hideForm; // 🆕 Gán sự kiện cho nút đóng form
 
   function clearForm(){
     categoryEl.value = "";
@@ -465,6 +514,7 @@
     tagsEl.value = "";
     editingKey = null;
     cancelEditBtn.style.display = "none";
+    saveBtn.textContent="Lưu"; // Đảm bảo nút "Lưu" hiện lại
   }
 
   async function saveContent(){
@@ -483,9 +533,10 @@
       saveBtn.textContent="Lưu";
       cancelEditBtn.style.display="none";
     } else {
-      await set(push(contentsRef), { ...data, createdAt: nowISO() });
+      // 🆕 Thêm trường isCompleted mặc định là false khi tạo mới
+      await set(push(contentsRef), { ...data, createdAt: nowISO(), isCompleted: false }); 
     }
-    clearForm();
+    hideForm(); // 🆕 Ẩn form sau khi lưu
   }
 
   function startEdit(key, item){
@@ -502,6 +553,13 @@
 
   async function removeContent(key){
     if(confirm("Xoá nội dung này?")) remove(ref(db,"contents/"+key));
+  }
+  
+  // 🆕 Hàm cập nhật trạng thái đã hoàn thành/chưa hoàn thành
+  async function toggleCompleted(key, currentStatus) {
+    await update(ref(db, "contents/" + key), {
+      isCompleted: !currentStatus
+    });
   }
   
   // 🆕 Hàm render danh mục cho thẻ <select>
@@ -593,7 +651,7 @@
   }
 
 
-  // 🔄 Hàm renderList được cập nhật để chấp nhận bộ lọc danh mục
+  // 🔄 Hàm renderList được cập nhật để chấp nhận bộ lọc danh mục và xử lý trạng thái
   function renderList(q="", filterCat = currentFilterCategory){
     listEl.innerHTML = "";
     q = q.toLowerCase();
@@ -609,21 +667,35 @@
       // 2. Lọc theo danh mục được chọn
       if(filterCat !== 'all' && item.category !== filterCat) return;
       
+      // 🆕 Logic hiển thị trạng thái
+      const isCompleted = item.isCompleted || false;
+      const statusText = isCompleted ? 'Xong' : 'Chưa xong';
+      const statusClass = isCompleted ? 'status-completed' : 'status-pending';
+      const toggleBtnText = isCompleted ? '<i class="fas fa-undo"></i> Chưa xong' : '<i class="fas fa-check"></i> Đã Quay Xong';
+      const toggleBtnClass = isCompleted ? 'btn-ghost' : 'btn-primary';
+      
       const div = document.createElement("div");
       div.className="item";
       div.innerHTML = `
         <div>
-          <div style="font-weight: 600;">${item.title||"(Không tiêu đề)"}</div>
+          <div style="font-weight: 600;">
+            ${item.title||"(Không tiêu đề)"}
+            <span class="status-pill ${statusClass}">${statusText}</span>
+          </div>
           <div style="font-size: 14px; margin-top: 4px; color: var(--text-color);">${item.body||""}</div>
           <div class="pill-cat">${item.category}</div>
           <div class="small">${new Date(item.updatedAt).toLocaleString("vi-VN")}</div>
         </div>
         <div style="display:flex; flex-direction:column; gap:6px;">
-          <button class="btn-ghost" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;" onclick='(${()=>{}});'>Sửa</button>
+          <button class="${toggleBtnClass}" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;">${toggleBtnText}</button>
+          <button class="btn-ghost" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;">Sửa</button>
           <button class="btn-danger" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;">Xoá</button>
         </div>
       `;
-      div.querySelector(".btn-ghost").onclick = ()=> startEdit(key,item);
+      // 🆕 Gán sự kiện cho nút chuyển đổi trạng thái
+      div.querySelector(`.${toggleBtnClass}`).onclick = ()=> toggleCompleted(key, isCompleted);
+      
+      div.querySelectorAll(".btn-ghost")[isCompleted ? 1 : 0].onclick = ()=> startEdit(key,item); // Chỉ chọn nút Sửa
       div.querySelector(".btn-danger").onclick = ()=> removeContent(key);
       listEl.appendChild(div);
     });
@@ -666,7 +738,10 @@
 
   saveBtn.onclick = saveContent;
   clearBtn.onclick = ()=> clearForm();
-  cancelEditBtn.onclick = ()=>{ clearForm(); saveBtn.textContent="Lưu"; };
+  // 🆕 Cập nhật cancelEditBtn để gọi hideForm
+  cancelEditBtn.onclick = ()=>{ 
+    hideForm(); // Ẩn form khi hủy chỉnh sửa
+  }; 
   searchInput.oninput = () => renderList(searchInput.value, currentFilterCategory);
   
   // 🆕 Logic Modal Category
