@@ -24,7 +24,6 @@
       --padding-app: 20px;
       --header-height: 52px;
       --header-large-height: 96px;
-      --bottom-nav-height: 70px; /* Thanh nav dưới cùng */
 
       /* Font hệ thống iOS */
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -36,7 +35,7 @@
       /* Gradient nền iOS tinh tế */
       background: linear-gradient(180deg, var(--bg-light) 0%, var(--bg-dark) 100%); 
       color: var(--text-color);
-      padding: 0 0 var(--bottom-nav-height); /* Bổ sung padding cho thanh nav dưới */
+      padding: 0; /* Đã loại bỏ padding cho thanh nav dưới */
       min-height: 100vh;
       box-sizing: border-box;
       /* Scroll mềm mại */
@@ -52,7 +51,7 @@
       grid-template-columns: 1fr; /* Mobile mặc định 1 cột */
       gap: 16px; 
       padding: 0 var(--padding-app);
-      padding-top: var(--header-height); /* Dành chỗ cho header cố định */
+      padding-top: calc(var(--header-height) + 20px); /* Dành chỗ cho header cố định + khoảng trống */
     }
     
     /* 🖥️ Responsive cho Desktop */
@@ -60,7 +59,7 @@
       .container{ 
         grid-template-columns: 1fr 380px; 
         gap: 20px;
-        padding-top: var(--header-height);
+        padding-top: calc(var(--header-height) + 20px);
       } 
       aside.card{ align-self: start; position: sticky; top: calc(var(--header-height) + 20px); }
     }
@@ -139,13 +138,6 @@
       min-height: 140px; 
       resize: vertical; 
     }
-    
-    /* 🫧 Placeholder Animation */
-    input::placeholder, textarea::placeholder {
-      transition: opacity 0.3s ease-in-out;
-      opacity: 0.7;
-    }
-    /* Placeholder fade-in/fade-out không được hỗ trợ dễ dàng bằng CSS/HTML đơn thuần */
 
     /* 🔘 Buttons */
     button{ 
@@ -191,7 +183,8 @@
       flex-direction: column; 
       gap: 12px; 
       margin-top: 16px; 
-      max-height: calc(100vh - var(--header-height) - var(--bottom-nav-height) - 150px); /* Điều chỉnh chiều cao */
+      /* Điều chỉnh chiều cao sau khi bỏ thanh nav dưới */
+      max-height: calc(100vh - var(--header-height) - 220px); 
       overflow-y: auto;
       padding-right: 4px; /* Dành chỗ cho scrollbar */
     }
@@ -248,55 +241,11 @@
       flex-grow: 1;
       margin-left: 10px;
       max-width: 250px;
-      padding: 8px 12px;
+      padding: 10px 14px;
       font-size: 15px;
-      border-radius: 10px;
+      border-radius: 12px;
       background: #efefef;
     }
-    
-    /* 底部导航栏 (Bottom Tab Bar) - Giả lập */
-    .bottom-tab-bar {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: var(--bottom-nav-height);
-        background-color: var(--card-bg); 
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
-        display: flex;
-        justify-content: space-around;
-        align-items: flex-start;
-        padding-top: 10px;
-        box-sizing: border-box;
-        z-index: 10;
-        /* Thêm khoảng trống dưới cùng cho Safe Area trên iOS */
-        padding-bottom: env(safe-area-inset-bottom, 10px); 
-    }
-    
-    .nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-decoration: none;
-        color: var(--muted-color);
-        font-size: 10px;
-        transition: color 0.2s;
-        padding: 5px;
-    }
-    
-    .nav-item.active {
-        color: var(--accent-color);
-    }
-    
-    .nav-item i {
-        font-size: 24px;
-        margin-bottom: 3px;
-    }
-    
-    /* Tạm thời ẩn thanh nav dưới trên desktop để giữ nguyên layout gốc */
-    @media (min-width: 900px){ .bottom-tab-bar{ display: none; } }
     
     /* 💫 Chuyển cảnh & Animation cho Form (Fade + Slide) */
     @keyframes slideInFade {
@@ -315,7 +264,8 @@
   <div class="container">
 
     <header>
-      <h1>Notebook</h1> <button id="showFormBtn" class="btn-primary">
+      <h1>Notebook</h1>
+      <button id="showFormBtn" class="btn-primary">
         <i class="fas fa-plus"></i> Thêm mới 
       </button> 
     </header>
@@ -362,21 +312,6 @@
       <div style="margin-top: 8px; font-size: 14px; color: var(--muted-color);">Tình trạng: Đã kết nối Firebase</div>
     </aside>
 
-  </div>
-
-  <div class="bottom-tab-bar">
-    <a href="#" class="nav-item active">
-      <i class="fas fa-list-alt"></i>
-      <span>Danh sách</span>
-    </a>
-    <a href="#" class="nav-item" onclick="document.getElementById('showFormBtn').click(); return false;">
-      <i class="fas fa-edit"></i>
-      <span>Thêm mới</span>
-    </a>
-    <a href="#" class="nav-item">
-      <i class="fas fa-cog"></i>
-      <span>Cài đặt</span>
-    </a>
   </div>
 
 <script type="module">
@@ -470,7 +405,8 @@
     q = q.toLowerCase();
     Object.entries(localCache).sort((a,b)=> (b[1].updatedAt||"").localeCompare(a[1].updatedAt||""))
     .forEach(([key,item])=>{
-      if(q && !((item.title||"")+item.body+(item.tags||[]).join(" ")).toLowerCase().includes(q)) return;
+      const searchContent = (item.title||"")+item.body+(item.tags||[]).join(" ");
+      if(q && !searchContent.toLowerCase().includes(q)) return;
       const div = document.createElement("div");
       div.className="item";
       div.innerHTML = `
@@ -501,7 +437,7 @@
   cancelEditBtn.onclick = ()=>{ clearForm(); saveBtn.textContent="Lưu"; };
   searchInput.oninput = () => renderList(searchInput.value);
   
-  /* Logic Header thu nhỏ (Không thể làm mượt 100% chỉ bằng JS và CSS cơ bản) */
+  /* Logic Header cố định */
   window.onscroll = () => {
     const header = document.querySelector('header');
     const h1 = document.querySelector('h1');
@@ -509,7 +445,7 @@
       header.style.height = '52px';
       h1.style.fontSize = '20px';
     } else {
-      header.style.height = '52px'; /* Giữ nguyên 52px để ổn định header cố định */
+      header.style.height = '52px'; 
       h1.style.fontSize = '20px';
     }
   };
