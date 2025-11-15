@@ -106,7 +106,6 @@
     
     .card:hover{
       box-shadow: var(--shadow-hover);
-      /* transform: translateY(-2px); */ /* Bỏ hiệu ứng hover khi là thẻ chứa */
     }
     
     /* 🏷️ Label & Input Field */
@@ -183,7 +182,7 @@
       flex-direction: column; 
       gap: 12px; 
       margin-top: 16px; 
-      /* Điều chỉnh chiều cao tối đa cho list (sau khi có segmented control và search) */
+      /* Điều chỉnh chiều cao tối đa cho list */
       max-height: calc(100vh - var(--header-height) - 340px); 
       overflow-y: auto;
       padding-right: 4px;
@@ -275,7 +274,7 @@
     }
     
     
-    /* ✨ HIỂN THỊ KÊNH DẠNG THẺ MỚI ✨ */
+    /* ✨ HIỂN THỊ KÊNH DẠNG THẺ ✨ */
     /* Container của các thẻ kênh */
     #channelSelectionContainer {
         display: grid;
@@ -301,6 +300,7 @@
         align-items: center;
         min-height: 120px;
         border: 1px solid #eee;
+        position: relative; /* Cần thiết cho badge */
         
         /* Hiệu ứng động khi load */
         animation: slideInFade 0.4s ease-out forwards;
@@ -310,7 +310,6 @@
     .channel-card:nth-child(1) { animation-delay: 0.1s; }
     .channel-card:nth-child(2) { animation-delay: 0.15s; }
     .channel-card:nth-child(3) { animation-delay: 0.2s; }
-    /* ... thêm delay cho các thẻ khác nếu cần ... */
 
 
     .channel-card:hover {
@@ -331,6 +330,24 @@
         line-height: 1.3;
     }
     
+    /* 🔴 Badge Thông báo - Đã sửa vị trí sang phải trên cùng */
+    .channel-notification-badge {
+        position: absolute;
+        top: 10px; /* Vị trí trên cùng */
+        right: 10px; /* Vị trí bên phải */
+        background-color: #ff3b30; /* Màu đỏ nổi bật */
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 7px;
+        border-radius: 10px;
+        min-width: 15px; 
+        text-align: center;
+        line-height: 1;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.7); /* Viền trắng nhẹ */
+    }
+
     /* 📢 Tiêu đề trang chọn kênh */
     #channelSelectionTitle {
         font-size: 24px;
@@ -555,9 +572,9 @@
   const listEl = document.getElementById("list");
   const searchInput = document.getElementById("search");
   
-  // 🆕 Phần tử Quản lý giao diện
+  // Phần tử Quản lý giao diện
   const channelSelectionScreen = document.getElementById("channelSelectionScreen");
-  const channelSelectionContainer = document.getElementById("channelSelectionContainer"); // Container mới cho thẻ
+  const channelSelectionContainer = document.getElementById("channelSelectionContainer"); 
   const contentListArea = document.getElementById("contentListArea");
   const backToChannelSelectionBtn = document.getElementById("backToChannelSelectionBtn");
   const currentChannelNameEl = document.getElementById("currentChannelName");
@@ -574,18 +591,19 @@
   let editingKey = null;
   let localCacheContents = {};
   let localCacheCategories = {}; 
+  // Lưu trữ số lượng nội dung chưa quay (isCompleted: false)
+  let pendingContentCounts = {};
   
-  // 🆕 Giá trị ban đầu là null (chưa chọn kênh)
+  // Giá trị ban đầu là null (chưa chọn kênh)
   let currentFilterCategory = null; 
   const defaultCategories = {
     "Ẩm thực Buôn Mê": "fas fa-coffee", 
     "CherryPet": "fas fa-paw", 
     "Chẻ ry pet": "fas fa-heart"
-  }; // Danh mục mặc định kèm theo icon
+  }; 
 
   function nowISO(){ return new Date().toISOString(); }
   
-  // 🆕 Hàm ẩn form
   function hideForm() {
     formArea.style.display = "none";
     clearForm(); 
@@ -617,7 +635,7 @@
     if(editingKey){
       await update(ref(db, "contents/"+editingKey), data);
       editingKey = null;
-      saveBtn.textContent="Lưu";
+      saveBtn.textContent="Cập nhật";
       cancelEditBtn.style.display="none";
     } else {
       await set(push(contentsRef), { ...data, createdAt: nowISO(), isCompleted: false }); 
@@ -647,27 +665,27 @@
     });
   }
   
-  // 🆕 Hàm hiển thị màn hình chọn kênh
+  // Hàm hiển thị màn hình chọn kênh
   function showChannelSelectionScreen() {
       currentFilterCategory = null;
       channelSelectionScreen.classList.remove('hidden');
       contentListArea.classList.add('hidden');
-      searchInput.value = ''; // Xóa tìm kiếm khi quay lại
+      searchInput.value = ''; 
       window.scrollTo(0,0);
   }
   
-  // 🆕 Hàm hiển thị màn hình nội dung của kênh
+  // Hàm hiển thị màn hình nội dung của kênh
   function showContentListScreen(category) {
       currentFilterCategory = category;
-      currentChannelNameEl.textContent = category; // Hiển thị tên kênh đang chọn
+      currentChannelNameEl.textContent = category === 'Tất cả Nội dung' ? 'Tất cả Nội dung' : category; 
       channelSelectionScreen.classList.add('hidden');
       contentListArea.classList.remove('hidden');
-      renderList('', category); // Render danh sách nội dung của kênh đó
+      renderList('', category); 
       window.scrollTo(0,0);
   }
 
 
-  // 🆕 Hàm render danh mục cho thẻ <select>
+  // Hàm render danh mục cho thẻ <select>
   function renderCategoryOptions(categories){
     categoryEl.innerHTML = '<option value="">-- Chọn --</option>';
     Object.keys(categories).forEach(cat => {
@@ -679,29 +697,47 @@
     if(categoryEl.value in categories) categoryEl.value = categoryEl.value;
   }
 
-  // 🆕 Hàm render Thẻ Kênh (Cards)
+  // Hàm render Thẻ Kênh (Cards) - Đã sửa vị trí Badge
   function renderChannelCards(categories){
     channelSelectionContainer.innerHTML = '';
     
-    // Nút "Tất cả" - Vẫn là thẻ
+    const pendingCounts = pendingContentCounts || {}; 
+    
+    // Helper function to create badge HTML
+    const createBadge = (categoryName) => {
+        const count = pendingCounts[categoryName] || 0;
+        if (count === 0) return '';
+        // 🚨 Vị trí đã được sửa trong CSS, chỉ cần trả về HTML
+        return `<div class="channel-notification-badge">${count}</div>`;
+    };
+
+    // 1. Nút "Tất cả"
     const allCard = document.createElement("div");
     allCard.className = `channel-card`;
     allCard.setAttribute('data-category', 'all');
+    
+    const allBadge = createBadge('Tất cả Nội dung');
+    
     allCard.innerHTML = `
+        ${allBadge} 
         <i class="channel-card-icon fas fa-list-ul"></i>
         <div class="channel-card-name">Tất cả các kênh</div>
     `;
     allCard.addEventListener('click', () => showContentListScreen('Tất cả Nội dung'));
     channelSelectionContainer.appendChild(allCard);
 
-    // Các thẻ danh mục
+    // 2. Các thẻ danh mục
     Object.keys(categories).forEach(cat => {
-        const iconClass = categories[cat] || 'fas fa-folder'; // Lấy icon đã lưu hoặc icon mặc định
+        const iconClass = categories[cat] || 'fas fa-folder'; 
         
         const card = document.createElement("div");
         card.className = `channel-card`;
         card.setAttribute('data-category', cat);
+        
+        const catBadge = createBadge(cat);
+
         card.innerHTML = `
+            ${catBadge} 
             <i class="channel-card-icon ${iconClass}"></i>
             <div class="channel-card-name">${cat}</div>
         `;
@@ -710,7 +746,7 @@
     });
   }
 
-  // 🆕 Hàm render danh sách danh mục trong Modal
+  // Hàm render danh sách danh mục trong Modal
   function renderCategoryListInModal(categories){
       categoryListContainer.innerHTML = '';
       Object.keys(categories).forEach(cat => {
@@ -731,18 +767,17 @@
       });
   }
   
-  // 🆕 Hàm thêm danh mục
+  // Hàm thêm danh mục
   async function addCategory(){
     const newCat = newCategoryInput.value.trim();
     if(!newCat){ alert("Vui lòng nhập tên danh mục."); return; }
     if(localCacheCategories[newCat]){ alert("Danh mục này đã tồn tại."); return; }
     
-    // Lưu danh mục mới với icon mặc định
     await update(categoriesRef, { [newCat]: 'fas fa-folder' });
     newCategoryInput.value = "";
   }
 
-  // 🆕 Hàm xoá danh mục
+  // Hàm xoá danh mục
   async function removeCategory(categoryName){
       if(Object.entries(localCacheContents).some(([key, item]) => item.category === categoryName)){
           alert("Không thể xóa. Vẫn còn nội dung sử dụng danh mục này.");
@@ -757,7 +792,6 @@
   // Hàm renderList được cập nhật
   function renderList(q="", filterCat = currentFilterCategory){
     
-    // 🆕 Logic: Nếu chưa chọn kênh, không làm gì
     if(filterCat === null){ 
         listEl.innerHTML = ""; 
         contentListArea.classList.add('hidden');
@@ -767,14 +801,12 @@
     listEl.innerHTML = "";
     q = q.toLowerCase();
     
-    const isAllFilter = filterCat === 'Tất cả Nội dung'; // Check filter "Tất cả"
+    const isAllFilter = filterCat === 'Tất cả Nội dung'; 
 
     const contentsArray = Object.entries(localCacheContents)
       .filter(([key, item]) => {
-          // Lọc theo danh mục được chọn
           if(!isAllFilter && item.category !== filterCat) return false;
 
-          // Lọc theo ô tìm kiếm
           const searchContent = (item.title||"")+item.body+(item.tags||[]).join(" ");
           if(q && !searchContent.toLowerCase().includes(q)) return false;
           
@@ -837,10 +869,25 @@
   // 🎧 Lắng nghe sự kiện thay đổi Nội dung (Contents)
   onValue(contentsRef, snap=>{
     localCacheContents = snap.val()||{};
+    
+    // TÍNH TOÁN SỐ LƯỢNG NỘI DUNG CHƯA XONG CHO TỪNG KÊNH
+    pendingContentCounts = {};
+    let totalPending = 0;
+    
+    Object.entries(localCacheContents).forEach(([key, item]) => {
+        if (item.category && (item.isCompleted === false || item.isCompleted === undefined)) {
+            pendingContentCounts[item.category] = (pendingContentCounts[item.category] || 0) + 1;
+            totalPending++;
+        }
+    });
+    pendingContentCounts['Tất cả Nội dung'] = totalPending; 
+
     // Chỉ render lại list nếu đang ở màn hình list
     if (currentFilterCategory !== null) {
         renderList(searchInput.value, currentFilterCategory);
     }
+    // Cập nhật lại thẻ kênh để hiển thị số thông báo mới
+    renderChannelCards(localCacheCategories); 
   });
   
   // 🎧 Lắng nghe sự kiện thay đổi Danh mục (Categories)
@@ -851,31 +898,30 @@
       let needsUpdate = false;
       Object.keys(defaultCategories).forEach(cat => {
           if(!categories[cat]){
-              categories[cat] = defaultCategories[cat]; // Lưu icon mặc định
+              categories[cat] = defaultCategories[cat]; 
               needsUpdate = true;
           }
       });
       if(needsUpdate){
-          set(categoriesRef, categories); // Cập nhật lại Firebase
+          set(categoriesRef, categories); 
       }
 
       localCacheCategories = categories;
       
       // Cập nhật giao diện
       renderCategoryOptions(localCacheCategories);
-      renderChannelCards(localCacheCategories); // Thay thế cho renderSegmentedControl
+      renderChannelCards(localCacheCategories); 
       renderCategoryListInModal(localCacheCategories);
       
-      // Nếu đang ở màn hình chọn kênh, đảm bảo màn hình đó hiển thị
+      // Đảm bảo màn hình hiển thị đúng trạng thái
       if (currentFilterCategory === null) {
           showChannelSelectionScreen();
       } else {
-         // Nếu đang xem nội dung, cập nhật lại list
          renderList(searchInput.value, currentFilterCategory);
       }
   });
 
-  // 🆕 Gán sự kiện cho nút Quay lại
+  // Gán sự kiện cho nút Quay lại
   backToChannelSelectionBtn.onclick = showChannelSelectionScreen;
 
 
