@@ -18,7 +18,7 @@
       --ios-card: #FFFFFF;
       --ios-blue: #007AFF;
       --ios-blue-gradient: linear-gradient(135deg, #007AFF, #0055B3);
-      --ios-red: #FF3B30; /* ADDED: Màu đỏ cho nút xóa/cảnh báo */
+      --ios-red: #FF3B30;
       --ios-text-primary: #000000;
       --ios-text-secondary: #8E8E93;
       --ios-separator: #C6C6C8;
@@ -85,7 +85,6 @@
       cursor: pointer;
       transition: transform 0.2s var(--ios-easing);
       
-      /* Căn giữa nội dung bên trong */
       display: flex;
       flex-direction: column;
       align-items: center; 
@@ -93,14 +92,12 @@
 
     .branch-card:active { transform: scale(0.96); }
     
-    /* Style mới cho Logo ảnh */
     .branch-icon {
-      width: 80px;  /* Kích thước logo */
+      width: 80px;  
       height: 80px;
-      object-fit: contain; /* Đảm bảo ảnh không bị méo */
+      object-fit: contain;
       margin-bottom: 16px;
-      border-radius: 16px; /* Bo góc logo giống icon app iOS */
-      /* Nếu logo chưa có nền, có thể thêm bg nhẹ: background: #f9f9f9; */
+      border-radius: 16px;
     }
 
     .branch-name { font-size: 18px; font-weight: 600; color: var(--ios-blue); }
@@ -113,6 +110,34 @@
       position: sticky;
       top: 0;
       z-index: 100;
+    }
+    
+    /* ADDED: Container cho nút Quay về */
+    .nav-bar-top {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        padding-bottom: 5px;
+    }
+    
+    .btn-back {
+        display: flex;
+        align-items: center;
+        font-size: 17px;
+        font-weight: 400; /* iOS back button is light */
+        color: var(--ios-blue);
+        padding: 0;
+        margin-left: -5px; /* Kéo nút về sát mép */
+    }
+    
+    .back-icon {
+        width: 10px;
+        height: 18px;
+        margin-right: 4px;
+        fill: none;
+        stroke: var(--ios-blue);
+        /* Kích thước và vị trí mũi tên iOS */
+        transform: translateY(1px); 
     }
 
     .app-title {
@@ -164,10 +189,9 @@
       align-items: center;
       box-shadow: var(--ios-shadow);
       position: relative;
-      cursor: pointer; /* Cho biết có thể click để chỉnh sửa */
-      transition: transform 0.2s, background-color 0.2s;
+      cursor: pointer; 
+      transition: transform 0.2s var(--ios-easing), background-color 0.2s;
       
-      /* Animation Setup */
       opacity: 0;
       transform: translateY(20px);
       animation: iosSlideUp 0.5s var(--ios-easing) forwards;
@@ -267,7 +291,7 @@
 
     #slide-form {
       position: fixed;
-      top: 10%; /* iOS Sheet style */
+      top: 10%; 
       left: 0;
       width: 100%;
       height: 90%;
@@ -338,8 +362,8 @@
       background: transparent;
       padding: 4px 0;
     }
-
-    /* Center Modal Sheet for Editing/Viewing (New) */
+    
+    /* Center Modal Sheet for Editing/Viewing */
     #edit-modal {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
@@ -377,7 +401,7 @@
     }
 
     .edit-header {
-        background: white; /* Header màu trắng cho form giữa màn hình */
+        background: white; 
         border-bottom: 0.5px solid #E5E5EA;
         padding: 14px 16px;
         display: flex;
@@ -406,6 +430,7 @@
         transition: background-color 0.2s;
     }
     .btn-full-red:active { background-color: #ffebeb; }
+
 
     .form-active #form-overlay { opacity: 1; visibility: visible; }
     .form-active #slide-form { transform: translateY(0); }
@@ -454,6 +479,15 @@
   </div>
 
   <header>
+    <div class="nav-bar-top">
+        <button class="btn-text btn-back" type="button" onclick="showBranchSelection()">
+            <svg class="back-icon" viewBox="0 0 13 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10.7495 18.0673L2.68452 9.99986L10.7495 1.93241" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span style="margin-left: -5px;">Quay về</span>
+        </button>
+    </div>
+    
     <div class="app-title">Nhân viên</div>
     <div class="search-container">
       <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -470,7 +504,8 @@
     Đang hiển thị: <span id="current-branch-label">...</span>
   </div>
 
-  <button id="fab" onclick="openNewForm()"> <svg viewBox="0 0 24 24">
+  <button id="fab" onclick="openNewForm()">
+    <svg viewBox="0 0 24 24">
       <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
     </svg>
   </button>
@@ -480,7 +515,8 @@
     <div class="form-header">
       <button class="btn-text btn-cancel" type="button" onclick="closeForm()">Hủy</button>
       <div class="form-title">Thêm nhân viên</div>
-      <button class="btn-text btn-save" type="button" onclick="submitForm(false)">Lưu</button> </div>
+      <button class="btn-text btn-save" type="button" onclick="submitForm(false)">Lưu</button>
+    </div>
 
     <div class="form-content">
       <form id="employeeForm">
@@ -587,8 +623,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    // ADDED: update, remove
-    import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"; 
+    import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
     // 1. Firebase Config (Giữ nguyên)
     const firebaseConfig = {
@@ -608,7 +643,7 @@
 
     // 2. Global State
     let currentBranchFilter = ''; 
-    let allData = []; // Cache data để search/filter local
+    let allData = []; 
 
     // 3. UI Helper Functions
     window.selectBranch = (branch) => {
@@ -617,32 +652,36 @@
       document.getElementById('current-branch-label').textContent = 
         branch === 'cherrypet' ? 'CherryPet' : 'Ẩm thực Buôn Mê';
       
-      // Mặc định set select trong form theo branch đã chọn
       document.getElementById('branch').value = branch;
       
       renderList();
     };
+    
+    // ADDED: Hàm hiển thị lại màn hình chọn chi nhánh
+    window.showBranchSelection = () => {
+        currentBranchFilter = '';
+        document.getElementById('branch-popup').classList.remove('hidden');
+        document.getElementById('employee-list').innerHTML = ''; // Xóa danh sách hiện tại
+        document.getElementById('current-branch-label').textContent = '...';
+    };
 
-    // MODIFIED: openForm -> openNewForm
+
     window.openNewForm = () => { 
       document.getElementById('slide-form').querySelector('.form-title').textContent = 'Thêm nhân viên';
-      document.getElementById('employeeKey').value = ''; // Đánh dấu là chế độ thêm mới
+      document.getElementById('employeeKey').value = ''; 
       document.body.classList.add('form-active');
     };
 
     window.closeForm = () => {
       document.body.classList.remove('form-active');
       document.getElementById('employeeForm').reset();
-      // Reset về branch đang chọn
       if(currentBranchFilter) document.getElementById('branch').value = currentBranchFilter;
     };
     
-    // ADDED: Mở Form Chỉnh Sửa (Center Modal)
     window.openEditForm = (key) => {
         const employee = allData.find(emp => emp.key === key);
         if (!employee) return;
         
-        // Điền dữ liệu vào form chỉnh sửa
         document.getElementById('edit_employeeKey').value = key;
         document.getElementById('edit_fullname').value = employee.fullname || '';
         document.getElementById('edit_phone').value = employee.phone || '';
@@ -655,7 +694,6 @@
         document.getElementById('edit-modal').classList.add('active');
     };
     
-    // ADDED: Đóng Form Chỉnh Sửa
     window.closeEditForm = () => {
         document.getElementById('edit-modal').classList.remove('active');
         document.getElementById('employeeEditForm').reset();
@@ -670,7 +708,6 @@
       setTimeout(() => { t.style.display = 'none'; }, 3000);
     }
 
-    // Tạo màu Pastel từ tên (để avatar đẹp)
     function getAvatarColor(name) {
       if (!name) return '#C7CEEA';
       const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA', '#90C2E7'];
@@ -692,14 +729,10 @@
       const search = document.getElementById('searchInput').value.toLowerCase();
       list.innerHTML = '';
 
-      if (!currentBranchFilter) return; // Chưa chọn branch thì chưa render
+      if (!currentBranchFilter) return; 
 
-      // Lọc dữ liệu: Theo Branch AND Search
       const filtered = allData.filter(emp => {
-        // Fix: So sánh chính xác với 'amthucbuonme'
         const matchesBranch = emp.branch === currentBranchFilter;
-        
-        // Fix search an toàn khi phone null/undefined
         const matchesSearch = (emp.fullname && emp.fullname.toLowerCase().includes(search)) || 
                               (emp.phone && emp.phone.includes(search));
         
@@ -711,13 +744,10 @@
         return;
       }
 
-      // Render từng card
       filtered.forEach((emp, index) => {
         const li = document.createElement('li');
         li.className = 'emp-card';
-        // ADDED: Gắn sự kiện click để mở form chỉnh sửa
         li.setAttribute('onclick', `openEditForm('${emp.key}')`); 
-        // Stagger Animation delay: mỗi item trễ 0.05s
         li.style.animationDelay = `${index * 0.05}s`;
 
         const initials = getInitials(emp.fullname);
@@ -741,14 +771,13 @@
       });
     }
 
-    // 5. Submit Form Logic (Sử dụng cho cả Thêm mới và Cập nhật) - MODIFIED
+    // 5. Submit Form Logic (Sử dụng cho cả Thêm mới và Cập nhật)
     window.submitForm = async (isEditMode) => {
       let data = {};
       let key = '';
       let form;
       
       if (isEditMode) {
-        // Cập nhật
         form = document.getElementById('employeeEditForm');
         key = document.getElementById('edit_employeeKey').value;
         if (!form.checkValidity() || !key) { form.reportValidity(); return; }
@@ -762,7 +791,6 @@
           note: document.getElementById('edit_note').value.trim(),
         };
       } else {
-        // Thêm mới
         form = document.getElementById('employeeForm');
         if (!form.checkValidity()) { form.reportValidity(); return; }
         
@@ -795,7 +823,7 @@
       }
     };
     
-    // 6. Delete Logic - ADDED
+    // 6. Delete Logic
     window.deleteEmployee = async () => {
         const key = document.getElementById('edit_employeeKey').value;
         if (!key) return;
@@ -814,16 +842,15 @@
     }
 
     // 7. Listeners
-    // Search Listener
     document.getElementById('searchInput').addEventListener('input', renderList);
 
-    // Firebase Listener - MODIFIED
+    // Firebase Listener
     onValue(employeesRef, (snapshot) => {
       const val = snapshot.val() || {};
-      allData = Object.keys(val).map(key => ({ // Lấy key Firebase và gộp vào object
+      allData = Object.keys(val).map(key => ({
           key: key, 
           ...val[key]
-      })).reverse(); 
+      })).reverse();
 
       renderList();
     });
