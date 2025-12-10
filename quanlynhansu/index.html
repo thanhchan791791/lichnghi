@@ -540,9 +540,26 @@
             <label for="phone">Số điện thoại</label>
             <input id="phone" type="tel" placeholder="09xxxxxxxx" required />
           </div>
+          
           <div class="field-row">
-            <label for="birthYear">Năm sinh</label>
-            <input id="birthYear" type="number" placeholder="1999" required />
+            <label for="birthDay">Ngày/Tháng/Năm sinh</label>
+            <div style="display: flex; gap: 8px; padding: 4px 0;">
+              <select id="birthDay" style="flex: 1; border: none; font-size: 17px; font-family: var(--ios-font); outline: none; background: transparent; padding: 0;" required>
+              </select>
+              <select id="birthMonth" style="flex: 1; border: none; font-size: 17px; font-family: var(--ios-font); outline: none; background: transparent; padding: 0;" required>
+              </select>
+              <select id="birthYear" style="flex: 1; border: none; font-size: 17px; font-family: var(--ios-font); outline: none; background: transparent; padding: 0;" required>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <label for="startMonth">Thời gian bắt đầu làm</label>
+            <div style="display: flex; gap: 10px; padding: 4px 0;">
+              <select id="startMonth" style="flex: 1; border: none; font-size: 17px; font-family: var(--ios-font); outline: none; background: transparent; padding: 0;" required>
+              </select>
+              <select id="startYear" style="flex: 1; border: none; font-size: 17px; font-family: var(--ios-font); outline: none; background: transparent; padding: 0;" required>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -592,9 +609,26 @@
                     <label for="edit_phone">Số điện thoại</label>
                     <input id="edit_phone" type="tel" placeholder="09xxxxxxxx" required />
                   </div>
+                  
                   <div class="field-row">
-                    <label for="edit_birthYear">Năm sinh</label>
-                    <input id="edit_birthYear" type="number" placeholder="1999" required />
+                    <label for="edit_birthDay">Ngày/Tháng/Năm sinh</label>
+                    <div style="display: flex; gap: 8px; padding: 4px 0;">
+                      <select id="edit_birthDay" style="flex: 1; border: none; font-size: 17px; font-family: var(--ios-font); outline: none; background: transparent; padding: 0;" required>
+                      </select>
+                      <select id="edit_birthMonth" style="flex: 1; border: none; font-size: 17px; font-family: var(--ios-font); outline: none; background: transparent; padding: 0;" required>
+                      </select>
+                      <select id="edit_birthYear" style="flex: 1; border: none; font-size: 17px; font-family: var(--ios-font); outline: none; background: transparent; padding: 0;" required>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="field-row">
+                    <label for="edit_startMonth">Thời gian bắt đầu làm</label>
+                    <div style="display: flex; gap: 10px; padding: 4px 0;">
+                      <select id="edit_startMonth" style="flex: 1; border: none; font-size: 17px; font-family: var(--ios-font); outline: none; background: transparent; padding: 0;" required>
+                      </select>
+                      <select id="edit_startYear" style="flex: 1; border: none; font-size: 17px; font-family: var(--ios-font); outline: none; background: transparent; padding: 0;" required>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -631,7 +665,7 @@
       authDomain: "dogs-be72b.firebaseapp.com",
       databaseURL: "https://dogs-be72b-default-rtdb.firebaseio.com",
       projectId: "dogs-be72b",
-      storageBucket: "dogs-be72b.firebasestorage.app",
+      storageBucket: "dogs-be72b.firebase-storage.app",
       messagingSenderId: "1003873040746",
       appId: "1:1003873040746:web:607f4ff587afc430d3cd13",
       measurementId: "G-Y72BF1RQ2C"
@@ -644,6 +678,66 @@
     // 2. Global State
     let currentBranchFilter = ''; 
     let allData = []; 
+    
+    // START: HÀM KHỞI TẠO DROPDOWN THUẦN VIỆT (Cho Cả Ngày sinh và Ngày làm)
+    
+    // Tạo ô chọn Ngày
+    function createDayOptions(selectId) {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="" disabled selected>Ngày</option>';
+        for (let i = 1; i <= 31; i++) {
+            const dayValue = String(i).padStart(2, '0');
+            select.innerHTML += `<option value="${dayValue}">Ngày ${i}</option>`;
+        }
+    }
+
+    // Tạo ô chọn Tháng
+    function createMonthOptions(selectId) {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="" disabled selected>Tháng</option>';
+        for (let i = 1; i <= 12; i++) {
+            const monthValue = String(i).padStart(2, '0');
+            select.innerHTML += `<option value="${monthValue}">Tháng ${i}</option>`;
+        }
+    }
+
+    // Tạo ô chọn Năm
+    function createYearOptions(selectId, startOffset, endOffset) {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="" disabled selected>Năm</option>';
+        const currentYear = new Date().getFullYear();
+        // Hiển thị năm trong phạm vi
+        for (let y = currentYear - startOffset; y <= currentYear + endOffset; y++) {
+             // Đảm bảo năm sinh lùi về 80 năm, năm bắt đầu làm lùi về 30 năm
+             if (selectId.includes('birth') && y >= currentYear - 80) { 
+                 select.innerHTML += `<option value="${y}">${y}</option>`;
+             } else if (selectId.includes('start') && y >= currentYear - 30) {
+                 select.innerHTML += `<option value="${y}">${y}</option>`;
+             }
+        }
+        // Đặc biệt: Sắp xếp năm theo thứ tự giảm dần cho dễ chọn
+        const options = Array.from(select.options).slice(1).sort((a, b) => b.value - a.value);
+        select.innerHTML = '<option value="" disabled selected>Năm</option>' + options.map(opt => opt.outerHTML).join('');
+    }
+    
+    function setupDateFields() {
+        // Ngày/Tháng/Năm sinh (80 năm trước - hiện tại)
+        createDayOptions('birthDay');
+        createMonthOptions('birthMonth');
+        createYearOptions('birthYear', 80, 0); // Lùi 80 năm
+        
+        createDayOptions('edit_birthDay');
+        createMonthOptions('edit_birthMonth');
+        createYearOptions('edit_birthYear', 80, 0); // Lùi 80 năm
+
+        // Tháng/Năm bắt đầu làm (30 năm trước - hiện tại)
+        createMonthOptions('startMonth');
+        createYearOptions('startYear', 30, 0); // Lùi 30 năm
+        
+        createMonthOptions('edit_startMonth');
+        createYearOptions('edit_startYear', 30, 0); // Lùi 30 năm
+    }
+    // END: HÀM KHỞI TẠO DROPDOWN THUẦN VIỆT
 
     // 3. UI Helper Functions
     window.selectBranch = (branch) => {
@@ -669,7 +763,10 @@
     window.openNewForm = () => { 
       document.getElementById('slide-form').querySelector('.form-title').textContent = 'Thêm nhân viên';
       document.getElementById('employeeKey').value = ''; 
+      document.getElementById('employeeForm').reset(); // Reset form khi mở form thêm mới
+      setupDateFields(); // Khởi tạo lại dropdown tháng/năm
       document.body.classList.add('form-active');
+      if(currentBranchFilter) document.getElementById('branch').value = currentBranchFilter;
     };
 
     window.closeForm = () => {
@@ -685,11 +782,30 @@
         document.getElementById('edit_employeeKey').value = key;
         document.getElementById('edit_fullname').value = employee.fullname || '';
         document.getElementById('edit_phone').value = employee.phone || '';
-        document.getElementById('edit_birthYear').value = employee.birthYear || '';
         document.getElementById('edit_schedule').value = employee.schedule || '';
         document.getElementById('edit_note').value = employee.note || '';
         document.getElementById('edit_branch').value = employee.branch || 'cherrypet';
         
+        // Khởi tạo và thiết lập giá trị cho dropdowns
+        setupDateFields(); 
+
+        // Thiết lập giá trị cho Ngày sinh (birthDate: YYYY-MM-DD)
+        const birthDate = employee.birthDate || ''; 
+        if (birthDate) {
+            const [year, month, day] = birthDate.split('-');
+            document.getElementById('edit_birthDay').value = day;
+            document.getElementById('edit_birthMonth').value = month;
+            document.getElementById('edit_birthYear').value = year;
+        }
+
+        // Thiết lập giá trị cho Ngày bắt đầu làm (startDate: YYYY-MM)
+        const startDate = employee.startDate || ''; 
+        if (startDate) {
+            const [year, month] = startDate.split('-');
+            document.getElementById('edit_startYear').value = year;
+            document.getElementById('edit_startMonth').value = month;
+        }
+
         document.getElementById('edit-form-title').textContent = `Chi tiết: ${employee.fullname}`;
         document.getElementById('edit-modal').classList.add('active');
     };
@@ -722,6 +838,43 @@
       if(parts.length === 1) return parts[0][0].toUpperCase();
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
+    
+    /**
+     * Hàm tính số tháng làm việc
+     * @param {string} dateString Dữ liệu tháng/năm ở định dạng YYYY-MM
+     * @returns {string} Số tháng đã làm (ví dụ: "12 tháng")
+     */
+    function calculateMonthsWorked(dateString) {
+        if (!dateString) return '';
+        
+        try {
+            const [year, month] = dateString.split('-').map(Number);
+            
+            // Ngày bắt đầu làm việc (1st của tháng được chọn)
+            const startDate = new Date(year, month - 1, 1); 
+            const now = new Date();
+            
+            // Số tháng chênh lệch
+            let diffMonths = (now.getFullYear() - startDate.getFullYear()) * 12;
+            diffMonths += now.getMonth() - startDate.getMonth();
+            
+            if (diffMonths <= 0) return '0 tháng';
+
+            const years = Math.floor(diffMonths / 12);
+            const months = diffMonths % 12;
+            
+            let result = '';
+            if (years > 0) result += `${years} năm `;
+            if (months > 0) result += `${months} tháng`;
+            
+            return result.trim() || 'Dưới 1 tháng';
+            
+        } catch (e) {
+            console.error("Lỗi tính toán số tháng làm việc:", e);
+            return 'Không xác định';
+        }
+    }
+
 
     // 4. Render Logic (Cards)
     function renderList() {
@@ -754,6 +907,22 @@
         const color = getAvatarColor(emp.fullname || '');
         
         const branchBadge = emp.branch === 'cherrypet' ? 'Cherry' : 'BMT';
+        
+        // Xử lý Ngày sinh (birthDate: YYYY-MM-DD)
+        let displayDOB = 'Chưa nhập';
+        if (emp.birthDate) {
+            const parts = emp.birthDate.split('-');
+            // Định dạng từ YYYY-MM-DD sang DD/MM/YYYY
+            if (parts.length === 3) {
+                displayDOB = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            } else {
+                displayDOB = emp.birthDate; 
+            }
+        } 
+
+        // Định dạng lại ngày bắt đầu làm việc (MM/YYYY) và tính số tháng
+        const formattedStartDate = emp.startDate ? emp.startDate.split('-').reverse().join('/') : 'Chưa nhập';
+        const monthsWorked = emp.startDate ? calculateMonthsWorked(emp.startDate) : 'Chưa rõ';
 
         li.innerHTML = `
           <div class="avatar" style="background-color: ${color}">
@@ -761,8 +930,8 @@
           </div>
           <div class="info">
             <h3>${escapeHtml(emp.fullname)}</h3>
-            <p>📞 ${escapeHtml(emp.phone || 'Chưa có SĐT')} • ${emp.birthYear || ''}</p>
-            <p>🗓️ ${escapeHtml(emp.schedule)}</p>
+            <p>📞 ${escapeHtml(emp.phone || 'Chưa có SĐT')} • NS: ${displayDOB}</p>
+            <p>🗓️ ${escapeHtml(emp.schedule)} | **Vào làm:** ${formattedStartDate} (${monthsWorked})</p>
             ${emp.note ? `<p style="font-style:italic; color:#007AFF; margin-top:2px">${escapeHtml(emp.note)}</p>` : ''}
           </div>
           <div class="badge">${branchBadge}</div>
@@ -777,30 +946,57 @@
       let key = '';
       let form;
       
+      let birthDateValue = '';
+      let startDateValue = '';
+
       if (isEditMode) {
         form = document.getElementById('employeeEditForm');
         key = document.getElementById('edit_employeeKey').value;
         if (!form.checkValidity() || !key) { form.reportValidity(); return; }
         
+        // Lấy và kết hợp Ngày/Tháng/Năm sinh
+        const editDay = document.getElementById('edit_birthDay').value.trim();
+        const editMonth = document.getElementById('edit_birthMonth').value.trim();
+        const editYear = document.getElementById('edit_birthYear').value.trim();
+        birthDateValue = editYear && editMonth && editDay ? `${editYear}-${editMonth}-${editDay}` : '';
+
+        // Lấy và kết hợp Tháng/Năm từ dropdown (Start Date)
+        const editStartMonth = document.getElementById('edit_startMonth').value.trim();
+        const editStartYear = document.getElementById('edit_startYear').value.trim();
+        startDateValue = editStartYear && editStartMonth ? `${editStartYear}-${editStartMonth}` : '';
+        
         data = {
           branch: document.getElementById('edit_branch').value,
           fullname: document.getElementById('edit_fullname').value.trim(),
           phone: document.getElementById('edit_phone').value.trim(),
-          birthYear: Number(document.getElementById('edit_birthYear').value),
+          birthDate: birthDateValue, // SỬ DỤNG GIÁ TRỊ KẾT HỢP
           schedule: document.getElementById('edit_schedule').value.trim(),
           note: document.getElementById('edit_note').value.trim(),
+          startDate: startDateValue, 
         };
       } else {
         form = document.getElementById('employeeForm');
         if (!form.checkValidity()) { form.reportValidity(); return; }
         
+        // Lấy và kết hợp Ngày/Tháng/Năm sinh
+        const newDay = document.getElementById('birthDay').value.trim();
+        const newMonth = document.getElementById('birthMonth').value.trim();
+        const newYear = document.getElementById('birthYear').value.trim();
+        birthDateValue = newYear && newMonth && newDay ? `${newYear}-${newMonth}-${newDay}` : '';
+        
+        // Lấy và kết hợp Tháng/Năm từ dropdown (Start Date)
+        const newStartMonth = document.getElementById('startMonth').value.trim();
+        const newStartYear = document.getElementById('startYear').value.trim();
+        startDateValue = newStartYear && newStartMonth ? `${newStartYear}-${newStartMonth}` : '';
+        
         data = {
           branch: document.getElementById('branch').value,
           fullname: document.getElementById('fullname').value.trim(),
           phone: document.getElementById('phone').value.trim(),
-          birthYear: Number(document.getElementById('birthYear').value),
+          birthDate: birthDateValue, // SỬ DỤNG GIÁ TRỊ KẾT HỢP
           schedule: document.getElementById('schedule').value.trim(),
           note: document.getElementById('note').value.trim(),
+          startDate: startDateValue, 
           createdAt: Date.now()
         };
       }
@@ -854,6 +1050,9 @@
 
       renderList();
     });
+
+    // Khởi tạo các dropdown khi tải trang
+    setupDateFields();
 
     // Security Helper
     function escapeHtml(text) {
