@@ -149,6 +149,7 @@
 
     .search-container {
       position: relative;
+      margin-bottom: 10px; /* Thêm khoảng cách cho ô hiển thị số lượng */
     }
 
     .search-bar {
@@ -171,6 +172,42 @@
       width: 18px;
       height: 18px;
     }
+    
+    /* ADDED: Total Employee Count Bar */
+    .total-count-bar {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--ios-text-secondary);
+        padding: 5px 0;
+        margin: 0 16px; /* Căn lề giống với alert bên dưới */
+    }
+    .total-count-bar span {
+        font-weight: 700;
+        color: var(--ios-text-primary);
+    }
+    
+    /* * ADDED: Info Alert Box for Missing Data */
+    #missing-data-alert {
+        background: #FFDDDD; /* Light Red/Pink */
+        color: var(--ios-red);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin: 0 16px 12px;
+        font-size: 15px;
+        font-weight: 500;
+        border: 1px solid var(--ios-red);
+    }
+    #missing-data-alert span {
+        font-weight: 700;
+    }
+    #missing-data-alert ul {
+        list-style: disc;
+        padding-left: 20px;
+        margin: 8px 0 0 0;
+        font-weight: 400;
+        font-size: 14px;
+    }
+
 
     /* * 4. EMPLOYEE LIST (Cards)
      */
@@ -496,6 +533,12 @@
       <input type="text" id="searchInput" class="search-bar" placeholder="Tìm kiếm tên, số điện thoại..." />
     </div>
   </header>
+  
+  <div id="total-employee-count" class="total-count-bar" style="display: none;">
+      Tổng cộng: <span id="count-value">0</span> nhân viên
+  </div>
+
+  <div id="missing-data-alert" style="display:none;"></div>
 
   <ul id="employee-list">
     </ul>
@@ -757,6 +800,8 @@
         document.getElementById('branch-popup').classList.remove('hidden');
         document.getElementById('employee-list').innerHTML = ''; // Xóa danh sách hiện tại
         document.getElementById('current-branch-label').textContent = '...';
+        document.getElementById('missing-data-alert').style.display = 'none'; // Ẩn cảnh báo
+        document.getElementById('total-employee-count').style.display = 'none'; // Ẩn ô đếm
     };
 
 
@@ -880,7 +925,13 @@
     function renderList() {
       const list = document.getElementById('employee-list');
       const search = document.getElementById('searchInput').value.toLowerCase();
+      const missingDataAlert = document.getElementById('missing-data-alert');
+      const totalCountBar = document.getElementById('total-employee-count');
+      const countValue = document.getElementById('count-value');
+      
       list.innerHTML = '';
+      missingDataAlert.style.display = 'none'; 
+      totalCountBar.style.display = 'none';
 
       if (!currentBranchFilter) return; 
 
@@ -891,6 +942,38 @@
         
         return matchesBranch && matchesSearch;
       });
+      
+      // CẬP NHẬT TỔNG SỐ NHÂN VIÊN
+      if (filtered.length > 0) {
+          countValue.textContent = filtered.length;
+          totalCountBar.style.display = 'block';
+      }
+
+      // Xử lý cảnh báo thiếu thông tin
+      const missingInfoEmployees = filtered.filter(emp => 
+        !emp.fullname || !emp.phone || !emp.birthDate || !emp.startDate || !emp.schedule
+      );
+      
+      if (missingInfoEmployees.length > 0 && search.length === 0) {
+          let alertHtml = `⚠️ <span>Cần cập nhật thông tin:</span><ul>`;
+          missingInfoEmployees.forEach(emp => {
+              const missingFields = [];
+              if (!emp.fullname) missingFields.push('Họ tên');
+              if (!emp.phone) missingFields.push('SĐT');
+              if (!emp.birthDate) missingFields.push('Ngày sinh');
+              if (!emp.startDate) missingFields.push('Ngày vào làm');
+              if (!emp.schedule) missingFields.push('Ca làm');
+              
+              const nameDisplay = emp.fullname || emp.phone || emp.key.substring(0, 5) + '...';
+              alertHtml += `<li>**${escapeHtml(nameDisplay)}** (Thiếu: ${missingFields.join(', ')})</li>`;
+          });
+          alertHtml += `</ul>`;
+          missingDataAlert.innerHTML = alertHtml;
+          missingDataAlert.style.display = 'block';
+      } else {
+          missingDataAlert.style.display = 'none';
+      }
+      // Kết thúc xử lý cảnh báo
 
       if (filtered.length === 0) {
         list.innerHTML = `<li style="text-align:center; padding:20px; color:#8E8E93">Không có nhân viên nào.</li>`;
@@ -929,9 +1012,9 @@
             ${initials}
           </div>
           <div class="info">
-            <h3>${escapeHtml(emp.fullname)}</h3>
+            <h3>${escapeHtml(emp.fullname || 'Chưa có tên')}</h3>
             <p>📞 ${escapeHtml(emp.phone || 'Chưa có SĐT')} • NS: ${displayDOB}</p>
-            <p>🗓️ ${escapeHtml(emp.schedule)} | **Vào làm:** ${formattedStartDate} (${monthsWorked})</p>
+            <p>🗓️ ${escapeHtml(emp.schedule || 'Chưa có ca làm')} | **Vào làm:** ${formattedStartDate} (${monthsWorked})</p>
             ${emp.note ? `<p style="font-style:italic; color:#007AFF; margin-top:2px">${escapeHtml(emp.note)}</p>` : ''}
           </div>
           <div class="badge">${branchBadge}</div>
