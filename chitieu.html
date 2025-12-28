@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -11,80 +10,57 @@
            I. BIẾN CSS VÀ RESET CHUẨN IOS
            ==================================== */
         :root {
-            /* 1. Màu sắc theo chuẩn Apple */
             --ios-blue: #007AFF;
             --ios-blue-active: #005ac9;
             --ios-red: #FF3B30;
             --ios-green: #34C759;
             --ios-orange: #FF9500;
-            --ios-background: #F5F5F7; /* Nền nhạt, tinh tế */
-            --ios-card-bg: rgba(255, 255, 255, 0.78); /* Nền mờ (Glassmorphism) */
+            --ios-background: #F5F5F7;
+            --ios-card-bg: rgba(255, 255, 255, 0.78);
             --ios-text-primary: #1C1C1E;
             --ios-text-secondary: #8E8E93;
-            --ios-separator: rgba(60, 60, 67, 0.16); /* Màu phân cách nhẹ */
-
-            /* 2. Bố cục & Bo góc */
+            --ios-separator: rgba(60, 60, 67, 0.16);
             --breathing-space: 20px;
-            --card-border-radius: 18px; /* Góc bo lớn */
+            --card-border-radius: 18px;
             --input-border-radius: 12px;
             --button-border-radius: 14px;
-            --bottom-bar-height: 80px; /* Chiều cao Tab Bar */
-
-            /* 3. Hiệu ứng & Animation */
+            --bottom-bar-height: 80px;
             --ios-easing: cubic-bezier(0.25, 0.1, 0.25, 1);
-            --ios-shadow-soft: 0 6px 20px rgba(0,0,0,0.08); /* Bóng mềm */
+            --ios-shadow-soft: 0 6px 20px rgba(0,0,0,0.08);
         }
 
-        /* Reset và Font chữ Inter (thay cho SF Pro) */
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Inter', -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            padding: 0;
-            margin: 0;
+            padding: 0; margin: 0;
             background: var(--ios-background);
             color: var(--ios-text-primary);
-            /* Đảm bảo khoảng cách an toàn cho Bottom Tab Bar và Gesture Bar */
             padding-bottom: calc(var(--bottom-bar-height) + env(safe-area-inset-bottom, 20px));
             line-height: 1.4;
         }
 
-        /* Thiết lập responsive chuẩn iPhone */
         .container {
             padding: 0 var(--breathing-space);
-            max-width: 430px; /* Max width của iPhone Pro Max */
+            max-width: 430px;
             margin: 0 auto;
         }
 
-        /* ====================================
-           II. HEADER (Tương tự Large Title iOS)
-           ==================================== */
+        /* HEADER */
         .header {
-            padding: 60px var(--breathing-space) 20px; /* Padding lớn cho Large Title style */
+            padding: 60px var(--breathing-space) 20px;
             background: var(--ios-background);
             position: sticky;
             top: 0;
             z-index: 100;
             transition: background-color 0.3s var(--ios-easing);
-            /* Bỏ border-bottom để tạo cảm giác trong suốt khi không scroll */
         }
 
-        h1 {
-            font-size: 26px; /* Title: 20–28px, đậm */
-            font-weight: 700;
-            margin: 0;
-            color: var(--ios-text-primary);
-            letter-spacing: -0.5px;
-        }
+        h1 { font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
 
-        /* ====================================
-           III. CARD (Glassmorphism/Card mờ đục)
-           ==================================== */
+        /* BOX */
         .box {
             background: var(--ios-card-bg);
-            /* Hiệu ứng Mờ (Glassmorphism) */
             backdrop-filter: blur(15px) saturate(180%);
             -webkit-backdrop-filter: blur(15px) saturate(180%);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -92,100 +68,35 @@
             border-radius: var(--card-border-radius);
             margin-top: var(--breathing-space);
             box-shadow: var(--ios-shadow-soft);
-            transition: transform 0.3s var(--ios-easing), box-shadow 0.3s var(--ios-easing);
         }
 
-        .box:hover {
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
+        h2 { font-size: 20px; font-weight: 600; margin-top: 0; margin-bottom: 15px; }
 
-        h2 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: var(--ios-text-primary);
-        }
-
-        /* ====================================
-           IV. INPUT/SELECT (Bo tròn & Glow nhẹ)
-           ==================================== */
+        /* INPUTS */
         input[type="text"], input[type="number"], input[type="date"], select {
             padding: 14px 15px;
             border-radius: var(--input-border-radius);
             border: 1px solid var(--ios-separator);
             margin-top: 10px;
             width: 100%;
-            box-sizing: border-box;
             font-size: 16px;
-            background: #FFFFFF; /* Màu trắng cho input */
-            color: var(--ios-text-primary);
-            transition: border-color 0.3s var(--ios-easing), box-shadow 0.3s var(--ios-easing), background 0.3s;
-            -webkit-appearance: none; /* Bỏ style mặc định của trình duyệt */
+            background: #FFFFFF;
+            transition: all 0.3s var(--ios-easing);
+            -webkit-appearance: none;
         }
 
         input:focus, select:focus {
             border-color: var(--ios-blue);
             outline: none;
-            /* Animation focus glow nhẹ */
             box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.2);
-            background: #FFFFFF;
-        }
-        
-        select {
-            /* Tùy chỉnh mũi tên thả xuống cho đẹp hơn */
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3e%3cpath fill='%238E8E93' d='M5 8l5 5 5-5z'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-            padding-right: 35px;
         }
 
-        /* Group input và button */
-        .input-group {
-            display: flex;
-            gap: 10px;
-        }
-        .input-group input[type="date"] {
-            flex-grow: 1;
-            margin-top: 0;
-        }
-        .input-group button {
-            width: auto;
-            min-width: 80px;
-            margin-top: 0;
-            font-size: 15px;
-            padding: 10px 15px;
-        }
-        /* Fix input date padding khi nằm trong group */
-        .box .input-group > input[type="date"] {
-            padding: 14px 15px;
-            margin-top: 10px;
-        }
-        
-        /* Cải tiến giao diện lọc theo khoảng thời gian */
-        .date-range-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .date-range-group input {
-            margin-top: 0;
-        }
-        .date-range-group span {
-            font-weight: 500;
-            color: var(--ios-text-secondary);
-        }
-
-
-        /* ====================================
-           V. BUTTONS (Spring Scale Effect)
-           ==================================== */
+        /* BUTTONS */
         button {
             padding: 15px;
             border-radius: var(--button-border-radius);
             border: none;
-            margin-top: 20px;
+            margin-top: 15px;
             width: 100%;
             font-size: 17px;
             font-weight: 600;
@@ -193,53 +104,20 @@
             cursor: pointer;
             background: var(--ios-blue);
             box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-            transition: background 0.2s var(--ios-easing), transform 0.2s var(--ios-easing), box-shadow 0.2s var(--ios-easing);
-            -webkit-tap-highlight-color: transparent; /* Bỏ highlight khi chạm trên iOS */
+            transition: all 0.2s var(--ios-easing);
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Button khi nhấn (Spring Scale 0.97) */
-        button:active {
-            background: var(--ios-blue-active);
-            transform: scale(0.97); 
-            box-shadow: 0 2px 4px rgba(0, 122, 255, 0.4);
-            transition: transform 0.1s cubic-bezier(0.4, 0.0, 0.2, 1.4); /* Hiệu ứng spring-like */
-        }
-        
-        /* Nút Xóa (Delete Button) */
-        .delete-btn {
-            padding: 8px 12px;
-            margin-top: 0;
-            width: auto;
-            background: var(--ios-red);
-            font-size: 13px;
-            font-weight: 500;
-            border-radius: 8px;
-            box-shadow: none;
-        }
-        .delete-btn:active {
-            background: #c90a00;
-            transform: scale(0.97);
-        }
-        /* Nút lọc */
-        #filterExpenseBtn {
-            background: var(--ios-orange);
-            box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
-            margin-top: 10px; /* Điều chỉnh lại margin */
-        }
-        #filterExpenseBtn:active {
-            background: #cc7400;
+        button:active { transform: scale(0.97); opacity: 0.9; }
+
+        /* Nút phụ Quản lý số dư */
+        .secondary-btn {
+            background: #8E8E93;
+            box-shadow: 0 4px 12px rgba(142, 142, 147, 0.3);
+            margin-top: 10px;
         }
 
-        /* ====================================
-           VI. LISTS & SUMMARY (Kiểu Cell iOS)
-           ==================================== */
-        #categoryList {
-            margin-top: 15px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
+        /* CÁC PHẦN HIỂN THỊ CHI TIẾT */
         #categoryList span {
             display: inline-block;
             background: rgba(0, 122, 255, 0.1);
@@ -247,102 +125,92 @@
             padding: 6px 12px;
             border-radius: 10px;
             font-weight: 500;
-            font-size: 15px;
+            font-size: 14px;
+            margin-right: 5px;
+            margin-bottom: 5px;
         }
-        
-        /* Summary Item & Expense Item */
+
         .summary-item, .expense-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 12px 0;
             border-bottom: 0.5px solid var(--ios-separator);
-            font-size: 16px;
-            line-height: 1.4;
         }
-        .summary-item:last-child, .expense-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-        .summary-item:first-child, .expense-item:first-child {
-            padding-top: 0;
-        }
-        
-        /* Màu giá trị */
+
         .income-value { color: var(--ios-green); font-weight: 600; }
         .expense-value { color: var(--ios-red); font-weight: 600; }
-        .remain-value { font-size: 18px; font-weight: 700; color: var(--ios-blue); }
-        .today-spent-value { color: var(--ios-orange); font-weight: 600; }
-        .category-summary-amount { font-weight: 600; color: var(--ios-red); }
+        .remain-value { font-weight: 700; color: var(--ios-blue); }
 
-        .expense-item .label {
-            flex-grow: 1;
-            font-size: 15px;
-        }
-        .expense-item .date {
-            font-size: 12px;
-            color: var(--ios-text-secondary);
-            margin-right: 15px;
-            white-space: nowrap;
-        }
-        .expense-item .amount {
-            font-weight: 600;
-            color: var(--ios-red);
-            margin-right: 15px;
-            white-space: nowrap;
-        }
-        
-        /* CSS cho phần thống kê theo ngày được lọc */
-        #dailyCategorySummaryBox {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid var(--ios-separator);
-        }
-        #dailyCategorySummaryBox h3 {
-            font-size: 17px;
-            font-weight: 600;
+        .delete-btn {
+            padding: 8px 12px;
             margin-top: 0;
-            margin-bottom: 10px;
+            width: auto;
+            background: var(--ios-red);
+            font-size: 12px;
+            border-radius: 8px;
         }
-        .daily-summary-item {
-            padding: 8px 0;
+
+        /* IFRAME OVERLAY (Full màn hình) */
+        #soduOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            display: none; /* Ẩn mặc định */
+            flex-direction: column;
+        }
+
+        #soduOverlay iframe {
+            flex-grow: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .back-btn-container {
+            padding: calc(env(safe-area-inset-top, 20px) + 10px) 20px 10px;
+            background: var(--ios-background);
+            border-bottom: 0.5px solid var(--ios-separator);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            font-size: 15px;
-        }
-        .daily-summary-item .amount {
-            font-weight: 600;
-            color: var(--ios-red);
         }
 
+        .back-btn {
+            background: none;
+            color: var(--ios-blue);
+            box-shadow: none;
+            padding: 0;
+            margin: 0;
+            width: auto;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+        }
+        .back-btn::before {
+            content: "〈";
+            margin-right: 5px;
+            font-weight: bold;
+        }
 
-        /* ====================================
-           VII. BOTTOM TAB BAR (Thanh Điều Hướng Dưới)
-           ==================================== */
+        /* TAB BAR */
         .bottom-tab-bar {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
             height: var(--bottom-bar-height);
             background: var(--ios-card-bg);
-            /* Glassmorphism */
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-top: 0.5px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 -4px 16px rgba(0,0,0,0.05);
+            border-top: 0.5px solid var(--ios-separator);
             display: flex;
             justify-content: space-around;
-            align-items: flex-start;
-            padding: 10px 0;
-            /* Khoảng cách an toàn dưới cùng */
-            padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+            padding-bottom: env(safe-area-inset-bottom, 0px);
             z-index: 200;
         }
-        
         .tab-item {
-            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -350,60 +218,38 @@
             text-decoration: none;
             color: var(--ios-text-secondary);
             font-size: 10px;
-            font-weight: 500;
-            transition: color 0.2s var(--ios-easing);
-            -webkit-tap-highlight-color: transparent;
         }
+        .tab-item.active { color: var(--ios-blue); }
+        .tab-icon { font-size: 24px; }
 
-        .tab-item.active {
-            color: var(--ios-blue);
-        }
-
-        .tab-icon {
-            font-size: 24px;
-            margin-bottom: 3px;
-            line-height: 1;
-        }
-
-        /* ====================================
-           VIII. CÁC HIỆU ỨNG KHÁC (JavaScript/Scroll)
-           ==================================== */
-        /* Hiệu ứng Header trong suốt khi scroll */
-        .header.scrolled {
-            background-color: var(--ios-card-bg);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-bottom: 0.5px solid var(--ios-separator);
-            padding: 15px var(--breathing-space); /* Giảm padding khi scroll */
-        }
-        .header.scrolled h1 {
-            font-size: 20px; /* Giảm cỡ chữ */
-        }
-
-        /* Toast Notification (Demo) */
+        /* Toast */
         .ios-toast {
             position: fixed;
-            top: 60px;
-            left: 50%;
-            transform: translate(-50%, -150%); /* Ẩn đi */
+            top: 60px; left: 50%;
+            transform: translate(-50%, -150%);
             background: rgba(45, 45, 45, 0.9);
             color: white;
             padding: 10px 20px;
             border-radius: 12px;
-            font-size: 15px;
             z-index: 300;
-            transition: transform 0.5s var(--ios-easing), opacity 0.5s var(--ios-easing);
+            transition: all 0.5s var(--ios-easing);
             opacity: 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        .ios-toast.show {
-            transform: translate(-50%, 0);
-            opacity: 1;
-        }
+        .ios-toast.show { transform: translate(-50%, 0); opacity: 1; }
 
+        /* Helpers */
+        .date-range-group { display: flex; align-items: center; gap: 10px; }
+        #filterExpenseBtn { background: var(--ios-orange); box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3); }
     </style>
 </head>
 <body>
+
+<div id="soduOverlay">
+    <div class="back-btn-container">
+        <button class="back-btn" onclick="closeSodu()">Quay lại</button>
+    </div>
+    <iframe id="soduFrame" src=""></iframe>
+</div>
 
 <div class="header" id="mainHeader">
     <h1>💰 Quản Lý Chi Tiêu</h1>
@@ -413,93 +259,75 @@
     <div class="box">
         <h2>💵 Doanh thu tháng</h2>
         <input type="text" id="monthlyIncome" placeholder="Nhập số tiền doanh thu tháng...">
-        <input type="date" id="incomeDateInput" value="<?php echo date('Y-m-d'); ?>">
+        <input type="date" id="incomeDateInput">
         <button id="saveIncome">Lưu Doanh Thu</button>
+        <button class="secondary-btn" onclick="openSodu()">💳 Quản lý số dư</button>
     </div>
 
     <div class="box">
-        <h2>➕ Thêm khoản chi</h2>
-        <input type="text" id="categoryInput" placeholder="Ví dụ: Ăn uống, Xăng, Cafe, Tiết kiệm...">
+        <h2>➕ Thêm hạng mục</h2>
+        <input type="text" id="categoryInput" placeholder="Ăn uống, Xăng, Cafe...">
         <button id="addCategory">Thêm Hạng Mục</button>
         <div id="categoryList"></div>
     </div>
 
     <div class="box">
         <h2>📝 Ghi chi tiêu</h2>
-        <select id="selectCategory">
-            </select>
+        <select id="selectCategory"></select>
         <input type="text" id="expenseAmount" placeholder="Nhập số tiền đã chi...">
         <button id="addExpense">Ghi Chi Tiêu</button>
     </div>
 
     <div class="box summary">
         <h2>📈 Tổng quan</h2>
-        <div class="summary-item" id="showIncome">Doanh thu tháng: <strong class="income-value">0 đ</strong></div>
-        <div class="summary-item" id="showIncomeDate">Ngày ghi nhận: <strong style="color:var(--ios-text-secondary);">N/A</strong></div>
+        <div class="summary-item" id="showIncome">Doanh thu: <strong class="income-value">0 đ</strong></div>
+        <div class="summary-item" id="showIncomeDate">Ngày ghi: <strong style="color:var(--ios-text-secondary);">N/A</strong></div>
         <div class="summary-item" id="showTotalSpent">Tổng chi: <strong class="expense-value">0 đ</strong></div>
         <div class="summary-item" id="showRemain">Còn lại: <strong class="remain-value">0 đ</strong></div>
-        <div class="summary-item" id="showTodaySpent">Chi hôm nay: <strong class="today-spent-value">0 đ</strong></div>
+        <div class="summary-item" id="showTodaySpent">Chi hôm nay: <strong class="today-spent-value" style="color:var(--ios-orange)">0 đ</strong></div>
     </div>
     
     <div class="box">
-        <h2>🏷️ Tổng chi theo khoản (Toàn bộ)</h2>
-        <div id="categorySummary">
-            </div>
+        <h2>🏷️ Tổng chi theo khoản</h2>
+        <div id="categorySummary"></div>
     </div>
     
     <div class="box">
-        <h2>🔎 Lọc Chi tiêu theo khoảng ngày</h2>
+        <h2>🔎 Lọc chi tiêu</h2>
         <div class="date-range-group">
-             <input type="date" id="startDateInput" value="<?php echo date('Y-m-d'); ?>">
+             <input type="date" id="startDateInput">
              <span>đến</span>
-             <input type="date" id="endDateInput" value="<?php echo date('Y-m-d'); ?>">
+             <input type="date" id="endDateInput">
         </div>
-        
         <button id="filterExpenseBtn">Lọc Theo Khoảng Ngày</button>
-        
-        <div id="filteredExpenseSummary" class="summary-item" style="margin-top: 20px; font-weight: 500; padding: 0;">
-             Tổng chi <span id="filteredDateRangeValue">Hôm nay</span>: <strong class="expense-value" id="filteredTotalAmount">0 đ</strong>
+        <div id="filteredExpenseSummary" class="summary-item" style="margin-top: 15px;">
+             Tổng chi lọc: <strong class="expense-value" id="filteredTotalAmount">0 đ</strong>
         </div>
-        
-        <div id="dailyCategorySummaryBox" style="display: none;">
-             <h3>Chi tiết theo khoản:</h3>
-             <div id="dailyCategorySummary">
-                 </div>
+        <div id="dailyCategorySummaryBox" style="display: none; border-top: 1px solid var(--ios-separator); margin-top: 10px; padding-top: 10px;">
+             <h3 style="font-size: 16px;">Chi tiết lọc:</h3>
+             <div id="dailyCategorySummary"></div>
         </div>
-        
     </div>
 
-    <div class="box" id="expenseHistoryBox">
-        <h2>⏳ Lịch sử Chi tiêu (<span id="historyTitle">Toàn bộ</span>)</h2>
-        <div id="expenseHistory">
-            </div>
+    <div class="box">
+        <h2>⏳ Lịch sử (<span id="historyTitle">Toàn bộ</span>)</h2>
+        <div id="expenseHistory"></div>
     </div>
 </div>
 
 <div class="bottom-tab-bar">
-    <a href="#" class="tab-item active">
-        <span class="tab-icon">📊</span>
-        <span>Tổng quan</span>
-    </a>
-    <a href="#" class="tab-item">
-        <span class="tab-icon">➕</span>
-        <span>Ghi chi</span>
-    </a>
-    <a href="#" class="tab-item">
-        <span class="tab-icon">⚙️</span>
-        <span>Cài đặt</span>
-    </a>
+    <a href="#" class="tab-item active"><span class="tab-icon">📊</span><span>Tổng quan</span></a>
+    <a href="#" class="tab-item"><span class="tab-icon">➕</span><span>Ghi chi</span></a>
+    <a href="#" class="tab-item"><span class="tab-icon">⚙️</span><span>Cài đặt</span></a>
 </div>
 
 <div class="ios-toast" id="iosToast">Thành công!</div>
-
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-// Vẫn giữ nguyên cấu hình và logic Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
   authDomain: "lichnghi-4c665.firebaseapp.com",
@@ -507,8 +335,7 @@ const firebaseConfig = {
   projectId: "lichnghi-4c665",
   storageBucket: "lichnghi-4c665.firebasestorage.app",
   messagingSenderId: "86673813509",
-  appId: "1:86673813509:web:168376408dfcbf14e16c6c",
-  measurementId: "G-2G08MRQY1V"
+  appId: "1:86673813509:web:168376408dfcbf14e16c6c"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -526,7 +353,6 @@ const categoryList = document.getElementById("categoryList");
 const categorySelect = document.getElementById("selectCategory");
 const expenseAmountInput = document.getElementById("expenseAmount");
 const addExpenseBtn = document.getElementById("addExpense");
-
 const showIncome = document.getElementById("showIncome");
 const showIncomeDate = document.getElementById("showIncomeDate");
 const showTotalSpent = document.getElementById("showTotalSpent");
@@ -534,377 +360,184 @@ const showRemain = document.getElementById("showRemain");
 const showTodaySpent = document.getElementById("showTodaySpent");
 const categorySummaryDiv = document.getElementById("categorySummary");
 const expenseHistoryDiv = document.getElementById("expenseHistory");
-
-const mainHeader = document.getElementById("mainHeader");
 const iosToast = document.getElementById("iosToast");
-
-// Elements mới cho lọc theo ngày
-const startDateInput = document.getElementById("startDateInput"); // NEW
-const endDateInput = document.getElementById("endDateInput"); // NEW
+const startDateInput = document.getElementById("startDateInput");
+const endDateInput = document.getElementById("endDateInput");
 const filterExpenseBtn = document.getElementById("filterExpenseBtn");
 const historyTitle = document.getElementById("historyTitle");
-const filteredDateRangeValue = document.getElementById("filteredDateRangeValue"); // Renamed
 const filteredTotalAmount = document.getElementById("filteredTotalAmount");
 const dailyCategorySummaryBox = document.getElementById("dailyCategorySummaryBox"); 
 const dailyCategorySummaryDiv = document.getElementById("dailyCategorySummary"); 
 
-
-// Biến lưu trữ lịch sử chi tiêu gốc (dùng cho việc lọc)
 let allExpenses = {};
-let currentFilterStart = null; // Biến lưu trữ ngày bắt đầu đang lọc
-let currentFilterEnd = null; // Biến lưu trữ ngày kết thúc đang lọc
+let currentFilterStart = null;
+let currentFilterEnd = null;
 
-
-// --- HÀM HỖ TRỢ ---
-
-// Format tiền tệ
-const formatCurrency = (amount) => {
-    return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }).replace('₫', ' đ');
+// FUNCTIONS
+const formatCurrency = (n) => Number(n).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }).replace('₫', ' đ');
+const formatDate = (s) => s ? new Date(s).toLocaleDateString('vi-VN') : 'N/A';
+const getNumericValue = (el) => Number(el.value.replace(/[^0-9]/g, ''));
+const formatInput = (el) => {
+    let v = el.value.replace(/[^0-9]/g, '');
+    if (v) el.value = new Intl.NumberFormat('vi-VN').format(Number(v));
 };
 
-// Hàm định dạng ngày
-const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-    return new Date(dateString).toLocaleDateString('vi-VN', options);
-};
-
-// Hàm xử lý định dạng số tiền khi nhập (thêm dấu chấm)
-const formatInput = (inputElement) => {
-    let value = inputElement.value.replace(/[^0-9]/g, ''); // Chỉ giữ lại số
-    if (value) {
-        // Định dạng số (thêm dấu .)
-        inputElement.value = new Intl.NumberFormat('vi-VN').format(Number(value));
-    }
-};
-
-// Hàm lấy giá trị số nguyên từ input
-const getNumericValue = (inputElement) => {
-    const value = inputElement.value.replace(/[^0-9]/g, '');
-    return Number(value);
-};
-
-
-// --- ANIMATION VÀ UX THÊM ---
-
-// 1. Header trong suốt khi scroll
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 10) { // Khoảng cách scroll để kích hoạt
-        mainHeader.classList.add('scrolled');
-    } else {
-        mainHeader.classList.remove('scrolled');
-    }
-});
-
-// 2. Toast Notification
-const showToast = (message) => {
-    iosToast.textContent = message;
+const showToast = (m) => {
+    iosToast.textContent = m;
     iosToast.classList.add('show');
-    
-    // Tự động ẩn sau 3 giây
-    setTimeout(() => {
-        iosToast.classList.remove('show');
-    }, 3000);
+    setTimeout(() => iosToast.classList.remove('show'), 2000);
 };
 
-// 3. Hiệu ứng Spring Scale cho buttons (đã có trong CSS :active)
-document.querySelectorAll('button').forEach(button => {
-    button.addEventListener('mousedown', () => {
-        button.style.transform = 'scale(0.97)';
-        button.style.transition = 'transform 0.1s cubic-bezier(0.4, 0.0, 0.2, 1.4)';
-    });
-    button.addEventListener('mouseup', () => {
-        button.style.transform = 'scale(1.0)';
-        button.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1)';
-    });
-    button.addEventListener('touchstart', () => {
-        button.style.transform = 'scale(0.97)';
-        button.style.transition = 'transform 0.1s cubic-bezier(0.4, 0.0, 0.2, 1.4)';
-    });
-    button.addEventListener('touchend', () => {
-        button.style.transform = 'scale(1.0)';
-        button.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1)';
-    });
-});
-
-// 4. Tự động định dạng số tiền khi nhập
-monthlyIncomeInput.addEventListener('input', () => formatInput(monthlyIncomeInput));
-expenseAmountInput.addEventListener('input', () => formatInput(expenseAmountInput));
-
-
-// --- CHỨC NĂNG XÓA (DELETE) ---
-window.deleteExpense = (key) => {
-    if (confirm("Bạn có chắc chắn muốn xóa khoản chi này?")) {
-        remove(ref(db, "expenses/" + key))
-            .then(() => showToast("Xóa chi tiêu thành công!"))
-            .catch(() => showToast("Lỗi khi xóa!"));
-    }
+// --- LOGIC QUẢN LÝ IFRAME ---
+window.openSodu = function() {
+    document.getElementById('soduFrame').src = 'sodu.html';
+    document.getElementById('soduOverlay').style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Chặn scroll trang chính
 };
 
-// Save income
+window.closeSodu = function() {
+    document.getElementById('soduOverlay').style.display = 'none';
+    document.getElementById('soduFrame').src = '';
+    document.body.style.overflow = 'auto';
+};
+
+// --- FIREBASE LOGIC ---
 saveIncomeBtn.onclick = () => {
-    const incomeValue = getNumericValue(monthlyIncomeInput);
-    const incomeDate = incomeDateInput.value;
-    if (!isNaN(incomeValue) && incomeDate) {
-        set(ref(db, "budget/monthlyIncome"), {
-            amount: incomeValue,
-            date: incomeDate
-        })
-        .then(() => showToast("Lưu Doanh Thu thành công!"))
-        .catch(() => showToast("Lỗi khi lưu Doanh Thu!"));
-    } else {
-        showToast("Vui lòng nhập số tiền hợp lệ và ngày!");
+    const val = getNumericValue(monthlyIncomeInput);
+    if (val && incomeDateInput.value) {
+        set(ref(db, "budget/monthlyIncome"), { amount: val, date: incomeDateInput.value })
+        .then(() => showToast("Đã lưu doanh thu"));
     }
 };
 
-// Add category
 addCategoryBtn.onclick = () => {
-  const category = categoryInput.value.trim();
-  if (category) {
-    set(ref(db, "budget/categories/" + category), true)
-        .then(() => {
+    const cat = categoryInput.value.trim();
+    if (cat) {
+        set(ref(db, "budget/categories/" + cat), true).then(() => {
             categoryInput.value = "";
-            showToast("Thêm Hạng Mục thành công!");
-        })
-        .catch(() => showToast("Lỗi khi thêm Hạng Mục!"));
-  } else {
-      showToast("Vui lòng nhập tên hạng mục!");
-  }
+            showToast("Đã thêm hạng mục");
+        });
+    }
 };
 
-// Listen categories
+addExpenseBtn.onclick = () => {
+    const amt = getNumericValue(expenseAmountInput);
+    if (categorySelect.value && amt > 0) {
+        push(ref(db, "expenses"), {
+            category: categorySelect.value,
+            amount: amt,
+            date: new Date().toISOString().split("T")[0]
+        }).then(() => {
+            expenseAmountInput.value = "";
+            showToast("Đã ghi chi tiêu");
+        });
+    }
+};
+
+window.deleteExpense = (key) => {
+    if (confirm("Xóa khoản này?")) remove(ref(db, "expenses/" + key));
+};
+
 onValue(ref(db, "budget/categories"), snap => {
-  categorySelect.innerHTML = "";
-  categoryList.innerHTML = "";
-  if (snap.exists()) {
-    Object.keys(snap.val()).forEach(c => {
-      categorySelect.innerHTML += `<option value="${c}">${c}</option>`;
-      categoryList.innerHTML += `<span>${c}</span>`;
-    });
-  } else {
-      categorySelect.innerHTML = `<option value="">Chưa có hạng mục</option>`;
-  }
+    categorySelect.innerHTML = ""; categoryList.innerHTML = "";
+    if (snap.exists()) {
+        Object.keys(snap.val()).forEach(c => {
+            categorySelect.innerHTML += `<option value="${c}">${c}</option>`;
+            categoryList.innerHTML += `<span>${c}</span>`;
+        });
+    }
 });
 
-// Add expense
-addExpenseBtn.onclick = () => {
-  const amountValue = getNumericValue(expenseAmountInput);
-  if (categorySelect.value && !isNaN(amountValue) && amountValue > 0) {
-    push(ref(db, "expenses"), {
-      category: categorySelect.value,
-      amount: amountValue,
-      date: new Date().toISOString().split("T")[0] // Ghi ngày chi tiêu
-    })
-    .then(() => {
-        expenseAmountInput.value = "";
-        showToast("Ghi Chi Tiêu thành công!");
-    })
-    .catch(() => showToast("Lỗi khi ghi Chi Tiêu!"));
-  } else {
-      showToast("Vui lòng chọn hạng mục và nhập số tiền hợp lệ!");
-  }
-};
-
-
-// --- CHỨC NĂNG LỌC VÀ HIỂN THỊ LỊCH SỬ (UPDATED FOR DATE RANGE) ---
-
-// Hàm chung để hiển thị lịch sử chi tiêu
-const renderExpenseHistory = (expensesToRender, filterStart = null, filterEnd = null) => {
+const renderHistory = (data, start, end) => {
     expenseHistoryDiv.innerHTML = "";
+    historyTitle.textContent = start ? `Từ ${formatDate(start)}` : "Toàn bộ";
+    const items = Object.keys(data).map(k => ({k, ...data[k]})).sort((a,b) => new Date(b.date) - new Date(a.date));
     
-    // Cập nhật tiêu đề
-    if (filterStart && filterEnd) {
-        const startDisplay = formatDate(filterStart);
-        const endDisplay = formatDate(filterEnd);
-        
-        if (filterStart === filterEnd) {
-             historyTitle.textContent = `Ngày ${startDisplay}`;
-             filteredDateRangeValue.textContent = `Ngày ${startDisplay}`;
-        } else {
-             historyTitle.textContent = `Từ ${startDisplay} đến ${endDisplay}`;
-             filteredDateRangeValue.textContent = `Từ ${startDisplay} đến ${endDisplay}`;
-        }
-       
-    } else {
-        historyTitle.textContent = "Toàn bộ";
-        filteredDateRangeValue.textContent = "Toàn bộ";
-    }
-
-    if (Object.keys(expensesToRender).length > 0) {
-        let items = Object.keys(expensesToRender).map(key => ({ key: key, ...expensesToRender[key] }));
-        
-        // Sắp xếp theo ngày mới nhất lên trước
-        items.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        items.forEach(item => {
-            expenseHistoryDiv.innerHTML += `
-                <div class="expense-item">
-                    <span class="label">${item.category}</span>
-                    <span class="date">${formatDate(item.date)}</span>
-                    <span class="amount">${formatCurrency(item.amount)}</span>
-                    <button class="delete-btn" onclick="deleteExpense('${item.key}')">Xóa</button>
-                </div>
-            `;
-        });
-    } else {
-        expenseHistoryDiv.innerHTML = "<p style='text-align:center; color:var(--ios-text-secondary);'>Không có lịch sử chi tiêu nào trong khoảng thời gian này.</p>";
-    }
-};
-
-// Hàm xử lý việc lọc theo khoảng ngày
-const filterExpenses = (startDate, endDate) => {
-    currentFilterStart = startDate;
-    currentFilterEnd = endDate;
-    
-    // Chuyển đổi sang đối tượng Date để so sánh
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    if (start > end) {
-        showToast("Ngày bắt đầu không thể sau Ngày kết thúc!");
-        // Giữ nguyên hiển thị trước đó
+    if (items.length === 0) {
+        expenseHistoryDiv.innerHTML = "<p style='text-align:center;color:#888'>Trống</p>";
         return;
     }
 
-    let filteredExpenses = {};
-    let totalFilteredAmount = 0;
-    const dailyCategorySummaries = {}; // Thống kê theo khoản cho khoảng ngày lọc
+    items.forEach(i => {
+        expenseHistoryDiv.innerHTML += `
+            <div class="expense-item">
+                <div style="display:flex; flex-direction:column">
+                    <span style="font-weight:500">${i.category}</span>
+                    <span style="font-size:11px; color:#888">${formatDate(i.date)}</span>
+                </div>
+                <div style="display:flex; align-items:center gap:10px">
+                    <span class="expense-value" style="margin-right:10px">${formatCurrency(i.amount)}</span>
+                    <button class="delete-btn" onclick="deleteExpense('${i.k}')">Xóa</button>
+                </div>
+            </div>`;
+    });
+};
+
+const filterExpenses = (startStr, endStr) => {
+    const s = new Date(startStr); const e = new Date(endStr);
+    let filtered = {}; let total = 0; let cats = {};
     
-
-    Object.keys(allExpenses).forEach(key => {
-        const e = allExpenses[key];
-        const expenseDate = new Date(e.date);
-
-        // Kiểm tra xem ngày chi tiêu có nằm trong khoảng [startDate, endDate] không
-        if (expenseDate >= start && expenseDate <= end) {
-            filteredExpenses[key] = e;
-            totalFilteredAmount += e.amount;
-            
-            // Thống kê theo khoản cho khoảng ngày lọc
-            dailyCategorySummaries[e.category] = (dailyCategorySummaries[e.category] || 0) + e.amount;
+    Object.keys(allExpenses).forEach(k => {
+        const item = allExpenses[k];
+        const d = new Date(item.date);
+        if (d >= s && d <= e) {
+            filtered[k] = item;
+            total += item.amount;
+            cats[item.category] = (cats[item.category] || 0) + item.amount;
         }
     });
-    
-    // --- HIỂN THỊ THỐNG KÊ CHI TIẾT THEO KHOẢN (NEW) ---
+
+    filteredTotalAmount.textContent = formatCurrency(total);
     dailyCategorySummaryDiv.innerHTML = "";
-    if (Object.keys(dailyCategorySummaries).length > 0) {
-        dailyCategorySummaryBox.style.display = 'block'; // Hiển thị box
-        Object.keys(dailyCategorySummaries).sort().forEach(category => {
-            dailyCategorySummaryDiv.innerHTML += `
-                <div class="daily-summary-item">
-                    <span>${category}:</span>
-                    <span class="amount">${formatCurrency(dailyCategorySummaries[category])}</span>
-                </div>
-            `;
+    if (total > 0) {
+        dailyCategorySummaryBox.style.display = 'block';
+        Object.keys(cats).forEach(c => {
+            dailyCategorySummaryDiv.innerHTML += `<div class="summary-item"><span>${c}</span><strong>${formatCurrency(cats[c])}</strong></div>`;
         });
-    } else {
-        // Ẩn box nếu không có chi tiêu nào trong ngày
-        dailyCategorySummaryBox.style.display = 'none'; 
-    }
-    
-    // Cập nhật hiển thị tổng chi
-    filteredTotalAmount.textContent = formatCurrency(totalFilteredAmount);
+    } else dailyCategorySummaryBox.style.display = 'none';
 
-    renderExpenseHistory(filteredExpenses, startDate, endDate);
+    renderHistory(filtered, startStr, endStr);
 };
 
-// Event click nút Lọc
-filterExpenseBtn.onclick = () => {
-    const startDate = startDateInput.value;
-    const endDate = endDateInput.value;
-    if (startDate && endDate) {
-        filterExpenses(startDate, endDate);
-    } else {
-        showToast("Vui lòng chọn cả Ngày bắt đầu và Ngày kết thúc để lọc!");
-    }
-};
-
-// Mặc định hiển thị chi hôm nay ngay khi load
-window.onload = () => {
-    const today = new Date().toISOString().split("T")[0];
-    startDateInput.value = today;
-    endDateInput.value = today;
-    filterExpenses(today, today);
-};
-
-
-// Stats Listener (Cập nhật Tổng quan và Tổng chi theo khoản)
 onValue(ref(db, "/"), snap => {
-  if (!snap.exists()) {
-      allExpenses = {}; // Reset lịch sử
-      // Set default values if data doesn't exist
-      showIncome.innerHTML = `Doanh thu tháng: <strong class="income-value">${formatCurrency(0)}</strong>`;
-      showIncomeDate.innerHTML = `Ngày ghi nhận: <strong style="color:var(--ios-text-secondary);">Chưa có</strong>`;
-      showTotalSpent.innerHTML = `Tổng chi: <strong class="expense-value">${formatCurrency(0)}</strong>`;
-      showRemain.innerHTML = `Còn lại: <strong class="remain-value">${formatCurrency(0)}</strong>`;
-      showTodaySpent.innerHTML = `Chi hôm nay: <strong class="today-spent-value">${formatCurrency(0)}</strong>`;
-      categorySummaryDiv.innerHTML = "<p style='text-align:center; color:var(--ios-text-secondary);'>Chưa có khoản chi nào.</p>";
-      dailyCategorySummaryBox.style.display = 'none'; // NEW: Ẩn box lọc
-      renderExpenseHistory({}); // Hiển thị lịch sử trống
-      return;
-  }
-  
-  const data = snap.val();
-  
-  // Lấy thông tin thu nhập
-  const incomeData = data.budget?.monthlyIncome || { amount: 0, date: null };
-  const income = incomeData.amount || 0;
-  const incomeDate = incomeData.date;
-  
-  allExpenses = data.expenses || {}; // LƯU TOÀN BỘ EXPENSES
-
-  let totalSpent = 0;
-  let todaySpent = 0;
-  const today = new Date().toISOString().split("T")[0];
-  const categorySummaries = {}; // Thống kê theo khoản (cả tháng/toàn bộ)
-
-  Object.keys(allExpenses).forEach(key => {
-    const e = allExpenses[key];
-    totalSpent += e.amount;
+    const data = snap.val() || {};
+    allExpenses = data.expenses || {};
+    const income = data.budget?.monthlyIncome?.amount || 0;
+    const incDate = data.budget?.monthlyIncome?.date || "";
     
-    // Thống kê chi hôm nay
-    if (e.date === today) todaySpent += e.amount;
-    
-    // Thống kê theo khoản (cả tháng)
-    categorySummaries[e.category] = (categorySummaries[e.category] || 0) + e.amount;
-  });
+    let total = 0; let todaySum = 0; let cats = {};
+    const today = new Date().toISOString().split("T")[0];
 
-  const remaining = income - totalSpent;
+    Object.values(allExpenses).forEach(e => {
+        total += e.amount;
+        if(e.date === today) todaySum += e.amount;
+        cats[e.category] = (cats[e.category] || 0) + e.amount;
+    });
 
-  // --- HIỂN THỊ THỐNG KÊ CHUNG ---
-  showIncome.innerHTML = `Doanh thu tháng: <strong class="income-value">${formatCurrency(income)}</strong>`;
-  showIncomeDate.innerHTML = `Ngày ghi nhận: <strong style="color:var(--ios-text-secondary);">${incomeDate ? formatDate(incomeDate) : 'Chưa có'}</strong>`;
-  showTotalSpent.innerHTML = `Tổng chi: <strong class="expense-value">${formatCurrency(totalSpent)}</strong>`;
-  showRemain.innerHTML = `Còn lại: <strong class="remain-value">${formatCurrency(remaining)}</strong>`;
-  showTodaySpent.innerHTML = `Chi hôm nay: <strong class="today-spent-value">${formatCurrency(todaySpent)}</strong>`;
+    showIncome.innerHTML = `Doanh thu: <strong class="income-value">${formatCurrency(income)}</strong>`;
+    showIncomeDate.innerHTML = `Ngày ghi: <strong style="color:#888">${formatDate(incDate)}</strong>`;
+    showTotalSpent.innerHTML = `Tổng chi: <strong class="expense-value">${formatCurrency(total)}</strong>`;
+    showRemain.innerHTML = `Còn lại: <strong class="remain-value">${formatCurrency(income - total)}</strong>`;
+    showTodaySpent.innerHTML = `Chi hôm nay: <strong style="color:var(--ios-orange)">${formatCurrency(todaySum)}</strong>`;
 
-  // Cập nhật lại giá trị input doanh thu nếu đã có
-  if(income > 0) {
-      monthlyIncomeInput.value = new Intl.NumberFormat('vi-VN').format(income); // Định dạng số tiền
-  }
-  if(incomeDate) {
-      incomeDateInput.value = incomeDate;
-  }
-  
-  // --- HIỂN THỊ TỔNG CHI THEO KHOẢN (TOÀN BỘ) ---
-  categorySummaryDiv.innerHTML = "";
-  if (Object.keys(categorySummaries).length > 0) {
-      Object.keys(categorySummaries).sort().forEach(category => {
-          categorySummaryDiv.innerHTML += `
-              <div class="summary-item">
-                  <span class="label">${category}:</span>
-                  <span class="category-summary-amount">${formatCurrency(categorySummaries[category])}</span>
-              </div>
-          `;
-      });
-  } else {
-      categorySummaryDiv.innerHTML = "<p style='text-align:center; color:var(--ios-text-secondary);'>Chưa có khoản chi nào.</p>";
-  }
+    categorySummaryDiv.innerHTML = "";
+    Object.keys(cats).forEach(c => {
+        categorySummaryDiv.innerHTML += `<div class="summary-item"><span>${c}</span><strong class="expense-value">${formatCurrency(cats[c])}</strong></div>`;
+    });
 
-  // --- ÁP DỤNG BỘ LỌC ĐÃ CHỌN (hoặc lọc ngày hôm nay) ---
-  const dateToFilter = currentFilterStart || today;
-  filterExpenses(dateToFilter, currentFilterEnd || today);
+    filterExpenses(startDateInput.value || today, endDateInput.value || today);
 });
+
+filterExpenseBtn.onclick = () => filterExpenses(startDateInput.value, endDateInput.value);
+
+monthlyIncomeInput.oninput = () => formatInput(monthlyIncomeInput);
+expenseAmountInput.oninput = () => formatInput(expenseAmountInput);
+
+window.onload = () => {
+    const t = new Date().toISOString().split("T")[0];
+    startDateInput.value = t; endDateInput.value = t;
+    incomeDateInput.value = t;
+};
 </script>
 
 </body>
