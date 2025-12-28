@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Finance iOS Style - Secure</title>
+    <style>
+        :root {
+            --ios-blue: #007AFF;
+            --ios-green: #34C759;
+            --ios-orange: #FF9500;
+            --ios-bg: #F2F2F7;
+            --ios-card: #FFFFFF;
+            --ios-text: #000000;
+            --ios-subtext: #8E8E93;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--ios-bg);
+            margin: 0;
+            padding: 0;
+            color: var(--ios-text);
+            display: flex;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .iphone-container {
+            width: 100%;
+            max-width: 430px;
+            min-height: 100vh;
+            background-color: var(--ios-bg);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Header iOS Style */
+        .header {
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 14px;
+            color: var(--ios-subtext);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Nút con mắt bảo mật */
+        .eye-icon {
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--ios-blue);
+            transition: opacity 0.2s;
+        }
+        .eye-icon:active { opacity: 0.5; }
+
+        .total-amount {
+            font-size: 38px;
+            font-weight: 800;
+            margin-top: 5px;
+            letter-spacing: -1px;
+            min-height: 46px;
+        }
+
+        /* Section Header */
+        .section-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0 0 12px 5px;
+        }
+
+        /* Input tạo khoản mới */
+        .add-card {
+            background: var(--ios-card);
+            border-radius: 18px;
+            padding: 12px 16px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+
+        .add-card input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .btn-plus {
+            background: var(--ios-blue);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Wallet List */
+        .wallet-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .wallet-item {
+            background: var(--ios-card);
+            border-radius: 20px;
+            padding: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .wallet-item:active { transform: scale(0.96); background-color: #F9F9F9; }
+
+        .wallet-info .name { display: block; font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+        .wallet-info .type { font-size: 13px; color: var(--ios-subtext); }
+        .wallet-balance { font-size: 18px; font-weight: 700; }
+
+        /* Modal Popup */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: flex-end; z-index: 1000;
+        }
+
+        .modal {
+            background: var(--ios-card); width: 100%; max-width: 500px;
+            border-radius: 30px 30px 0 0; padding: 25px 25px 50px;
+            box-sizing: border-box; animation: slideUp 0.4s cubic-bezier(0.1, 0.7, 0.1, 1);
+        }
+
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .modal-header { text-align: center; margin-bottom: 25px; }
+        .modal-header .indicator { width: 40px; height: 5px; background: #DDD; border-radius: 10px; margin: 0 auto 15px; }
+        .modal-header h3 { font-size: 22px; font-weight: 700; margin: 0; }
+
+        .modal-body { display: flex; flex-direction: column; gap: 15px; }
+
+        .ios-btn { width: 100%; padding: 16px; border-radius: 14px; font-size: 17px; font-weight: 600; border: none; cursor: pointer; }
+        .btn-blue { background: var(--ios-blue); color: white; }
+        .btn-orange { background: var(--ios-orange); color: white; }
+        .btn-cancel { background: #E5E5EA; color: #000; margin-top: 10px; }
+
+        .ios-input { background: #F2F2F7; border: none; padding: 14px; border-radius: 12px; font-size: 16px; width: 100%; box-sizing: border-box; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="iphone-container">
+    <div class="header">
+        <h1>
+            Tổng tài sản 
+            <span class="eye-icon" id="toggle-visibility">👁️</span>
+        </h1>
+        <div class="total-amount" id="display-total">0 đ</div>
+    </div>
+
+    <div class="section-header">
+        <h2>Khoản tiền</h2>
+    </div>
+
+    <div class="add-card">
+        <input type="text" id="node-name" placeholder="Tên ví mới...">
+        <button class="btn-plus" id="btn-create">+</button>
+    </div>
+
+    <div class="wallet-list" id="detail-list"></div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target == this) closeModal()">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="indicator"></div>
+            <h3 id="modal-title">Tên ví</h3>
+        </div>
+        
+        <div id="menu-options" class="modal-body">
+            <button class="ios-btn btn-blue" id="opt-nap">Nạp thêm tiền</button>
+            <button class="ios-btn btn-orange" id="opt-chuyen">Chuyển sang ví khác</button>
+            <button class="ios-btn btn-cancel" onclick="closeModal()">Đóng</button>
+        </div>
+
+        <div id="form-nap" class="modal-body hidden">
+            <input type="number" class="ios-input" id="input-nap-amount" placeholder="Nhập số tiền nạp...">
+            <button class="ios-btn btn-blue" id="btn-confirm-nap">Xác nhận nạp</button>
+            <button class="ios-btn btn-cancel" onclick="backToMenu()">Quay lại</button>
+        </div>
+
+        <div id="form-chuyen" class="modal-body hidden">
+            <select class="ios-input" id="select-to-wallet"></select>
+            <input type="number" class="ios-input" id="input-chuyen-amount" placeholder="Số tiền chuyển...">
+            <button class="ios-btn btn-orange" id="btn-confirm-chuyen">Xác nhận chuyển</button>
+            <button class="ios-btn btn-cancel" onclick="backToMenu()">Quay lại</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
+        authDomain: "lichnghi-4c665.firebaseapp.com",
+        databaseURL: "https://lichnghi-4c665-default-rtdb.firebaseio.com",
+        projectId: "lichnghi-4c665",
+        storageBucket: "lichnghi-4c665.firebasestorage.app",
+        messagingSenderId: "86673813509",
+        appId: "1:86673813509:web:168376408dfcbf14e16c6c",
+        measurementId: "G-2G08MRQY1V"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let currentSelectedId = "";
+    let allWallets = {};
+    let isHidden = true; // Mặc định là ẩn bảo mật
+
+    const format = (v) => isHidden ? "••••••" : v.toLocaleString('vi-VN') + " đ";
+
+    // Toggle Visibility
+    document.getElementById('toggle-visibility').addEventListener('click', () => {
+        isHidden = !isHidden;
+        document.getElementById('toggle-visibility').innerText = isHidden ? "👁️" : "🕶️";
+        renderUI();
+    });
+
+    window.closeModal = () => { 
+        document.getElementById('modal-overlay').style.display = 'none'; 
+        backToMenu();
+    };
+    window.backToMenu = () => {
+        document.getElementById('menu-options').classList.remove('hidden');
+        document.getElementById('form-nap').classList.add('hidden');
+        document.getElementById('form-chuyen').classList.add('hidden');
+    };
+
+    document.getElementById('btn-create').onclick = () => {
+        const name = document.getElementById('node-name').value.trim();
+        if (name) set(ref(db, 'khoantien/' + name), { ten: name, sotien: 0 });
+        document.getElementById('node-name').value = "";
+    };
+
+    window.openAction = (id) => {
+        currentSelectedId = id;
+        document.getElementById('modal-title').innerText = allWallets[id].ten;
+        document.getElementById('modal-overlay').style.display = 'flex';
+    };
+
+    document.getElementById('opt-nap').onclick = () => {
+        document.getElementById('menu-options').classList.add('hidden');
+        document.getElementById('form-nap').classList.remove('hidden');
+    };
+    document.getElementById('opt-chuyen').onclick = () => {
+        document.getElementById('menu-options').classList.add('hidden');
+        document.getElementById('form-chuyen').classList.remove('hidden');
+        const select = document.getElementById('select-to-wallet');
+        select.innerHTML = '<option value="">-- Chọn ví nhận --</option>';
+        Object.keys(allWallets).forEach(k => {
+            if(k !== currentSelectedId) select.innerHTML += `<option value="${k}">${allWallets[k].ten}</option>`;
+        });
+    };
+
+    document.getElementById('btn-confirm-nap').onclick = async () => {
+        const amount = parseFloat(document.getElementById('input-nap-amount').value);
+        if (!isNaN(amount) && amount > 0) {
+            await update(ref(db, 'khoantien/' + currentSelectedId), { sotien: (allWallets[currentSelectedId].sotien || 0) + amount });
+            closeModal();
+        }
+    };
+
+    document.getElementById('btn-confirm-chuyen').onclick = async () => {
+        const toId = document.getElementById('select-to-wallet').value;
+        const amount = parseFloat(document.getElementById('input-chuyen-amount').value);
+        if (toId && !isNaN(amount) && allWallets[currentSelectedId].sotien >= amount) {
+            const updates = {};
+            updates[`khoantien/${currentSelectedId}/sotien`] = allWallets[currentSelectedId].sotien - amount;
+            updates[`khoantien/${toId}/sotien`] = (allWallets[toId].sotien || 0) + amount;
+            await update(ref(db), updates);
+            closeModal();
+        }
+    };
+
+    function renderUI() {
+        const listDiv = document.getElementById('detail-list');
+        const totalSpan = document.getElementById('display-total');
+        listDiv.innerHTML = "";
+        let total = 0;
+        Object.keys(allWallets).forEach(k => {
+            total += allWallets[k].sotien;
+            listDiv.innerHTML += `
+                <div class="wallet-item" onclick="openAction('${k}')">
+                    <div class="wallet-info">
+                        <span class="name">${allWallets[k].ten}</span>
+                        <span class="type">Số dư ví</span>
+                    </div>
+                    <div class="wallet-balance">${format(allWallets[k].sotien)}</div>
+                </div>`;
+        });
+        totalSpan.innerText = format(total);
+    }
+
+    onValue(ref(db, 'khoantien'), (snapshot) => {
+        allWallets = snapshot.val() || {};
+        renderUI();
+    });
+</script>
+</body>
+</html>
