@@ -273,9 +273,14 @@
 
     <div class="box">
         <h2>📝 Ghi chi tiêu</h2>
+        <label style="font-size: 14px; color: var(--ios-text-secondary);">Hạng mục:</label>
         <select id="selectCategory"></select>
+        
+        <label style="font-size: 14px; color: var(--ios-text-secondary); margin-top: 10px; display: block;">Trừ từ tài khoản:</label>
+        <select id="selectKhoantienAccount"></select>
+        
         <input type="text" id="expenseAmount" placeholder="Nhập số tiền đã chi...">
-        <button id="addExpense">Ghi Chi Tiêu</button>
+        <button id="addExpense">Ghi Chi Tiêu & Trừ Tiền</button>
     </div>
 
     <div class="box summary">
@@ -325,7 +330,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { getDatabase, ref, set, push, onValue, remove, get, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -351,6 +356,7 @@ const categoryInput = document.getElementById("categoryInput");
 const addCategoryBtn = document.getElementById("addCategory");
 const categoryList = document.getElementById("categoryList");
 const categorySelect = document.getElementById("selectCategory");
+const khoantienAccountSelect = document.getElementById("selectKhoantienAccount"); // Sửa tên biến cho rõ
 const expenseAmountInput = document.getElementById("expenseAmount");
 const addExpenseBtn = document.getElementById("addExpense");
 const showIncome = document.getElementById("showIncome");
@@ -370,8 +376,6 @@ const dailyCategorySummaryBox = document.getElementById("dailyCategorySummaryBox
 const dailyCategorySummaryDiv = document.getElementById("dailyCategorySummary"); 
 
 let allExpenses = {};
-let currentFilterStart = null;
-let currentFilterEnd = null;
 
 // FUNCTIONS
 const formatCurrency = (n) => Number(n).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }).replace('₫', ' đ');
@@ -392,7 +396,7 @@ const showToast = (m) => {
 window.openSodu = function() {
     document.getElementById('soduFrame').src = 'sodu.html';
     document.getElementById('soduOverlay').style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // Chặn scroll trang chính
+    document.body.style.overflow = 'hidden';
 };
 
 window.closeSodu = function() {
@@ -402,6 +406,24 @@ window.closeSodu = function() {
 };
 
 // --- FIREBASE LOGIC ---
+
+// LẤY DANH SÁCH TỪ NODE "khoantien" NHƯ YÊU CẦU
+onValue(ref(db, "khoantien"), (snapshot) => {
+    khoantienAccountSelect.innerHTML = "";
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        Object.keys(data).forEach(key => {
+            const item = data[key];
+            const option = document.createElement("option");
+            option.value = key; // Lưu lại key để update sau này
+            option.textContent = `${item.ten} (${formatCurrency(item.sotien)})`;
+            khoantienAccountSelect.appendChild(option);
+        });
+    } else {
+        khoantienAccountSelect.innerHTML = "<option value=''>Trống (Kiểm tra node khoantien)</option>";
+    }
+});
+
 saveIncomeBtn.onclick = () => {
     const val = getNumericValue(monthlyIncomeInput);
     if (val && incomeDateInput.value) {
@@ -420,22 +442,53 @@ addCategoryBtn.onclick = () => {
     }
 };
 
-addExpenseBtn.onclick = () => {
+addExpenseBtn.onclick = async () => {
     const amt = getNumericValue(expenseAmountInput);
+    const selectedKey = khoantienAccountSelect.value;
+    
+    if (!selectedKey) {
+        alert("Vui lòng chọn tài khoản từ danh sách!");
+        return;
+    }
+
     if (categorySelect.value && amt > 0) {
-        push(ref(db, "expenses"), {
-            category: categorySelect.value,
-            amount: amt,
-            date: new Date().toISOString().split("T")[0]
-        }).then(() => {
-            expenseAmountInput.value = "";
-            showToast("Đã ghi chi tiêu");
-        });
+        try {
+            // 1. Lấy dữ liệu khoản tiền được chọn từ node "khoantien"
+            const accountRef = ref(db, `khoantien/${selectedKey}`);
+            const snapshot = await get(accountRef);
+            
+            if (snapshot.exists()) {
+                const currentData = snapshot.val();
+                const currentBalance = Number(currentData.sotien);
+                const newBalance = currentBalance - amt;
+
+                // 2. Cập nhật số tiền mới vào đúng tài khoản đó
+                await update(accountRef, { sotien: newBalance });
+
+                // 3. Ghi lịch sử chi tiêu
+                await push(ref(db, "expenses"), {
+                    category: categorySelect.value,
+                    amount: amt,
+                    accountName: currentData.ten,
+                    date: new Date().toISOString().split("T")[0]
+                });
+
+                expenseAmountInput.value = "";
+                showToast(`Đã trừ ${formatCurrency(amt)} từ ${currentData.ten}`);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Lỗi: Không thể kết nối hoặc cập nhật Firebase.");
+        }
+    } else {
+        alert("Vui lòng nhập số tiền hợp lệ.");
     }
 };
 
 window.deleteExpense = (key) => {
-    if (confirm("Xóa khoản này?")) remove(ref(db, "expenses/" + key));
+    if (confirm("Xóa khoản này?")) {
+        remove(ref(db, "expenses/" + key));
+    }
 };
 
 onValue(ref(db, "budget/categories"), snap => {
@@ -463,7 +516,7 @@ const renderHistory = (data, start, end) => {
             <div class="expense-item">
                 <div style="display:flex; flex-direction:column">
                     <span style="font-weight:500">${i.category}</span>
-                    <span style="font-size:11px; color:#888">${formatDate(i.date)}</span>
+                    <span style="font-size:11px; color:#888">${formatDate(i.date)} • ${i.accountName || 'N/A'}</span>
                 </div>
                 <div style="display:flex; align-items:center gap:10px">
                     <span class="expense-value" style="margin-right:10px">${formatCurrency(i.amount)}</span>
