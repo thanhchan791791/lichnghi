@@ -67,9 +67,31 @@
             border-radius: var(--card-border-radius);
             margin-top: var(--breathing-space);
             box-shadow: var(--ios-shadow-soft);
+            overflow: hidden;
+            transition: all 0.3s var(--ios-easing);
         }
 
-        h2 { font-size: 20px; font-weight: 600; margin-top: 0; margin-bottom: 15px; }
+        /* COLLAPSIBLE LOGIC */
+        .box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .box-header h2 { margin: 0; font-size: 20px; font-weight: 600; }
+        .box-header::after {
+            content: "▾";
+            font-size: 20px;
+            color: var(--ios-text-secondary);
+            transition: transform 0.3s;
+        }
+        .box.collapsed .box-header::after { transform: rotate(-90deg); }
+        .box.collapsed .box-content { display: none; }
+        
+        /* Phần Luôn Hiện */
+        .box.always-show .box-header { cursor: default; }
+        .box.always-show .box-header::after { display: none; }
 
         /* INPUTS */
         input[type="text"], input[type="number"], input[type="date"], select {
@@ -115,6 +137,37 @@
             margin-top: 10px;
         }
 
+        /* POPUP CHỌN NGUỒN TIỀN */
+        .overlay-sheet {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .overlay-sheet.active { opacity: 1; }
+        .action-sheet {
+            background: #F2F2F7;
+            width: 90%;
+            max-width: 340px;
+            border-radius: 20px;
+            padding: 20px;
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        .overlay-sheet.active .action-sheet { transform: scale(1); }
+        .sheet-title { text-align: center; font-size: 17px; color: var(--ios-text-primary); padding-bottom: 15px; font-weight: 600; }
+        .sheet-group { background: white; border-radius: 14px; overflow: hidden; margin-bottom: 15px; border: 0.5px solid var(--ios-separator); }
+        .sheet-item { width: 100%; background: white; color: var(--ios-blue); padding: 16px; font-size: 17px; border: none; border-bottom: 0.5px solid var(--ios-separator); display: flex; flex-direction: column; align-items: center; }
+        .sheet-item:active { background: #F2F2F7; }
+        .sheet-cancel { background: white; color: var(--ios-blue); font-weight: 500; border-radius: 14px; margin-top: 0; height: 50px; border: 0.5px solid var(--ios-separator); }
+
         /* CÁC PHẦN HIỂN THỊ CHI TIẾT */
         #categoryList span {
             display: inline-block;
@@ -152,23 +205,13 @@
         /* IFRAME OVERLAY */
         #soduOverlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: white;
             z-index: 1000;
             display: none;
             flex-direction: column;
         }
-
-        #soduOverlay iframe {
-            flex-grow: 1;
-            border: none;
-            width: 100%;
-            height: 100%;
-        }
-
+        #soduOverlay iframe { flex-grow: 1; border: none; width: 100%; height: 100%; }
         .back-btn-container {
             padding: calc(env(safe-area-inset-top, 20px) + 10px) 20px 10px;
             background: var(--ios-background);
@@ -176,18 +219,7 @@
             display: flex;
             align-items: center;
         }
-
-        .back-btn {
-            background: none;
-            color: var(--ios-blue);
-            box-shadow: none;
-            padding: 0;
-            margin: 0;
-            width: auto;
-            font-size: 17px;
-            display: flex;
-            align-items: center;
-        }
+        .back-btn { background: none; color: var(--ios-blue); box-shadow: none; padding: 0; margin: 0; width: auto; font-size: 17px; display: flex; align-items: center; }
         .back-btn::before { content: "〈"; margin-right: 5px; font-weight: bold; }
 
         /* TAB BAR */
@@ -205,13 +237,8 @@
             z-index: 200;
         }
         .tab-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: var(--ios-text-secondary);
-            font-size: 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none; color: var(--ios-text-secondary); font-size: 10px;
         }
         .tab-item.active { color: var(--ios-blue); }
         .tab-icon { font-size: 24px; }
@@ -237,6 +264,14 @@
 </head>
 <body>
 
+<div id="paymentOverlay" class="overlay-sheet" onclick="closePaymentSheet()">
+    <div class="action-sheet" id="paymentSheet" onclick="event.stopPropagation()">
+        <div class="sheet-title">Chọn tài khoản thanh toán</div>
+        <div class="sheet-group" id="accountButtonsList"></div>
+        <button class="sheet-cancel" onclick="closePaymentSheet()">Hủy bỏ</button>
+    </div>
+</div>
+
 <div id="soduOverlay">
     <div class="back-btn-container">
         <button class="back-btn" onclick="closeSodu()">Quay lại</button>
@@ -249,67 +284,92 @@
 </div>
 
 <div class="container">
-    <div class="box">
-        <h2>💵 Doanh thu tháng</h2>
-        <input type="text" id="monthlyIncome" placeholder="Nhập số tiền doanh thu tháng...">
-        <input type="date" id="incomeDateInput">
-        <button id="saveIncome">Lưu Doanh Thu</button>
-        <button class="secondary-btn" onclick="openSodu()">💳 Quản lý số dư</button>
+    
+    <div class="box always-show">
+        <div class="box-header">
+            <h2>📝 Ghi chi tiêu</h2>
+        </div>
+        <div class="box-content" style="margin-top:15px">
+            <label style="font-size: 14px; color: var(--ios-text-secondary);">Hạng mục:</label>
+            <select id="selectCategory"></select>
+            <input type="text" id="expenseAmount" placeholder="Nhập số tiền đã chi...">
+            <button id="addExpense">Ghi Chi Tiêu & Trừ Tiền</button>
+        </div>
     </div>
 
-    <div class="box">
-        <h2>➕ Thêm hạng mục</h2>
-        <input type="text" id="categoryInput" placeholder="Ăn uống, Xăng, Cafe...">
-        <button id="addCategory">Thêm Hạng Mục</button>
-        <div id="categoryList"></div>
+    <div class="box always-show summary">
+        <div class="box-header">
+            <h2>📈 Tổng quan</h2>
+        </div>
+        <div class="box-content">
+            <div class="summary-item" id="showIncome">Doanh thu: <strong class="income-value">0 đ</strong></div>
+            <div class="summary-item" id="showTotalSpent">Tổng chi: <strong class="expense-value">0 đ</strong></div>
+            <div class="summary-item" id="showRemain">Còn lại: <strong class="remain-value">0 đ</strong></div>
+            <div class="summary-item" id="showTodaySpent">Chi hôm nay: <strong style="color:var(--ios-orange)">0 đ</strong></div>
+        </div>
     </div>
 
-    <div class="box">
-        <h2>📝 Ghi chi tiêu</h2>
-        <label style="font-size: 14px; color: var(--ios-text-secondary);">Hạng mục:</label>
-        <select id="selectCategory"></select>
-        
-        <label style="font-size: 14px; color: var(--ios-text-secondary); margin-top: 10px; display: block;">Trừ từ tài khoản:</label>
-        <select id="selectKhoantienAccount"></select>
-        
-        <input type="text" id="expenseAmount" placeholder="Nhập số tiền đã chi...">
-        <button id="addExpense">Ghi Chi Tiêu & Trừ Tiền</button>
+    <div class="box collapsed">
+        <div class="box-header" onclick="toggleBox(this)">
+            <h2>💵 Doanh thu tháng</h2>
+        </div>
+        <div class="box-content" style="margin-top:10px">
+            <input type="text" id="monthlyIncome" placeholder="Nhập số tiền doanh thu tháng...">
+            <input type="date" id="incomeDateInput">
+            <button id="saveIncome">Lưu Doanh Thu</button>
+            <div class="summary-item" id="showIncomeDate" style="border-bottom:none">Ngày ghi: <strong style="color:var(--ios-text-secondary);">N/A</strong></div>
+            <button class="secondary-btn" onclick="openSodu()">💳 Quản lý số dư</button>
+        </div>
     </div>
 
-    <div class="box summary">
-        <h2>📈 Tổng quan</h2>
-        <div class="summary-item" id="showIncome">Doanh thu: <strong class="income-value">0 đ</strong></div>
-        <div class="summary-item" id="showIncomeDate">Ngày ghi: <strong style="color:var(--ios-text-secondary);">N/A</strong></div>
-        <div class="summary-item" id="showTotalSpent">Tổng chi: <strong class="expense-value">0 đ</strong></div>
-        <div class="summary-item" id="showRemain">Còn lại: <strong class="remain-value">0 đ</strong></div>
-        <div class="summary-item" id="showTodaySpent">Chi hôm nay: <strong style="color:var(--ios-orange)">0 đ</strong></div>
+    <div class="box collapsed">
+        <div class="box-header" onclick="toggleBox(this)">
+            <h2>➕ Thêm hạng mục</h2>
+        </div>
+        <div class="box-content" style="margin-top:10px">
+            <input type="text" id="categoryInput" placeholder="Ăn uống, Xăng, Cafe...">
+            <button id="addCategory">Thêm Hạng Mục</button>
+            <div id="categoryList" style="margin-top:15px"></div>
+        </div>
     </div>
     
-    <div class="box">
-        <h2>🏷️ Tổng chi theo khoản</h2>
-        <div id="categorySummary"></div>
+    <div class="box collapsed">
+        <div class="box-header" onclick="toggleBox(this)">
+            <h2>🏷️ Chi theo khoản</h2>
+        </div>
+        <div class="box-content">
+            <div id="categorySummary"></div>
+        </div>
     </div>
     
-    <div class="box">
-        <h2>🔎 Lọc chi tiêu</h2>
-        <div class="date-range-group">
-             <input type="date" id="startDateInput">
-             <span>đến</span>
-             <input type="date" id="endDateInput">
+    <div class="box collapsed">
+        <div class="box-header" onclick="toggleBox(this)">
+            <h2>🔎 Lọc chi tiêu</h2>
         </div>
-        <button id="filterExpenseBtn">Lọc Theo Khoảng Ngày</button>
-        <div id="filteredExpenseSummary" class="summary-item" style="margin-top: 15px;">
-             Tổng chi lọc: <strong class="expense-value" id="filteredTotalAmount">0 đ</strong>
-        </div>
-        <div id="dailyCategorySummaryBox" style="display: none; border-top: 1px solid var(--ios-separator); margin-top: 10px; padding-top: 10px;">
-             <h3 style="font-size: 16px;">Chi tiết lọc:</h3>
-             <div id="dailyCategorySummary"></div>
+        <div class="box-content" style="margin-top:10px">
+            <div class="date-range-group">
+                 <input type="date" id="startDateInput">
+                 <span>đến</span>
+                 <input type="date" id="endDateInput">
+            </div>
+            <button id="filterExpenseBtn">Lọc Theo Khoảng Ngày</button>
+            <div class="summary-item" style="margin-top: 15px;">
+                 Tổng lọc: <strong class="expense-value" id="filteredTotalAmount">0 đ</strong>
+            </div>
+            <div id="dailyCategorySummaryBox" style="display: none; border-top: 1px solid var(--ios-separator); margin-top: 10px; padding-top: 10px;">
+                 <h3 style="font-size: 16px;">Chi tiết:</h3>
+                 <div id="dailyCategorySummary"></div>
+            </div>
         </div>
     </div>
 
-    <div class="box">
-        <h2>⏳ Lịch sử (<span id="historyTitle">Toàn bộ</span>)</h2>
-        <div id="expenseHistory"></div>
+    <div class="box collapsed">
+        <div class="box-header" onclick="toggleBox(this)">
+            <h2>⏳ Lịch sử (<span id="historyTitle">Toàn bộ</span>)</h2>
+        </div>
+        <div class="box-content">
+            <div id="expenseHistory"></div>
+        </div>
     </div>
 </div>
 
@@ -341,6 +401,11 @@ const db = getDatabase(app);
 const auth = getAuth();
 signInAnonymously(auth);
 
+// --- Cài đặt đóng mở các hộp ---
+window.toggleBox = (header) => {
+    header.parentElement.classList.toggle('collapsed');
+};
+
 const monthlyIncomeInput = document.getElementById("monthlyIncome");
 const incomeDateInput = document.getElementById("incomeDateInput");
 const saveIncomeBtn = document.getElementById("saveIncome");
@@ -348,7 +413,6 @@ const categoryInput = document.getElementById("categoryInput");
 const addCategoryBtn = document.getElementById("addCategory");
 const categoryList = document.getElementById("categoryList");
 const categorySelect = document.getElementById("selectCategory");
-const khoantienAccountSelect = document.getElementById("selectKhoantienAccount");
 const expenseAmountInput = document.getElementById("expenseAmount");
 const addExpenseBtn = document.getElementById("addExpense");
 const showIncome = document.getElementById("showIncome");
@@ -368,6 +432,7 @@ const dailyCategorySummaryBox = document.getElementById("dailyCategorySummaryBox
 const dailyCategorySummaryDiv = document.getElementById("dailyCategorySummary"); 
 
 let allExpenses = {};
+let currentAccounts = {};
 
 const formatCurrency = (n) => Number(n).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }).replace('₫', ' đ');
 const formatDate = (s) => s ? new Date(s).toLocaleDateString('vi-VN') : 'N/A';
@@ -383,6 +448,64 @@ const showToast = (m) => {
     setTimeout(() => iosToast.classList.remove('show'), 2000);
 };
 
+window.openPaymentSheet = function() {
+    const amt = getNumericValue(expenseAmountInput);
+    if (!amt || amt <= 0) return alert("Vui lòng nhập số tiền!");
+    const overlay = document.getElementById('paymentOverlay');
+    overlay.style.display = 'flex';
+    setTimeout(() => overlay.classList.add('active'), 10);
+};
+
+window.closePaymentSheet = function() {
+    const overlay = document.getElementById('paymentOverlay');
+    overlay.classList.remove('active');
+    setTimeout(() => overlay.style.display = 'none', 300);
+};
+
+// --- FIREBASE LOGIC ---
+onValue(ref(db, "khoantien"), (snapshot) => {
+    const accountListDiv = document.getElementById("accountButtonsList");
+    accountListDiv.innerHTML = "";
+    currentAccounts = {};
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        Object.keys(data).forEach(key => {
+            const item = data[key];
+            const tenLower = item.ten.toLowerCase();
+            if (tenLower.includes("tiền mặt") || tenLower.includes("tài khoản")) {
+                currentAccounts[key] = item;
+                const btn = document.createElement("button");
+                btn.className = "sheet-item";
+                btn.innerHTML = `<strong>${item.ten}</strong><span style="font-size:12px; opacity:0.7;">Số dư: ${formatCurrency(item.sotien)}</span>`;
+                btn.onclick = () => executeTransaction(key);
+                accountListDiv.appendChild(btn);
+            }
+        });
+    }
+});
+
+async function executeTransaction(selectedKey) {
+    const amt = getNumericValue(expenseAmountInput);
+    const category = categorySelect.value;
+    const account = currentAccounts[selectedKey];
+    closePaymentSheet();
+    try {
+        const accountRef = ref(db, `khoantien/${selectedKey}`);
+        const newBalance = Number(account.sotien) - amt;
+        await update(accountRef, { sotien: newBalance });
+        await push(ref(db, "expenses"), {
+            category: category,
+            amount: amt,
+            accountName: account.ten,
+            date: new Date().toISOString().split("T")[0]
+        });
+        expenseAmountInput.value = "";
+        showToast(`Đã trừ từ ${account.ten}`);
+    } catch (e) { alert("Lỗi kết nối Firebase!"); }
+}
+
+addExpenseBtn.onclick = openPaymentSheet;
+
 window.openSodu = function() {
     document.getElementById('soduFrame').src = 'sodu.html';
     document.getElementById('soduOverlay').style.display = 'flex';
@@ -394,27 +517,6 @@ window.closeSodu = function() {
     document.getElementById('soduFrame').src = '';
     document.body.style.overflow = 'auto';
 };
-
-// --- LỌC CHỈ HIỂN THỊ TIỀN MẶT HOẶC TÀI KHOẢN ---
-onValue(ref(db, "khoantien"), (snapshot) => {
-    khoantienAccountSelect.innerHTML = "";
-    if (snapshot.exists()) {
-        const data = snapshot.val();
-        Object.keys(data).forEach(key => {
-            const item = data[key];
-            const tenLower = item.ten.toLowerCase();
-            // Chỉ hiển thị nếu tên chứa "tiền mặt" hoặc "tài khoản"
-            if (tenLower.includes("tiền mặt") || tenLower.includes("tài khoản")) {
-                const option = document.createElement("option");
-                option.value = key;
-                option.textContent = `${item.ten} (${formatCurrency(item.sotien)})`;
-                khoantienAccountSelect.appendChild(option);
-            }
-        });
-    } else {
-        khoantienAccountSelect.innerHTML = "<option value=''>Không tìm thấy dữ liệu</option>";
-    }
-});
 
 saveIncomeBtn.onclick = () => {
     const val = getNumericValue(monthlyIncomeInput);
@@ -431,32 +533,6 @@ addCategoryBtn.onclick = () => {
             categoryInput.value = "";
             showToast("Đã thêm hạng mục");
         });
-    }
-};
-
-addExpenseBtn.onclick = async () => {
-    const amt = getNumericValue(expenseAmountInput);
-    const selectedKey = khoantienAccountSelect.value;
-    if (!selectedKey) return alert("Vui lòng chọn tài khoản!");
-
-    if (categorySelect.value && amt > 0) {
-        try {
-            const accountRef = ref(db, `khoantien/${selectedKey}`);
-            const snapshot = await get(accountRef);
-            if (snapshot.exists()) {
-                const currentData = snapshot.val();
-                const newBalance = Number(currentData.sotien) - amt;
-                await update(accountRef, { sotien: newBalance });
-                await push(ref(db, "expenses"), {
-                    category: categorySelect.value,
-                    amount: amt,
-                    accountName: currentData.ten,
-                    date: new Date().toISOString().split("T")[0]
-                });
-                expenseAmountInput.value = "";
-                showToast(`Đã trừ từ ${currentData.ten}`);
-            }
-        } catch (e) { alert("Lỗi kết nối Firebase!"); }
     }
 };
 
