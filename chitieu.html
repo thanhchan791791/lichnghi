@@ -53,7 +53,6 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            transition: background-color 0.3s var(--ios-easing);
         }
 
         h1 { font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
@@ -110,7 +109,6 @@
 
         button:active { transform: scale(0.97); opacity: 0.9; }
 
-        /* Nút phụ Quản lý số dư */
         .secondary-btn {
             background: #8E8E93;
             box-shadow: 0 4px 12px rgba(142, 142, 147, 0.3);
@@ -151,7 +149,7 @@
             border-radius: 8px;
         }
 
-        /* IFRAME OVERLAY (Full màn hình) */
+        /* IFRAME OVERLAY */
         #soduOverlay {
             position: fixed;
             top: 0;
@@ -160,7 +158,7 @@
             height: 100%;
             background: white;
             z-index: 1000;
-            display: none; /* Ẩn mặc định */
+            display: none;
             flex-direction: column;
         }
 
@@ -190,11 +188,7 @@
             display: flex;
             align-items: center;
         }
-        .back-btn::before {
-            content: "〈";
-            margin-right: 5px;
-            font-weight: bold;
-        }
+        .back-btn::before { content: "〈"; margin-right: 5px; font-weight: bold; }
 
         /* TAB BAR */
         .bottom-tab-bar {
@@ -237,7 +231,6 @@
         }
         .ios-toast.show { transform: translate(-50%, 0); opacity: 1; }
 
-        /* Helpers */
         .date-range-group { display: flex; align-items: center; gap: 10px; }
         #filterExpenseBtn { background: var(--ios-orange); box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3); }
     </style>
@@ -251,7 +244,7 @@
     <iframe id="soduFrame" src=""></iframe>
 </div>
 
-<div class="header" id="mainHeader">
+<div class="header">
     <h1>💰 Quản Lý Chi Tiêu</h1>
 </div>
 
@@ -289,7 +282,7 @@
         <div class="summary-item" id="showIncomeDate">Ngày ghi: <strong style="color:var(--ios-text-secondary);">N/A</strong></div>
         <div class="summary-item" id="showTotalSpent">Tổng chi: <strong class="expense-value">0 đ</strong></div>
         <div class="summary-item" id="showRemain">Còn lại: <strong class="remain-value">0 đ</strong></div>
-        <div class="summary-item" id="showTodaySpent">Chi hôm nay: <strong class="today-spent-value" style="color:var(--ios-orange)">0 đ</strong></div>
+        <div class="summary-item" id="showTodaySpent">Chi hôm nay: <strong style="color:var(--ios-orange)">0 đ</strong></div>
     </div>
     
     <div class="box">
@@ -348,7 +341,6 @@ const db = getDatabase(app);
 const auth = getAuth();
 signInAnonymously(auth);
 
-// Elements
 const monthlyIncomeInput = document.getElementById("monthlyIncome");
 const incomeDateInput = document.getElementById("incomeDateInput");
 const saveIncomeBtn = document.getElementById("saveIncome");
@@ -356,7 +348,7 @@ const categoryInput = document.getElementById("categoryInput");
 const addCategoryBtn = document.getElementById("addCategory");
 const categoryList = document.getElementById("categoryList");
 const categorySelect = document.getElementById("selectCategory");
-const khoantienAccountSelect = document.getElementById("selectKhoantienAccount"); // Sửa tên biến cho rõ
+const khoantienAccountSelect = document.getElementById("selectKhoantienAccount");
 const expenseAmountInput = document.getElementById("expenseAmount");
 const addExpenseBtn = document.getElementById("addExpense");
 const showIncome = document.getElementById("showIncome");
@@ -377,7 +369,6 @@ const dailyCategorySummaryDiv = document.getElementById("dailyCategorySummary");
 
 let allExpenses = {};
 
-// FUNCTIONS
 const formatCurrency = (n) => Number(n).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }).replace('₫', ' đ');
 const formatDate = (s) => s ? new Date(s).toLocaleDateString('vi-VN') : 'N/A';
 const getNumericValue = (el) => Number(el.value.replace(/[^0-9]/g, ''));
@@ -392,7 +383,6 @@ const showToast = (m) => {
     setTimeout(() => iosToast.classList.remove('show'), 2000);
 };
 
-// --- LOGIC QUẢN LÝ IFRAME ---
 window.openSodu = function() {
     document.getElementById('soduFrame').src = 'sodu.html';
     document.getElementById('soduOverlay').style.display = 'flex';
@@ -405,22 +395,24 @@ window.closeSodu = function() {
     document.body.style.overflow = 'auto';
 };
 
-// --- FIREBASE LOGIC ---
-
-// LẤY DANH SÁCH TỪ NODE "khoantien" NHƯ YÊU CẦU
+// --- LỌC CHỈ HIỂN THỊ TIỀN MẶT HOẶC TÀI KHOẢN ---
 onValue(ref(db, "khoantien"), (snapshot) => {
     khoantienAccountSelect.innerHTML = "";
     if (snapshot.exists()) {
         const data = snapshot.val();
         Object.keys(data).forEach(key => {
             const item = data[key];
-            const option = document.createElement("option");
-            option.value = key; // Lưu lại key để update sau này
-            option.textContent = `${item.ten} (${formatCurrency(item.sotien)})`;
-            khoantienAccountSelect.appendChild(option);
+            const tenLower = item.ten.toLowerCase();
+            // Chỉ hiển thị nếu tên chứa "tiền mặt" hoặc "tài khoản"
+            if (tenLower.includes("tiền mặt") || tenLower.includes("tài khoản")) {
+                const option = document.createElement("option");
+                option.value = key;
+                option.textContent = `${item.ten} (${formatCurrency(item.sotien)})`;
+                khoantienAccountSelect.appendChild(option);
+            }
         });
     } else {
-        khoantienAccountSelect.innerHTML = "<option value=''>Trống (Kiểm tra node khoantien)</option>";
+        khoantienAccountSelect.innerHTML = "<option value=''>Không tìm thấy dữ liệu</option>";
     }
 });
 
@@ -445,50 +437,31 @@ addCategoryBtn.onclick = () => {
 addExpenseBtn.onclick = async () => {
     const amt = getNumericValue(expenseAmountInput);
     const selectedKey = khoantienAccountSelect.value;
-    
-    if (!selectedKey) {
-        alert("Vui lòng chọn tài khoản từ danh sách!");
-        return;
-    }
+    if (!selectedKey) return alert("Vui lòng chọn tài khoản!");
 
     if (categorySelect.value && amt > 0) {
         try {
-            // 1. Lấy dữ liệu khoản tiền được chọn từ node "khoantien"
             const accountRef = ref(db, `khoantien/${selectedKey}`);
             const snapshot = await get(accountRef);
-            
             if (snapshot.exists()) {
                 const currentData = snapshot.val();
-                const currentBalance = Number(currentData.sotien);
-                const newBalance = currentBalance - amt;
-
-                // 2. Cập nhật số tiền mới vào đúng tài khoản đó
+                const newBalance = Number(currentData.sotien) - amt;
                 await update(accountRef, { sotien: newBalance });
-
-                // 3. Ghi lịch sử chi tiêu
                 await push(ref(db, "expenses"), {
                     category: categorySelect.value,
                     amount: amt,
                     accountName: currentData.ten,
                     date: new Date().toISOString().split("T")[0]
                 });
-
                 expenseAmountInput.value = "";
-                showToast(`Đã trừ ${formatCurrency(amt)} từ ${currentData.ten}`);
+                showToast(`Đã trừ từ ${currentData.ten}`);
             }
-        } catch (error) {
-            console.error(error);
-            alert("Lỗi: Không thể kết nối hoặc cập nhật Firebase.");
-        }
-    } else {
-        alert("Vui lòng nhập số tiền hợp lệ.");
+        } catch (e) { alert("Lỗi kết nối Firebase!"); }
     }
 };
 
 window.deleteExpense = (key) => {
-    if (confirm("Xóa khoản này?")) {
-        remove(ref(db, "expenses/" + key));
-    }
+    if (confirm("Xóa lịch sử khoản này?")) remove(ref(db, "expenses/" + key));
 };
 
 onValue(ref(db, "budget/categories"), snap => {
@@ -503,20 +476,14 @@ onValue(ref(db, "budget/categories"), snap => {
 
 const renderHistory = (data, start, end) => {
     expenseHistoryDiv.innerHTML = "";
-    historyTitle.textContent = start ? `Từ ${formatDate(start)}` : "Toàn bộ";
     const items = Object.keys(data).map(k => ({k, ...data[k]})).sort((a,b) => new Date(b.date) - new Date(a.date));
-    
-    if (items.length === 0) {
-        expenseHistoryDiv.innerHTML = "<p style='text-align:center;color:#888'>Trống</p>";
-        return;
-    }
-
+    if (items.length === 0) { expenseHistoryDiv.innerHTML = "<p style='text-align:center;color:#888'>Trống</p>"; return; }
     items.forEach(i => {
         expenseHistoryDiv.innerHTML += `
             <div class="expense-item">
                 <div style="display:flex; flex-direction:column">
                     <span style="font-weight:500">${i.category}</span>
-                    <span style="font-size:11px; color:#888">${formatDate(i.date)} • ${i.accountName || 'N/A'}</span>
+                    <span style="font-size:11px; color:#888">${formatDate(i.date)} • ${i.accountName || ''}</span>
                 </div>
                 <div style="display:flex; align-items:center gap:10px">
                     <span class="expense-value" style="margin-right:10px">${formatCurrency(i.amount)}</span>
@@ -529,26 +496,16 @@ const renderHistory = (data, start, end) => {
 const filterExpenses = (startStr, endStr) => {
     const s = new Date(startStr); const e = new Date(endStr);
     let filtered = {}; let total = 0; let cats = {};
-    
     Object.keys(allExpenses).forEach(k => {
-        const item = allExpenses[k];
-        const d = new Date(item.date);
-        if (d >= s && d <= e) {
-            filtered[k] = item;
-            total += item.amount;
-            cats[item.category] = (cats[item.category] || 0) + item.amount;
-        }
+        const item = allExpenses[k]; const d = new Date(item.date);
+        if (d >= s && d <= e) { filtered[k] = item; total += item.amount; cats[item.category] = (cats[item.category] || 0) + item.amount; }
     });
-
     filteredTotalAmount.textContent = formatCurrency(total);
     dailyCategorySummaryDiv.innerHTML = "";
     if (total > 0) {
         dailyCategorySummaryBox.style.display = 'block';
-        Object.keys(cats).forEach(c => {
-            dailyCategorySummaryDiv.innerHTML += `<div class="summary-item"><span>${c}</span><strong>${formatCurrency(cats[c])}</strong></div>`;
-        });
+        Object.keys(cats).forEach(c => { dailyCategorySummaryDiv.innerHTML += `<div class="summary-item"><span>${c}</span><strong>${formatCurrency(cats[c])}</strong></div>`; });
     } else dailyCategorySummaryBox.style.display = 'none';
-
     renderHistory(filtered, startStr, endStr);
 };
 
@@ -557,41 +514,30 @@ onValue(ref(db, "/"), snap => {
     allExpenses = data.expenses || {};
     const income = data.budget?.monthlyIncome?.amount || 0;
     const incDate = data.budget?.monthlyIncome?.date || "";
-    
     let total = 0; let todaySum = 0; let cats = {};
     const today = new Date().toISOString().split("T")[0];
-
     Object.values(allExpenses).forEach(e => {
         total += e.amount;
         if(e.date === today) todaySum += e.amount;
         cats[e.category] = (cats[e.category] || 0) + e.amount;
     });
-
     showIncome.innerHTML = `Doanh thu: <strong class="income-value">${formatCurrency(income)}</strong>`;
     showIncomeDate.innerHTML = `Ngày ghi: <strong style="color:#888">${formatDate(incDate)}</strong>`;
     showTotalSpent.innerHTML = `Tổng chi: <strong class="expense-value">${formatCurrency(total)}</strong>`;
     showRemain.innerHTML = `Còn lại: <strong class="remain-value">${formatCurrency(income - total)}</strong>`;
     showTodaySpent.innerHTML = `Chi hôm nay: <strong style="color:var(--ios-orange)">${formatCurrency(todaySum)}</strong>`;
-
     categorySummaryDiv.innerHTML = "";
-    Object.keys(cats).forEach(c => {
-        categorySummaryDiv.innerHTML += `<div class="summary-item"><span>${c}</span><strong class="expense-value">${formatCurrency(cats[c])}</strong></div>`;
-    });
-
+    Object.keys(cats).forEach(c => { categorySummaryDiv.innerHTML += `<div class="summary-item"><span>${c}</span><strong class="expense-value">${formatCurrency(cats[c])}</strong></div>`; });
     filterExpenses(startDateInput.value || today, endDateInput.value || today);
 });
 
 filterExpenseBtn.onclick = () => filterExpenses(startDateInput.value, endDateInput.value);
-
 monthlyIncomeInput.oninput = () => formatInput(monthlyIncomeInput);
 expenseAmountInput.oninput = () => formatInput(expenseAmountInput);
-
 window.onload = () => {
     const t = new Date().toISOString().split("T")[0];
-    startDateInput.value = t; endDateInput.value = t;
-    incomeDateInput.value = t;
+    startDateInput.value = t; endDateInput.value = t; incomeDateInput.value = t;
 };
 </script>
-
 </body>
 </html>
