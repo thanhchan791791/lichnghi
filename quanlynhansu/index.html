@@ -112,7 +112,6 @@
       z-index: 100;
     }
     
-    /* ADDED: Container cho nút Quay về */
     .nav-bar-top {
         display: flex;
         justify-content: flex-start;
@@ -124,10 +123,10 @@
         display: flex;
         align-items: center;
         font-size: 17px;
-        font-weight: 400; /* iOS back button is light */
+        font-weight: 400;
         color: var(--ios-blue);
         padding: 0;
-        margin-left: -5px; /* Kéo nút về sát mép */
+        margin-left: -5px;
     }
     
     .back-icon {
@@ -136,7 +135,6 @@
         margin-right: 4px;
         fill: none;
         stroke: var(--ios-blue);
-        /* Kích thước và vị trí mũi tên iOS */
         transform: translateY(1px); 
     }
 
@@ -149,7 +147,7 @@
 
     .search-container {
       position: relative;
-      margin-bottom: 10px; /* Thêm khoảng cách cho ô hiển thị số lượng */
+      margin-bottom: 10px;
     }
 
     .search-bar {
@@ -172,6 +170,59 @@
       width: 18px;
       height: 18px;
     }
+
+    /* * NEW: BIRTHDAY STATISTICS STYLE
+     */
+    .birthday-stat-container {
+      margin: 10px 16px 20px;
+      background: var(--ios-card);
+      border-radius: var(--ios-radius);
+      padding: 16px;
+      box-shadow: var(--ios-shadow);
+    }
+
+    .birthday-stat-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--ios-text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .birthday-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .birthday-month-box {
+      background: #F2F2F7;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .birthday-month-box.current-month {
+      background: var(--ios-blue);
+      color: white;
+    }
+
+    .birthday-month-box .month-label {
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .birthday-month-box .names-list {
+      font-weight: 400;
+      line-height: 1.4;
+    }
+
+    .birthday-month-box.current-month .names-list {
+      color: rgba(255,255,255,0.9);
+    }
     
     /* ADDED: Total Employee Count Bar */
     .total-count-bar {
@@ -179,7 +230,7 @@
         font-weight: 500;
         color: var(--ios-text-secondary);
         padding: 5px 0;
-        margin: 0 16px; /* Căn lề giống với alert bên dưới */
+        margin: 0 16px;
     }
     .total-count-bar span {
         font-weight: 700;
@@ -188,7 +239,7 @@
     
     /* * ADDED: Info Alert Box for Missing Data */
     #missing-data-alert {
-        background: #FFDDDD; /* Light Red/Pink */
+        background: #FFDDDD;
         color: var(--ios-red);
         border-radius: 12px;
         padding: 14px 16px;
@@ -207,7 +258,6 @@
         font-weight: 400;
         font-size: 14px;
     }
-
 
     /* * 4. EMPLOYEE LIST (Cards)
      */
@@ -533,6 +583,12 @@
       <input type="text" id="searchInput" class="search-bar" placeholder="Tìm kiếm tên, số điện thoại..." />
     </div>
   </header>
+
+  <div id="birthday-stats" class="birthday-stat-container" style="display: none;">
+      <div class="birthday-stat-title">🎂 Bảng vàng sinh nhật</div>
+      <div class="birthday-grid" id="birthday-grid">
+          </div>
+  </div>
   
   <div id="total-employee-count" class="total-count-bar" style="display: none;">
       Tổng cộng: <span id="count-value">0</span> nhân viên
@@ -702,7 +758,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getDatabase, ref, push, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-    // 1. Firebase Config (Giữ nguyên)
+    // 1. Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBNB1acbPtKox8eTjth3FtWuDOLhueRIys",
       authDomain: "dogs-be72b.firebaseapp.com",
@@ -722,9 +778,7 @@
     let currentBranchFilter = ''; 
     let allData = []; 
     
-    // START: HÀM KHỞI TẠO DROPDOWN THUẦN VIỆT (Cho Cả Ngày sinh và Ngày làm)
-    
-    // Tạo ô chọn Ngày
+    // START: HÀM KHỞI TẠO DROPDOWN THUẦN VIỆT
     function createDayOptions(selectId) {
         const select = document.getElementById(selectId);
         select.innerHTML = '<option value="" disabled selected>Ngày</option>';
@@ -734,7 +788,6 @@
         }
     }
 
-    // Tạo ô chọn Tháng
     function createMonthOptions(selectId) {
         const select = document.getElementById(selectId);
         select.innerHTML = '<option value="" disabled selected>Tháng</option>';
@@ -744,43 +797,36 @@
         }
     }
 
-    // Tạo ô chọn Năm
     function createYearOptions(selectId, startOffset, endOffset) {
         const select = document.getElementById(selectId);
         select.innerHTML = '<option value="" disabled selected>Năm</option>';
         const currentYear = new Date().getFullYear();
-        // Hiển thị năm trong phạm vi
         for (let y = currentYear - startOffset; y <= currentYear + endOffset; y++) {
-             // Đảm bảo năm sinh lùi về 80 năm, năm bắt đầu làm lùi về 30 năm
              if (selectId.includes('birth') && y >= currentYear - 80) { 
                  select.innerHTML += `<option value="${y}">${y}</option>`;
              } else if (selectId.includes('start') && y >= currentYear - 30) {
                  select.innerHTML += `<option value="${y}">${y}</option>`;
              }
         }
-        // Đặc biệt: Sắp xếp năm theo thứ tự giảm dần cho dễ chọn
         const options = Array.from(select.options).slice(1).sort((a, b) => b.value - a.value);
         select.innerHTML = '<option value="" disabled selected>Năm</option>' + options.map(opt => opt.outerHTML).join('');
     }
     
     function setupDateFields() {
-        // Ngày/Tháng/Năm sinh (80 năm trước - hiện tại)
         createDayOptions('birthDay');
         createMonthOptions('birthMonth');
-        createYearOptions('birthYear', 80, 0); // Lùi 80 năm
+        createYearOptions('birthYear', 80, 0);
         
         createDayOptions('edit_birthDay');
         createMonthOptions('edit_birthMonth');
-        createYearOptions('edit_birthYear', 80, 0); // Lùi 80 năm
+        createYearOptions('edit_birthYear', 80, 0);
 
-        // Tháng/Năm bắt đầu làm (30 năm trước - hiện tại)
         createMonthOptions('startMonth');
-        createYearOptions('startYear', 30, 0); // Lùi 30 năm
+        createYearOptions('startYear', 30, 0);
         
         createMonthOptions('edit_startMonth');
-        createYearOptions('edit_startYear', 30, 0); // Lùi 30 năm
+        createYearOptions('edit_startYear', 30, 0);
     }
-    // END: HÀM KHỞI TẠO DROPDOWN THUẦN VIỆT
 
     // 3. UI Helper Functions
     window.selectBranch = (branch) => {
@@ -794,22 +840,22 @@
       renderList();
     };
     
-    // ADDED: Hàm hiển thị lại màn hình chọn chi nhánh
     window.showBranchSelection = () => {
         currentBranchFilter = '';
         document.getElementById('branch-popup').classList.remove('hidden');
-        document.getElementById('employee-list').innerHTML = ''; // Xóa danh sách hiện tại
+        document.getElementById('employee-list').innerHTML = '';
         document.getElementById('current-branch-label').textContent = '...';
-        document.getElementById('missing-data-alert').style.display = 'none'; // Ẩn cảnh báo
-        document.getElementById('total-employee-count').style.display = 'none'; // Ẩn ô đếm
+        document.getElementById('missing-data-alert').style.display = 'none';
+        document.getElementById('total-employee-count').style.display = 'none';
+        document.getElementById('birthday-stats').style.display = 'none'; // Ẩn bảng sinh nhật
     };
 
 
     window.openNewForm = () => { 
       document.getElementById('slide-form').querySelector('.form-title').textContent = 'Thêm nhân viên';
       document.getElementById('employeeKey').value = ''; 
-      document.getElementById('employeeForm').reset(); // Reset form khi mở form thêm mới
-      setupDateFields(); // Khởi tạo lại dropdown tháng/năm
+      document.getElementById('employeeForm').reset();
+      setupDateFields();
       document.body.classList.add('form-active');
       if(currentBranchFilter) document.getElementById('branch').value = currentBranchFilter;
     };
@@ -831,10 +877,8 @@
         document.getElementById('edit_note').value = employee.note || '';
         document.getElementById('edit_branch').value = employee.branch || 'cherrypet';
         
-        // Khởi tạo và thiết lập giá trị cho dropdowns
         setupDateFields(); 
 
-        // Thiết lập giá trị cho Ngày sinh (birthDate: YYYY-MM-DD)
         const birthDate = employee.birthDate || ''; 
         if (birthDate) {
             const [year, month, day] = birthDate.split('-');
@@ -843,7 +887,6 @@
             document.getElementById('edit_birthYear').value = year;
         }
 
-        // Thiết lập giá trị cho Ngày bắt đầu làm (startDate: YYYY-MM)
         const startDate = employee.startDate || ''; 
         if (startDate) {
             const [year, month] = startDate.split('-');
@@ -884,39 +927,61 @@
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
     
-    /**
-     * Hàm tính số tháng làm việc
-     * @param {string} dateString Dữ liệu tháng/năm ở định dạng YYYY-MM
-     * @returns {string} Số tháng đã làm (ví dụ: "12 tháng")
-     */
     function calculateMonthsWorked(dateString) {
         if (!dateString) return '';
-        
         try {
             const [year, month] = dateString.split('-').map(Number);
-            
-            // Ngày bắt đầu làm việc (1st của tháng được chọn)
             const startDate = new Date(year, month - 1, 1); 
             const now = new Date();
-            
-            // Số tháng chênh lệch
             let diffMonths = (now.getFullYear() - startDate.getFullYear()) * 12;
             diffMonths += now.getMonth() - startDate.getMonth();
-            
             if (diffMonths <= 0) return '0 tháng';
-
             const years = Math.floor(diffMonths / 12);
             const months = diffMonths % 12;
-            
             let result = '';
             if (years > 0) result += `${years} năm `;
             if (months > 0) result += `${months} tháng`;
-            
             return result.trim() || 'Dưới 1 tháng';
-            
         } catch (e) {
-            console.error("Lỗi tính toán số tháng làm việc:", e);
             return 'Không xác định';
+        }
+    }
+
+    /**
+     * NEW: HÀM RENDER BẢNG SINH NHẬT
+     */
+    function renderBirthdayStats(filteredEmployees) {
+        const grid = document.getElementById('birthday-grid');
+        const container = document.getElementById('birthday-stats');
+        const currentMonth = new Date().getMonth() + 1; // 1 - 12
+        
+        grid.innerHTML = '';
+        container.style.display = 'block';
+
+        // Tạo mảng 12 tháng
+        for (let m = 1; m <= 12; m++) {
+            const monthStr = String(m).padStart(2, '0');
+            const empsInMonth = filteredEmployees.filter(emp => {
+                if (!emp.birthDate) return false;
+                const [y, month, d] = emp.birthDate.split('-');
+                return month === monthStr;
+            });
+
+            const box = document.createElement('div');
+            box.className = `birthday-month-box ${m === currentMonth ? 'current-month' : ''}`;
+            
+            let namesHtml = empsInMonth.length > 0 
+                ? empsInMonth.map(e => {
+                    const day = e.birthDate.split('-')[2];
+                    return `• ${e.fullname} (${day})`;
+                }).join('<br>')
+                : '<span style="opacity:0.5">Trống</span>';
+
+            box.innerHTML = `
+                <span class="month-label">Tháng ${m}</span>
+                <div class="names-list">${namesHtml}</div>
+            `;
+            grid.appendChild(box);
         }
     }
 
@@ -935,21 +1000,23 @@
 
       if (!currentBranchFilter) return; 
 
-      const filtered = allData.filter(emp => {
-        const matchesBranch = emp.branch === currentBranchFilter;
-        const matchesSearch = (emp.fullname && emp.fullname.toLowerCase().includes(search)) || 
-                              (emp.phone && emp.phone.includes(search));
-        
-        return matchesBranch && matchesSearch;
+      // Lọc theo chi nhánh trước
+      const branchEmployees = allData.filter(emp => emp.branch === currentBranchFilter);
+
+      // Cập nhật bảng sinh nhật theo chi nhánh (không bị ảnh hưởng bởi search)
+      renderBirthdayStats(branchEmployees);
+
+      // Lọc danh sách theo search
+      const filtered = branchEmployees.filter(emp => {
+        return (emp.fullname && emp.fullname.toLowerCase().includes(search)) || 
+               (emp.phone && emp.phone.includes(search));
       });
       
-      // CẬP NHẬT TỔNG SỐ NHÂN VIÊN
       if (filtered.length > 0) {
           countValue.textContent = filtered.length;
           totalCountBar.style.display = 'block';
       }
 
-      // Xử lý cảnh báo thiếu thông tin
       const missingInfoEmployees = filtered.filter(emp => 
         !emp.fullname || !emp.phone || !emp.birthDate || !emp.startDate || !emp.schedule
       );
@@ -963,17 +1030,13 @@
               if (!emp.birthDate) missingFields.push('Ngày sinh');
               if (!emp.startDate) missingFields.push('Ngày vào làm');
               if (!emp.schedule) missingFields.push('Ca làm');
-              
               const nameDisplay = emp.fullname || emp.phone || emp.key.substring(0, 5) + '...';
-              alertHtml += `<li>**${escapeHtml(nameDisplay)}** (Thiếu: ${missingFields.join(', ')})</li>`;
+              alertHtml += `<li><b>${escapeHtml(nameDisplay)}</b> (Thiếu: ${missingFields.join(', ')})</li>`;
           });
           alertHtml += `</ul>`;
           missingDataAlert.innerHTML = alertHtml;
           missingDataAlert.style.display = 'block';
-      } else {
-          missingDataAlert.style.display = 'none';
       }
-      // Kết thúc xử lý cảnh báo
 
       if (filtered.length === 0) {
         list.innerHTML = `<li style="text-align:center; padding:20px; color:#8E8E93">Không có nhân viên nào.</li>`;
@@ -988,22 +1051,15 @@
 
         const initials = getInitials(emp.fullname);
         const color = getAvatarColor(emp.fullname || '');
-        
         const branchBadge = emp.branch === 'cherrypet' ? 'Cherry' : 'BMT';
         
-        // Xử lý Ngày sinh (birthDate: YYYY-MM-DD)
         let displayDOB = 'Chưa nhập';
         if (emp.birthDate) {
             const parts = emp.birthDate.split('-');
-            // Định dạng từ YYYY-MM-DD sang DD/MM/YYYY
-            if (parts.length === 3) {
-                displayDOB = `${parts[2]}/${parts[1]}/${parts[0]}`;
-            } else {
-                displayDOB = emp.birthDate; 
-            }
+            if (parts.length === 3) displayDOB = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            else displayDOB = emp.birthDate; 
         } 
 
-        // Định dạng lại ngày bắt đầu làm việc (MM/YYYY) và tính số tháng
         const formattedStartDate = emp.startDate ? emp.startDate.split('-').reverse().join('/') : 'Chưa nhập';
         const monthsWorked = emp.startDate ? calculateMonthsWorked(emp.startDate) : 'Chưa rõ';
 
@@ -1014,7 +1070,7 @@
           <div class="info">
             <h3>${escapeHtml(emp.fullname || 'Chưa có tên')}</h3>
             <p>📞 ${escapeHtml(emp.phone || 'Chưa có SĐT')} • NS: ${displayDOB}</p>
-            <p>🗓️ ${escapeHtml(emp.schedule || 'Chưa có ca làm')} | **Vào làm:** ${formattedStartDate} (${monthsWorked})</p>
+            <p>🗓️ ${escapeHtml(emp.schedule || 'Chưa có ca làm')} | <b>Vào làm:</b> ${formattedStartDate} (${monthsWorked})</p>
             ${emp.note ? `<p style="font-style:italic; color:#007AFF; margin-top:2px">${escapeHtml(emp.note)}</p>` : ''}
           </div>
           <div class="badge">${branchBadge}</div>
@@ -1023,12 +1079,11 @@
       });
     }
 
-    // 5. Submit Form Logic (Sử dụng cho cả Thêm mới và Cập nhật)
+    // 5. Submit Form Logic
     window.submitForm = async (isEditMode) => {
       let data = {};
       let key = '';
       let form;
-      
       let birthDateValue = '';
       let startDateValue = '';
 
@@ -1037,13 +1092,11 @@
         key = document.getElementById('edit_employeeKey').value;
         if (!form.checkValidity() || !key) { form.reportValidity(); return; }
         
-        // Lấy và kết hợp Ngày/Tháng/Năm sinh
         const editDay = document.getElementById('edit_birthDay').value.trim();
         const editMonth = document.getElementById('edit_birthMonth').value.trim();
         const editYear = document.getElementById('edit_birthYear').value.trim();
         birthDateValue = editYear && editMonth && editDay ? `${editYear}-${editMonth}-${editDay}` : '';
 
-        // Lấy và kết hợp Tháng/Năm từ dropdown (Start Date)
         const editStartMonth = document.getElementById('edit_startMonth').value.trim();
         const editStartYear = document.getElementById('edit_startYear').value.trim();
         startDateValue = editStartYear && editStartMonth ? `${editStartYear}-${editStartMonth}` : '';
@@ -1052,7 +1105,7 @@
           branch: document.getElementById('edit_branch').value,
           fullname: document.getElementById('edit_fullname').value.trim(),
           phone: document.getElementById('edit_phone').value.trim(),
-          birthDate: birthDateValue, // SỬ DỤNG GIÁ TRỊ KẾT HỢP
+          birthDate: birthDateValue,
           schedule: document.getElementById('edit_schedule').value.trim(),
           note: document.getElementById('edit_note').value.trim(),
           startDate: startDateValue, 
@@ -1061,13 +1114,11 @@
         form = document.getElementById('employeeForm');
         if (!form.checkValidity()) { form.reportValidity(); return; }
         
-        // Lấy và kết hợp Ngày/Tháng/Năm sinh
         const newDay = document.getElementById('birthDay').value.trim();
         const newMonth = document.getElementById('birthMonth').value.trim();
         const newYear = document.getElementById('birthYear').value.trim();
         birthDateValue = newYear && newMonth && newDay ? `${newYear}-${newMonth}-${newDay}` : '';
         
-        // Lấy và kết hợp Tháng/Năm từ dropdown (Start Date)
         const newStartMonth = document.getElementById('startMonth').value.trim();
         const newStartYear = document.getElementById('startYear').value.trim();
         startDateValue = newStartYear && newStartMonth ? `${newStartYear}-${newStartMonth}` : '';
@@ -1076,7 +1127,7 @@
           branch: document.getElementById('branch').value,
           fullname: document.getElementById('fullname').value.trim(),
           phone: document.getElementById('phone').value.trim(),
-          birthDate: birthDateValue, // SỬ DỤNG GIÁ TRỊ KẾT HỢP
+          birthDate: birthDateValue,
           schedule: document.getElementById('schedule').value.trim(),
           note: document.getElementById('note').value.trim(),
           startDate: startDateValue, 
@@ -1097,7 +1148,6 @@
           closeForm();
         }
       } catch (err) {
-        console.error(err);
         showToast('Lỗi lưu/cập nhật dữ liệu', 'error');
       }
     };
@@ -1106,7 +1156,6 @@
     window.deleteEmployee = async () => {
         const key = document.getElementById('edit_employeeKey').value;
         if (!key) return;
-
         if (confirm("Bạn có chắc chắn muốn xóa nhân viên này không?")) {
             try {
                 const empRef = ref(db, `employees/${key}`);
@@ -1114,7 +1163,6 @@
                 showToast('Đã xóa nhân viên 🗑️');
                 closeEditForm();
             } catch (err) {
-                console.error(err);
                 showToast('Lỗi xóa dữ liệu', 'error');
             }
         }
@@ -1123,21 +1171,17 @@
     // 7. Listeners
     document.getElementById('searchInput').addEventListener('input', renderList);
 
-    // Firebase Listener
     onValue(employeesRef, (snapshot) => {
       const val = snapshot.val() || {};
       allData = Object.keys(val).map(key => ({
           key: key, 
           ...val[key]
       })).reverse();
-
       renderList();
     });
 
-    // Khởi tạo các dropdown khi tải trang
     setupDateFields();
 
-    // Security Helper
     function escapeHtml(text) {
       if (!text) return "";
       return String(text).replace(/&/g, "&amp;")
