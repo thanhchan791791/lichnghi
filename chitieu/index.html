@@ -2,18 +2,31 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cute Finance">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#fffbfa">
+
+    <link rel="apple-touch-icon" href="icon.jpg">
+    <link rel="icon" type="image/jpeg" href="icon.jpg">
+
     <title>Cute Finance - Sweet Style</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Font chữ tròn trịa dễ thương */
         @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
         
         body {
             font-family: 'Quicksand', sans-serif;
-            background: #fff5f7; /* Nền hồng nhạt cực nhẹ */
+            background: #fff5f7;
             user-select: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
         }
 
         .glass-card {
@@ -32,7 +45,6 @@
             transition: transform 0.1s;
         }
 
-        /* Animation cho danh sách */
         .list-item-enter {
             animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
         }
@@ -55,19 +67,19 @@
             opacity: 1;
         }
 
-        /* Custom input placeholder màu pastel */
         ::placeholder { color: #ffb6c1; opacity: 0.7; }
 
-        /* Nút xác nhận tông màu cute */
-        .btn-gradient-blue { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); }
-        .btn-gradient-pink { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .safe-area-inset {
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
     </style>
 </head>
-<body class="flex justify-center items-center min-h-screen p-4">
+<body class="flex justify-center items-center">
 
-    <div class="w-full max-w-md bg-[#fffbfa] h-[844px] rounded-[50px] shadow-2xl overflow-hidden border-[10px] border-[#ffe4e1] relative flex flex-col">
+    <div class="w-full max-w-md bg-[#fffbfa] h-screen md:h-[844px] md:rounded-[50px] shadow-2xl overflow-hidden md:border-[10px] border-[#ffe4e1] relative flex flex-col">
         
-        <div class="p-8 pt-12 bg-white pb-10 rounded-b-[45px] ios-shadow z-10 border-b-2 border-[#fff0f3]">
+        <div class="p-8 pt-14 bg-white pb-10 rounded-b-[45px] ios-shadow z-10 border-b-2 border-[#fff0f3] safe-area-inset">
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-[#ff9aa2] text-sm font-bold tracking-wide">Số dư của bạn ✨</p>
@@ -94,12 +106,12 @@
                 <span id="itemCount" class="text-xs font-bold bg-[#e2f0cb] text-[#5e7c4a] px-3 py-1 rounded-full">0</span>
             </div>
             
-            <div id="historyList" class="space-y-4 pb-10">
-                </div>
+            <div id="historyList" class="space-y-4 pb-20">
+            </div>
         </div>
 
         <div id="modal" class="fixed inset-0 bg-pink-100/60 backdrop-blur-sm hidden items-end justify-center z-50">
-            <div id="modalContent" class="glass-card w-full max-w-md rounded-t-[40px] p-8 transform translate-y-full transition-transform duration-300">
+            <div id="modalContent" class="glass-card w-full max-w-md rounded-t-[40px] p-8 transform translate-y-full transition-transform duration-300 pb-12">
                 <div class="w-16 h-1.5 bg-[#ffdadf] rounded-full mx-auto mb-8"></div>
                 <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-center text-[#ff9aa2]">Nhập số tiền</h2>
                 
@@ -139,10 +151,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const transactionsRef = ref(db, 'transactions');
-
         let mode = 'add';
 
-        // Format số khi người dùng gõ (Thêm dấu chấm)
         window.formatInput = function(input) {
             let value = input.value.replace(/\D/g, "");
             value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -158,15 +168,8 @@
             const rawValue = document.getElementById('amountDisplay').value.replace(/\./g, "");
             const amount = parseFloat(rawValue);
             const note = document.getElementById('noteInput').value || (mode === 'add' ? 'Tiền vào' : 'Tiền ra');
-
             if (!amount || amount <= 0) return alert('Hãy nhập số tiền hợp lệ nha!');
-
-            push(transactionsRef, {
-                amount,
-                note,
-                type: mode,
-                timestamp: Date.now()
-            }).then(() => {
+            push(transactionsRef, { amount, note, type: mode, timestamp: Date.now() }).then(() => {
                 closeModal();
                 document.getElementById('amountDisplay').value = '';
                 document.getElementById('noteInput').value = '';
@@ -174,26 +177,19 @@
         };
 
         window.deleteTransaction = function(id) {
-            if(confirm("Xóa giao dịch này nhé?")) {
-                remove(ref(db, `transactions/${id}`));
-            }
+            if(confirm("Xóa giao dịch này nhé?")) remove(ref(db, `transactions/${id}`));
         };
 
         window.confirmReset = function() {
-            if(confirm("Bạn muốn xóa hết lịch sử và làm lại từ đầu sao?")) {
-                set(transactionsRef, null);
-            }
+            if(confirm("Bạn muốn xóa hết lịch sử và làm lại từ đầu sao?")) set(transactionsRef, null);
         };
 
         function renderUI(data) {
             const listContainer = document.getElementById('historyList');
             const balanceEl = document.getElementById('totalBalance');
             const itemCountEl = document.getElementById('itemCount');
-            
             listContainer.innerHTML = '';
-            let total = 0;
-            let count = 0;
-
+            let total = 0; let count = 0;
             if (!data) {
                 balanceEl.innerText = "0₫";
                 balanceEl.classList.remove('loading-pulse');
@@ -201,44 +197,16 @@
                 listContainer.innerHTML = '<div class="text-center py-20 opacity-30"><i class="fas fa-cloud-sun text-5xl mb-3"></i><p>Trống trơn luôn...</p></div>';
                 return;
             }
-
-            const items = Object.keys(data).map(key => ({
-                id: key,
-                ...data[key]
-            })).sort((a, b) => b.timestamp - a.timestamp);
-
+            const items = Object.keys(data).map(key => ({ id: key, ...data[key] })).sort((a, b) => b.timestamp - a.timestamp);
             items.forEach(item => {
                 count++;
-                if (item.type === 'add') total += item.amount;
-                else total -= item.amount;
-
+                if (item.type === 'add') total += item.amount; else total -= item.amount;
                 const div = document.createElement('div');
                 div.className = 'transaction-card glass-card p-5 rounded-[30px] flex justify-between items-center list-item-enter ios-shadow relative';
-                
                 const time = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                div.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl ${item.type === 'add' ? 'bg-[#e2f0cb] text-[#5e7c4a]' : 'bg-[#ffdadc] text-[#a05252]'} flex items-center justify-center text-sm shadow-inner">
-                            <i class="fas ${item.type === 'add' ? 'fa-plus' : 'fa-minus'}"></i>
-                        </div>
-                        <div>
-                            <p class="font-bold text-[#5a5a5a] text-[15px]">${item.note}</p>
-                            <p class="text-[11px] text-[#b3b3b3] font-semibold uppercase tracking-tighter mt-1">${time}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <p class="font-bold text-[15px] ${item.type === 'add' ? 'text-[#84b59f]' : 'text-[#e5989b]'}">
-                            ${item.type === 'add' ? '+' : '-'}${formatCurrency(item.amount)}
-                        </p>
-                        <button onclick="deleteTransaction('${item.id}')" class="delete-btn text-[#ffccd2] hover:text-[#ff9aa2] p-2 transition-colors">
-                            <i class="fas fa-times-circle"></i>
-                        </button>
-                    </div>
-                `;
+                div.innerHTML = `<div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl ${item.type === 'add' ? 'bg-[#e2f0cb] text-[#5e7c4a]' : 'bg-[#ffdadc] text-[#a05252]'} flex items-center justify-center text-sm shadow-inner"><i class="fas ${item.type === 'add' ? 'fa-plus' : 'fa-minus'}"></i></div><div><p class="font-bold text-[#5a5a5a] text-[15px]">${item.note}</p><p class="text-[11px] text-[#b3b3b3] font-semibold uppercase tracking-tighter mt-1">${time}</p></div></div><div class="flex items-center gap-2"><p class="font-bold text-[15px] ${item.type === 'add' ? 'text-[#84b59f]' : 'text-[#e5989b]'}">${item.type === 'add' ? '+' : '-'}${formatCurrency(item.amount)}</p><button onclick="deleteTransaction('${item.id}')" class="delete-btn text-[#ffccd2] hover:text-[#ff9aa2] p-2 transition-colors"><i class="fas fa-times-circle"></i></button></div>`;
                 listContainer.appendChild(div);
             });
-
             balanceEl.innerText = formatCurrency(total);
             balanceEl.style.color = total < 0 ? '#ffb7b2' : '#4a4a4a';
             balanceEl.classList.remove('loading-pulse');
