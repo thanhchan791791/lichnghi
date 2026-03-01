@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cute Finance - Sweet Style</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Font chữ tròn trịa dễ thương */
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: #fff5f7; /* Nền hồng nhạt cực nhẹ */
+            user-select: none;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 2px solid #ffffff;
+        }
+
+        .ios-shadow {
+            box-shadow: 0 8px 25px rgba(255, 182, 193, 0.2);
+        }
+
+        .ios-btn-active:active {
+            transform: scale(0.92);
+            transition: transform 0.1s;
+        }
+
+        /* Animation cho danh sách */
+        .list-item-enter {
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        @keyframes bounceIn {
+            from { opacity: 0; transform: scale(0.8) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .loading-pulse {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        .delete-btn {
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .transaction-card:hover .delete-btn {
+            opacity: 1;
+        }
+
+        /* Custom input placeholder màu pastel */
+        ::placeholder { color: #ffb6c1; opacity: 0.7; }
+
+        /* Nút xác nhận tông màu cute */
+        .btn-gradient-blue { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); }
+        .btn-gradient-pink { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+    </style>
+</head>
+<body class="flex justify-center items-center min-h-screen p-4">
+
+    <div class="w-full max-w-md bg-[#fffbfa] h-[844px] rounded-[50px] shadow-2xl overflow-hidden border-[10px] border-[#ffe4e1] relative flex flex-col">
+        
+        <div class="p-8 pt-12 bg-white pb-10 rounded-b-[45px] ios-shadow z-10 border-b-2 border-[#fff0f3]">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-[#ff9aa2] text-sm font-bold tracking-wide">Số dư của bạn ✨</p>
+                    <h1 id="totalBalance" class="text-4xl font-bold mt-1 text-[#4a4a4a] transition-all duration-500 loading-pulse">Đang tải...</h1>
+                </div>
+                <button onclick="confirmReset()" class="text-[#ffb7b2] bg-[#fff0f0] p-3 rounded-2xl ios-btn-active">
+                    <i class="fas fa-heart-broken"></i>
+                </button>
+            </div>
+            
+            <div class="mt-8 flex gap-4">
+                <button onclick="openModal('add')" class="flex-1 bg-[#b5ead7] text-[#4a7c6a] py-4 rounded-2xl font-bold ios-btn-active shadow-md">
+                    <i class="fas fa-plus mr-2"></i> Thu
+                </button>
+                <button onclick="openModal('spend')" class="flex-1 bg-[#ffb7b2] text-[#7c4a4a] py-4 rounded-2xl font-bold ios-btn-active shadow-md">
+                    <i class="fas fa-minus mr-2"></i> Chi
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-6 py-6 bg-[#fffbfa]">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-lg font-bold text-[#6d6d6d]">Nhật ký chi tiêu 📝</h3>
+                <span id="itemCount" class="text-xs font-bold bg-[#e2f0cb] text-[#5e7c4a] px-3 py-1 rounded-full">0</span>
+            </div>
+            
+            <div id="historyList" class="space-y-4 pb-10">
+                </div>
+        </div>
+
+        <div id="modal" class="fixed inset-0 bg-pink-100/60 backdrop-blur-sm hidden items-end justify-center z-50">
+            <div id="modalContent" class="glass-card w-full max-w-md rounded-t-[40px] p-8 transform translate-y-full transition-transform duration-300">
+                <div class="w-16 h-1.5 bg-[#ffdadf] rounded-full mx-auto mb-8"></div>
+                <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-center text-[#ff9aa2]">Nhập số tiền</h2>
+                
+                <div class="relative mb-8 text-center">
+                    <input type="text" id="amountDisplay" placeholder="0" 
+                           class="w-full bg-transparent text-5xl font-bold text-center focus:outline-none text-[#4a4a4a]"
+                           oninput="formatInput(this)">
+                    <p class="text-[#ffb6c1] font-bold mt-2">VNĐ</p>
+                </div>
+                
+                <input type="text" id="noteInput" placeholder="Ghi chú gì đó dễ thương..." 
+                       class="w-full p-5 bg-[#fff5f7] rounded-3xl mb-8 focus:ring-2 ring-[#ffb6c1] outline-none border-none font-medium text-[#6d6d6d]">
+                
+                <div class="flex gap-4">
+                    <button onclick="closeModal()" class="flex-1 py-4 bg-[#f0f0f0] text-[#9b9b9b] rounded-2xl font-bold ios-btn-active">Thoát</button>
+                    <button onclick="handleTransaction()" class="flex-1 py-4 bg-[#ffb7b2] text-white rounded-2xl font-bold ios-btn-active shadow-lg shadow-pink-100">Lưu lại ✨</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
+            authDomain: "lichnghi-4c665.firebaseapp.com",
+            databaseURL: "https://lichnghi-4c665-default-rtdb.firebaseio.com",
+            projectId: "lichnghi-4c665",
+            storageBucket: "lichnghi-4c665.firebasestorage.app",
+            messagingSenderId: "86673813509",
+            appId: "1:86673813509:web:168376408dfcbf14e16c6c",
+            measurementId: "G-2G08MRQY1V"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const transactionsRef = ref(db, 'transactions');
+
+        let mode = 'add';
+
+        // Format số khi người dùng gõ (Thêm dấu chấm)
+        window.formatInput = function(input) {
+            let value = input.value.replace(/\D/g, "");
+            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            input.value = value;
+        };
+
+        onValue(transactionsRef, (snapshot) => {
+            const data = snapshot.val();
+            renderUI(data);
+        });
+
+        window.handleTransaction = function() {
+            const rawValue = document.getElementById('amountDisplay').value.replace(/\./g, "");
+            const amount = parseFloat(rawValue);
+            const note = document.getElementById('noteInput').value || (mode === 'add' ? 'Tiền vào' : 'Tiền ra');
+
+            if (!amount || amount <= 0) return alert('Hãy nhập số tiền hợp lệ nha!');
+
+            push(transactionsRef, {
+                amount,
+                note,
+                type: mode,
+                timestamp: Date.now()
+            }).then(() => {
+                closeModal();
+                document.getElementById('amountDisplay').value = '';
+                document.getElementById('noteInput').value = '';
+            });
+        };
+
+        window.deleteTransaction = function(id) {
+            if(confirm("Xóa giao dịch này nhé?")) {
+                remove(ref(db, `transactions/${id}`));
+            }
+        };
+
+        window.confirmReset = function() {
+            if(confirm("Bạn muốn xóa hết lịch sử và làm lại từ đầu sao?")) {
+                set(transactionsRef, null);
+            }
+        };
+
+        function renderUI(data) {
+            const listContainer = document.getElementById('historyList');
+            const balanceEl = document.getElementById('totalBalance');
+            const itemCountEl = document.getElementById('itemCount');
+            
+            listContainer.innerHTML = '';
+            let total = 0;
+            let count = 0;
+
+            if (!data) {
+                balanceEl.innerText = "0₫";
+                balanceEl.classList.remove('loading-pulse');
+                itemCountEl.innerText = '0';
+                listContainer.innerHTML = '<div class="text-center py-20 opacity-30"><i class="fas fa-cloud-sun text-5xl mb-3"></i><p>Trống trơn luôn...</p></div>';
+                return;
+            }
+
+            const items = Object.keys(data).map(key => ({
+                id: key,
+                ...data[key]
+            })).sort((a, b) => b.timestamp - a.timestamp);
+
+            items.forEach(item => {
+                count++;
+                if (item.type === 'add') total += item.amount;
+                else total -= item.amount;
+
+                const div = document.createElement('div');
+                div.className = 'transaction-card glass-card p-5 rounded-[30px] flex justify-between items-center list-item-enter ios-shadow relative';
+                
+                const time = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                div.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl ${item.type === 'add' ? 'bg-[#e2f0cb] text-[#5e7c4a]' : 'bg-[#ffdadc] text-[#a05252]'} flex items-center justify-center text-sm shadow-inner">
+                            <i class="fas ${item.type === 'add' ? 'fa-plus' : 'fa-minus'}"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-[#5a5a5a] text-[15px]">${item.note}</p>
+                            <p class="text-[11px] text-[#b3b3b3] font-semibold uppercase tracking-tighter mt-1">${time}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <p class="font-bold text-[15px] ${item.type === 'add' ? 'text-[#84b59f]' : 'text-[#e5989b]'}">
+                            ${item.type === 'add' ? '+' : '-'}${formatCurrency(item.amount)}
+                        </p>
+                        <button onclick="deleteTransaction('${item.id}')" class="delete-btn text-[#ffccd2] hover:text-[#ff9aa2] p-2 transition-colors">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </div>
+                `;
+                listContainer.appendChild(div);
+            });
+
+            balanceEl.innerText = formatCurrency(total);
+            balanceEl.style.color = total < 0 ? '#ffb7b2' : '#4a4a4a';
+            balanceEl.classList.remove('loading-pulse');
+            itemCountEl.innerText = count;
+        }
+
+        function formatCurrency(num) {
+            return new Intl.NumberFormat('vi-VN').format(num) + '₫';
+        }
+
+        window.openModal = function(t) {
+            mode = t;
+            document.getElementById('modalTitle').innerText = t === 'add' ? 'Nhận tiền ✨' : 'Chi ra 💸';
+            document.getElementById('modal').classList.replace('hidden', 'flex');
+            setTimeout(() => {
+                document.getElementById('modalContent').classList.remove('translate-y-full');
+                document.getElementById('amountDisplay').focus();
+            }, 50);
+        }
+
+        window.closeModal = function() {
+            document.getElementById('modalContent').classList.add('translate-y-full');
+            setTimeout(() => document.getElementById('modal').classList.replace('flex', 'hidden'), 300);
+        }
+    </script>
+</body>
+</html>
