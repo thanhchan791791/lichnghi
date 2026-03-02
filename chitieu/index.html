@@ -73,13 +73,20 @@
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
         }
+
+        /* Style cho nút chọn Anh/Em */
+        .user-selector input:checked + label {
+            background-color: #ffb7b2;
+            color: white;
+            box-shadow: 0 4px 10px rgba(255, 183, 178, 0.4);
+        }
     </style>
 </head>
 <body class="flex justify-center items-center">
 
     <div class="w-full max-w-md bg-[#fffbfa] h-screen md:h-[844px] md:rounded-[50px] shadow-2xl overflow-hidden md:border-[10px] border-[#ffe4e1] relative flex flex-col">
         
-        <div class="p-8 pt-14 bg-white pb-10 rounded-b-[45px] ios-shadow z-10 border-b-2 border-[#fff0f3] safe-area-inset">
+        <div class="p-8 pt-14 bg-white pb-6 rounded-b-[45px] ios-shadow z-10 border-b-2 border-[#fff0f3] safe-area-inset">
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-[#ff9aa2] text-sm font-bold tracking-wide">Số dư của bạn ✨</p>
@@ -89,8 +96,20 @@
                     <i class="fas fa-heart-broken"></i>
                 </button>
             </div>
+
+            <div class="flex justify-between mt-6 px-2">
+                <div class="text-center">
+                    <p class="text-[10px] font-bold text-[#a0c4ff] uppercase">Anh đã chi</p>
+                    <p id="anhSpent" class="font-bold text-[#6d6d6d]">0₫</p>
+                </div>
+                <div class="w-[1px] h-8 bg-[#fff0f3] self-center"></div>
+                <div class="text-center">
+                    <p class="text-[10px] font-bold text-[#ffadad] uppercase">Em đã chi</p>
+                    <p id="emSpent" class="font-bold text-[#6d6d6d]">0₫</p>
+                </div>
+            </div>
             
-            <div class="mt-8 flex gap-4">
+            <div class="mt-6 flex gap-4">
                 <button onclick="openModal('add')" class="flex-1 bg-[#b5ead7] text-[#4a7c6a] py-4 rounded-2xl font-bold ios-btn-active shadow-md">
                     <i class="fas fa-plus mr-2"></i> Thu
                 </button>
@@ -113,8 +132,19 @@
         <div id="modal" class="fixed inset-0 bg-pink-100/60 backdrop-blur-sm hidden items-end justify-center z-50">
             <div id="modalContent" class="glass-card w-full max-w-md rounded-t-[40px] p-8 transform translate-y-full transition-transform duration-300 pb-12">
                 <div class="w-16 h-1.5 bg-[#ffdadf] rounded-full mx-auto mb-8"></div>
-                <h2 id="modalTitle" class="text-2xl font-bold mb-6 text-center text-[#ff9aa2]">Nhập số tiền</h2>
+                <h2 id="modalTitle" class="text-2xl font-bold mb-4 text-center text-[#ff9aa2]">Nhập số tiền</h2>
                 
+                <div class="user-selector flex justify-center gap-4 mb-6">
+                    <div class="relative">
+                        <input type="radio" id="userAnh" name="userSelect" value="Anh" class="hidden" checked>
+                        <label for="userAnh" class="px-8 py-2 bg-white text-[#b3b3b3] rounded-full border-2 border-[#fff0f3] font-bold cursor-pointer transition-all inline-block">ANH</label>
+                    </div>
+                    <div class="relative">
+                        <input type="radio" id="userEm" name="userSelect" value="Em" class="hidden">
+                        <label for="userEm" class="px-8 py-2 bg-white text-[#b3b3b3] rounded-full border-2 border-[#fff0f3] font-bold cursor-pointer transition-all inline-block">EM</label>
+                    </div>
+                </div>
+
                 <div class="relative mb-8 text-center">
                     <input type="text" id="amountDisplay" placeholder="0" 
                            class="w-full bg-transparent text-5xl font-bold text-center focus:outline-none text-[#4a4a4a]"
@@ -168,8 +198,17 @@
             const rawValue = document.getElementById('amountDisplay').value.replace(/\./g, "");
             const amount = parseFloat(rawValue);
             const note = document.getElementById('noteInput').value || (mode === 'add' ? 'Tiền vào' : 'Tiền ra');
+            const user = document.querySelector('input[name="userSelect"]:checked').value;
+
             if (!amount || amount <= 0) return alert('Hãy nhập số tiền hợp lệ nha!');
-            push(transactionsRef, { amount, note, type: mode, timestamp: Date.now() }).then(() => {
+            
+            push(transactionsRef, { 
+                amount, 
+                note, 
+                type: mode, 
+                user: user,
+                timestamp: Date.now() 
+            }).then(() => {
                 closeModal();
                 document.getElementById('amountDisplay').value = '';
                 document.getElementById('noteInput').value = '';
@@ -188,26 +227,69 @@
             const listContainer = document.getElementById('historyList');
             const balanceEl = document.getElementById('totalBalance');
             const itemCountEl = document.getElementById('itemCount');
+            const anhSpentEl = document.getElementById('anhSpent');
+            const emSpentEl = document.getElementById('emSpent');
+
             listContainer.innerHTML = '';
             let total = 0; let count = 0;
+            let totalAnhSpent = 0;
+            let totalEmSpent = 0;
+
             if (!data) {
                 balanceEl.innerText = "0₫";
+                anhSpentEl.innerText = "0₫";
+                emSpentEl.innerText = "0₫";
                 balanceEl.classList.remove('loading-pulse');
                 itemCountEl.innerText = '0';
                 listContainer.innerHTML = '<div class="text-center py-20 opacity-30"><i class="fas fa-cloud-sun text-5xl mb-3"></i><p>Trống trơn luôn...</p></div>';
                 return;
             }
+
             const items = Object.keys(data).map(key => ({ id: key, ...data[key] })).sort((a, b) => b.timestamp - a.timestamp);
+            
             items.forEach(item => {
                 count++;
-                if (item.type === 'add') total += item.amount; else total -= item.amount;
+                if (item.type === 'add') {
+                    total += item.amount;
+                } else {
+                    total -= item.amount;
+                    // Tính tổng chi riêng
+                    if (item.user === 'Anh') totalAnhSpent += item.amount;
+                    else if (item.user === 'Em') totalEmSpent += item.amount;
+                }
+
                 const div = document.createElement('div');
                 div.className = 'transaction-card glass-card p-5 rounded-[30px] flex justify-between items-center list-item-enter ios-shadow relative';
                 const time = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                div.innerHTML = `<div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl ${item.type === 'add' ? 'bg-[#e2f0cb] text-[#5e7c4a]' : 'bg-[#ffdadc] text-[#a05252]'} flex items-center justify-center text-sm shadow-inner"><i class="fas ${item.type === 'add' ? 'fa-plus' : 'fa-minus'}"></i></div><div><p class="font-bold text-[#5a5a5a] text-[15px]">${item.note}</p><p class="text-[11px] text-[#b3b3b3] font-semibold uppercase tracking-tighter mt-1">${time}</p></div></div><div class="flex items-center gap-2"><p class="font-bold text-[15px] ${item.type === 'add' ? 'text-[#84b59f]' : 'text-[#e5989b]'}">${item.type === 'add' ? '+' : '-'}${formatCurrency(item.amount)}</p><button onclick="deleteTransaction('${item.id}')" class="delete-btn text-[#ffccd2] hover:text-[#ff9aa2] p-2 transition-colors"><i class="fas fa-times-circle"></i></button></div>`;
+                
+                // Hiển thị tag Anh/Em bên cạnh ghi chú
+                const userTag = `<span class="text-[9px] px-2 py-0.5 rounded-full ${item.user === 'Anh' ? 'bg-blue-100 text-blue-400' : 'bg-pink-100 text-pink-400'} font-bold ml-1">${item.user || '??'}</span>`;
+
+                div.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl ${item.type === 'add' ? 'bg-[#e2f0cb] text-[#5e7c4a]' : 'bg-[#ffdadc] text-[#a05252]'} flex items-center justify-center text-sm shadow-inner">
+                            <i class="fas ${item.type === 'add' ? 'fa-plus' : 'fa-minus'}"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-[#5a5a5a] text-[15px]">${item.note} ${userTag}</p>
+                            <p class="text-[11px] text-[#b3b3b3] font-semibold uppercase tracking-tighter mt-1">${time}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <p class="font-bold text-[15px] ${item.type === 'add' ? 'text-[#84b59f]' : 'text-[#e5989b]'}">
+                            ${item.type === 'add' ? '+' : '-'}${formatCurrency(item.amount)}
+                        </p>
+                        <button onclick="deleteTransaction('${item.id}')" class="delete-btn text-[#ffccd2] hover:text-[#ff9aa2] p-2 transition-colors">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </div>`;
                 listContainer.appendChild(div);
             });
+
             balanceEl.innerText = formatCurrency(total);
+            anhSpentEl.innerText = formatCurrency(totalAnhSpent);
+            emSpentEl.innerText = formatCurrency(totalEmSpent);
+            
             balanceEl.style.color = total < 0 ? '#ffb7b2' : '#4a4a4a';
             balanceEl.classList.remove('loading-pulse');
             itemCountEl.innerText = count;
