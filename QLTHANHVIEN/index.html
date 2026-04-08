@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cherrypet Member Hub</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --ios-bg: #F2F2F7;
+            --ios-card: rgba(255, 255, 255, 0.75);
+            --ios-accent: #007AFF;
+            --ios-danger: #FF3B30;
+            --ios-text: #1C1C1E;
+            --ios-subtext: #8E8E93;
+            --ios-glass-border: rgba(255, 255, 255, 0.4);
+            --pastel-pink: #FFD1DC;
+            --pastel-blue: #B2E2F2;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(160deg, var(--pastel-pink) 0%, var(--pastel-blue) 100%);
+            background-attachment: fixed;
+            margin: 0;
+            padding: 20px 0 40px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--ios-text);
+        }
+
+        .header { width: 90%; max-width: 450px; margin-bottom: 20px; }
+        .header h1 { font-size: 34px; font-weight: 800; margin: 0; letter-spacing: -1px; }
+
+        .container {
+            width: 92%;
+            max-width: 450px;
+            background: var(--ios-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--ios-glass-border);
+            border-radius: 28px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            box-sizing: border-box;
+        }
+
+        .input-group { margin-bottom: 18px; }
+        label { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--ios-subtext); margin-left: 5px; }
+        
+        input {
+            width: 100%;
+            padding: 16px;
+            border-radius: 18px;
+            border: 1px solid rgba(0,0,0,0.05);
+            background: rgba(255,255,255,0.5);
+            box-sizing: border-box;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        input:focus { border-color: var(--ios-accent); background: #fff; box-shadow: 0 0 0 4px rgba(0,122,241,0.1); }
+
+        .btn-save {
+            width: 100%;
+            padding: 18px;
+            border-radius: 20px;
+            border: none;
+            background: var(--ios-accent);
+            color: white;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-save:active { transform: scale(0.96); opacity: 0.9; }
+
+        .status-card {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 24px;
+            background: #fff;
+            display: none;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .rank-badge { display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 12px; font-weight: 800; font-size: 13px; margin-bottom: 10px; }
+        .rank-dong { background: #EBD9C6; color: #8A5A31; }
+        .rank-bac { background: #E5E5EA; color: #3A3A3C; }
+        .rank-vang { background: #FFF4CC; color: #B28B00; }
+        .rank-kimcuong { background: #D1F2FF; color: #007AFF; }
+
+        .progress-container { width: 100%; height: 12px; background: #F2F2F7; border-radius: 6px; margin: 15px 0 8px 0; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--ios-accent); width: 0%; border-radius: 6px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        .milestone-box { background: #F8F9FA; border-radius: 16px; padding: 15px; margin-top: 15px; font-size: 14px; line-height: 1.5; }
+        .highlight-blue { color: var(--ios-accent); font-weight: 700; }
+        .highlight-orange { color: #FF9500; font-weight: 700; }
+
+        .member-list-container { width: 92%; max-width: 450px; background: var(--ios-card); backdrop-filter: blur(20px); border-radius: 28px; padding: 20px; box-sizing: border-box; }
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 16px;
+        }
+        .member-item:active { background: rgba(0,0,0,0.05); }
+        .member-info b { font-size: 17px; display: block; margin-bottom: 2px; }
+        .member-info span { font-size: 13px; color: var(--ios-subtext); }
+
+        .member-actions { display: flex; align-items: center; gap: 15px; }
+        .member-points { font-weight: 800; color: var(--ios-accent); font-size: 18px; text-align: right; }
+        
+        .btn-delete {
+            color: var(--ios-danger);
+            background: rgba(255, 59, 48, 0.1);
+            border: none;
+            padding: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-delete:active { transform: scale(0.9); background: rgba(255, 59, 48, 0.2); }
+    </style>
+</head>
+<body>
+
+<div class="header"><h1>Khách hàng</h1></div>
+
+<div class="container">
+    <div class="input-group">
+        <label><i data-lucide="smartphone" size="14"></i> Số điện thoại</label>
+        <input type="tel" id="phone" placeholder="09xxxxxxxx">
+    </div>
+    <div class="input-group">
+        <label><i data-lucide="user-circle" size="14"></i> Tên khách hàng</label>
+        <input type="text" id="name" placeholder="Nhập tên...">
+    </div>
+    <div class="input-group">
+        <label><i data-lucide="star" size="14"></i> Điểm cộng thêm</label>
+        <input type="number" id="points_to_add" value="1">
+    </div>
+    <button class="btn-save" id="btnUpdate"><i data-lucide="check-circle-2" size="20"></i> Cập nhật dữ liệu</button>
+
+    <div id="result" class="status-card">
+        <div id="badge" class="rank-badge"></div>
+        <div id="info" style="font-weight: 800; font-size: 18px; margin-bottom: 5px;"></div>
+        <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
+        <div class="milestone-box"><div id="milestone-points"></div><div id="milestone-days" style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;"></div></div>
+    </div>
+</div>
+
+<div class="member-list-container">
+    <h3 style="margin: 0 0 15px 10px; font-size: 20px;"><i data-lucide="users-2" size="22" style="vertical-align: middle; margin-right: 5px;"></i> Danh sách</h3>
+    <div id="memberList">Đang tải...</div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, get, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // Khởi tạo các icon chuyên nghiệp
+    lucide.createIcons();
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDKNfJWJ4AM7vetqSMm5qyOV-79EAjl6mc",
+        authDomain: "muveonline-919a8.firebaseapp.com",
+        databaseURL: "https://muveonline-919a8-default-rtdb.firebaseio.com",
+        projectId: "muveonline-919a8",
+        storageBucket: "muveonline-919a8.firebasestorage.app",
+        messagingSenderId: "399933853156",
+        appId: "1:399933853156:web:982c1da02117606a994bf1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const phoneInput = document.getElementById('phone');
+    const nameInput = document.getElementById('name');
+    const memberListDiv = document.getElementById('memberList');
+
+    function getDaysRemaining(lastUpdateStr) {
+        if (!lastUpdateStr) return 0;
+        const lastDate = new Date(lastUpdateStr);
+        const today = new Date();
+        const diffDays = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+        const rem = 180 - diffDays;
+        return rem > 0 ? rem : 0;
+    }
+
+    phoneInput.addEventListener('input', async (e) => {
+        const phone = e.target.value.trim();
+        if (phone.length >= 10) {
+            const snapshot = await get(ref(db, 'members/' + phone));
+            if (snapshot.exists()) {
+                let data = snapshot.val();
+                let points = data.points;
+                let daysLeft = getDaysRemaining(data.lastUpdate);
+                if (daysLeft <= 0) points = 0;
+                nameInput.value = data.name;
+                displayResult(data.name, points, daysLeft);
+            }
+        }
+    });
+
+    document.getElementById('btnUpdate').addEventListener('click', async () => {
+        const phone = phoneInput.value.trim();
+        const name = nameInput.value.trim();
+        const pointsToAdd = parseInt(document.getElementById('points_to_add').value) || 0;
+        if (!phone || !name) return alert("Vui lòng nhập đủ SĐT và Tên!");
+
+        const userRef = ref(db, 'members/' + phone);
+        const snapshot = await get(userRef);
+        let currentPoints = 0;
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            currentPoints = getDaysRemaining(data.lastUpdate) <= 0 ? 0 : data.points;
+        }
+        const newPoints = currentPoints + pointsToAdd;
+        const now = new Date().toISOString();
+        await set(userRef, { name, points: newPoints, lastUpdate: now });
+        displayResult(name, newPoints, 180);
+        document.getElementById('points_to_add').value = 1;
+    });
+
+    window.deleteMember = async function(phone, name) {
+        if (confirm(`Bạn có chắc chắn muốn xóa thành viên "${name}" (${phone}) không?`)) {
+            try {
+                await remove(ref(db, 'members/' + phone));
+                if (phoneInput.value === phone) {
+                    document.getElementById('result').style.display = 'none';
+                    phoneInput.value = "";
+                    nameInput.value = "";
+                }
+            } catch (error) {
+                alert("Lỗi khi xóa dữ liệu.");
+            }
+        }
+    };
+
+    onValue(ref(db, 'members'), (snapshot) => {
+        memberListDiv.innerHTML = "";
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            Object.keys(data).forEach(phone => {
+                const member = data[phone];
+                const daysLeft = getDaysRemaining(member.lastUpdate);
+                const displayPts = daysLeft <= 0 ? 0 : member.points;
+                const div = document.createElement('div');
+                div.className = 'member-item';
+                div.innerHTML = `
+                    <div class="member-info" onclick="selectMember('${phone}', '${member.name}', ${displayPts}, ${daysLeft})">
+                        <b>${member.name}</b>
+                        <span>${phone}</span>
+                    </div>
+                    <div class="member-actions">
+                        <div style="text-align: right;" onclick="selectMember('${phone}', '${member.name}', ${displayPts}, ${daysLeft})">
+                            <div class="member-points">${displayPts}đ</div>
+                            <span style="font-size:10px; color:${daysLeft < 30 ? '#FF3B30':'#8E8E93'}">Còn ${daysLeft} ngày</span>
+                        </div>
+                        <button class="btn-delete" onclick="event.stopPropagation(); deleteMember('${phone}', '${member.name}')">
+                            <i data-lucide="trash-2" size="18"></i>
+                        </button>
+                    </div>
+                `;
+                memberListDiv.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+    });
+
+    window.selectMember = function(phone, name, points, daysLeft) {
+        phoneInput.value = phone;
+        nameInput.value = name;
+        displayResult(name, points, daysLeft);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    function displayResult(name, points, daysLeft) {
+        const resultDiv = document.getElementById('result');
+        const badge = document.getElementById('badge');
+        const msPoints = document.getElementById('milestone-points');
+        const msDays = document.getElementById('milestone-days');
+        const info = document.getElementById('info');
+        const progressBar = document.getElementById('progressBar');
+
+        let rank = ""; let badgeClass = ""; let needed = 0; let percent = 0; let nextRankName = "";
+
+        // Áp dụng quy định thăng hạng từ ghi chú
+        if (points < 5) {
+            rank = "Hạng Đồng"; badgeClass = "rank-dong";
+            needed = 5 - points; percent = (points / 5) * 100; nextRankName = "Bạc";
+        } else if (points < 50) {
+            rank = "Hạng Bạc"; badgeClass = "rank-bac";
+            needed = 50 - points; percent = ((points - 5) / (50 - 5)) * 100; nextRankName = "Vàng";
+        } else if (points < 90) {
+            rank = "Hạng Vàng"; badgeClass = "rank-vang";
+            needed = 90 - points; percent = ((points - 50) / (90 - 50)) * 100; nextRankName = "Kim Cương";
+        } else {
+            rank = "Hạng Kim Cương"; badgeClass = "rank-kimcuong";
+            percent = 100;
+        }
+
+        badge.innerHTML = `<i data-lucide="award" size="14"></i> ${rank}`;
+        badge.className = "rank-badge " + badgeClass;
+        info.innerHTML = `${name} • ${points}đ`;
+        progressBar.style.width = percent + "%";
+        
+        if (rank !== "Hạng Kim Cương") {
+            msPoints.innerHTML = `<i data-lucide="trending-up" size="14" style="vertical-align: middle;"></i> Còn thiếu <span class="highlight-blue">${needed} điểm</span> để lên <span class="highlight-blue">${nextRankName}</span>.`;
+        } else {
+            msPoints.innerHTML = `<i data-lucide="gem" size="14" style="vertical-align: middle;"></i> Tuyệt vời! Bạn đang ở cấp bậc cao nhất.`;
+        }
+        msDays.innerHTML = `<i data-lucide="clock" size="14" style="vertical-align: middle;"></i> Còn <span class="highlight-orange">${daysLeft} ngày</span> để duy trì hoặc tích điểm.`;
+        
+        resultDiv.style.display = 'block';
+        lucide.createIcons();
+    }
+</script>
+
+</body>
+</html>
