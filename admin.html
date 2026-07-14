@@ -765,10 +765,15 @@
               const { name, shift, status, reason, dates, requests } = entry;
               const card = document.createElement("div");
               card.className = "request-card";
+             // Lấy thông tin thời gian đăng ký từ phần tử đầu tiên của nhóm yêu cầu (nếu có)
+              const registeredAt = requests[0] && data[requests[0].date]?.[shift]?.[requests[0].id]?.registered_at;
+              const registeredText = registeredAt ? `<div class="text-muted" style="font-size: 11px; margin-top: 3px;"><i class="fa-solid fa-clock"></i> Đã đăng kí vào lúc ${registeredAt}</div>` : "";
+
               card.innerHTML = `
                 <h5>${name} <span class="shift">(${shift})</span></h5>
                 <div class="dates">📅 ${dates.sort().join(", ")}</div>
                 ${reason && reason.trim() !== "-" ? `<div class="reason">📝 Lí do - ${reason}</div>` : ""}
+                ${registeredText}
                 <div class="pulse-text">Ấn vào để duyệt hoặc từ chối</div>
               `;
               card.addEventListener("click", () => showActionPopup(requests, shift));
