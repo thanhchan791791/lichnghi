@@ -452,6 +452,10 @@
 
     if (!name || !shift) return;
 
+    // Tạo thông tin mốc thời gian đăng ký cụ thể giờ:phút:giây ngày/tháng/năm
+    const nowRegistration = new Date();
+    const formattedRegisteredAt = `${String(nowRegistration.getHours()).padStart(2, '0')}:${String(nowRegistration.getMinutes()).padStart(2, '0')}:${String(nowRegistration.getSeconds()).padStart(2, '0')} ${String(nowRegistration.getDate()).padStart(2, '0')}/${String(nowRegistration.getMonth() + 1).padStart(2, '0')}/${nowRegistration.getFullYear()}`;
+
     if (type === "1") {
       const date = weekdaySelect.value;
       if (!date) return showStatus("⚠️ Vui lòng chọn ngày!", "error");
@@ -462,7 +466,8 @@
       await set(push(ref(db, `lichnghi/${date}/${shift}`)), {
         name,
         status: "chờ duyệt",
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        registered_at: formattedRegisteredAt
       });
 
       showStatus("✅ Đã gửi yêu cầu nghỉ 1 ngày!", "success");
@@ -482,7 +487,8 @@
           name,
           reason,
           status: "chờ duyệt",
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          registered_at: formattedRegisteredAt
         });
         success++;
       }
