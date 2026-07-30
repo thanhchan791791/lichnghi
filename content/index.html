@@ -1,1001 +1,761 @@
 <!doctype html>
 <html lang="vi">
 <head>
- <meta charset="utf-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="iconmoi.jpg"> 
   <link rel="manifest" href="manifest.json">
-  <title>Notebook — Lưu ý tưởng</title>
+  <title>CherryPet Notebook — Ý tưởng Content</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
-    /* 🎨 Biến CSS & Font chữ iOS */
-    :root{
-      --bg-light: #f9f9f9; /* Nền sáng dịu */
-      --bg-dark: #ebebeb; /* Nền tối hơn cho gradient/element */
-      --card-bg: rgba(255, 255, 255, 0.9); /* Nền thẻ bán trong suốt */
-      --accent-color: #007aff; /* Màu xanh Apple */
-      --muted-color: #8e8e93; /* Màu chữ phụ iOS */
-      --text-color: #1c1c1e;
-      --radius-lg: 18px; /* Bo cong lớn */
-      --radius-xl: 24px; /* Bo cong siêu lớn */
-      --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05); /* Shadow mềm */
-      --shadow-hover: 0 12px 24px rgba(0, 0, 0, 0.12), 0 4px 6px rgba(0, 0, 0, 0.08); /* Shadow nổi khi hover */
-      --padding-app: 20px;
-      --header-height: 52px;
-      --header-large-height: 96px;
+    /* 🎨 Biến CSS & Chuẩn iOS System Design */
+    :root {
+      --bg-main: #f2f2f7;
+      --card-bg: #ffffff;
+      --accent-color: #007aff;
+      --accent-pink: #ff2d55;
+      --muted-color: #8e8e93;
+      --text-color: #000000;
+      --border-color: rgba(60, 60, 67, 0.12);
+      
+      --radius-sm: 10px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-sheet: 28px;
+      
+      --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.04);
+      --shadow-active: 0 8px 24px rgba(0, 0, 0, 0.12);
+      --shadow-float: 0 8px 32px rgba(0, 122, 255, 0.3);
 
-      /* Font hệ thống iOS */
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
     }
 
-    /* 📱 Thiết kế Mobile-First */
-    body{
-      margin: 0;
-      /* Gradient nền iOS tinh tế */
-      background: linear-gradient(180deg, var(--bg-light) 0%, var(--bg-dark) 100%); 
-      color: var(--text-color);
-      padding: 0;
-      min-height: 100vh;
+    * {
       box-sizing: border-box;
-      /* Scroll mềm mại */
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-main);
+      color: var(--text-color);
+      padding-bottom: 100px; /* Chừa khoảng trống cho Floating Action Button */
+      min-height: 100vh;
       scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
     }
 
-    /* 📦 Container */
-    .container{ 
-      max-width: 1000px; 
-      margin: 0 auto; 
-      display: grid; 
-      grid-template-columns: 1fr;
-      gap: 16px; 
-      padding: 0 var(--padding-app);
-      padding-top: calc(var(--header-height) + 20px);
-    }
-    
-    /* 🖥️ Responsive cho Desktop */
-    @media (min-width: 900px){ 
-      .container{ 
-        grid-template-columns: 1fr 380px; 
-        gap: 20px;
-        padding-top: calc(var(--header-height) + 20px);
-      } 
-      aside.card{ align-self: start; position: sticky; top: calc(var(--header-height) + 20px); }
-    }
-
-    /* 🚀 Header & Navigation */
-    header{ 
-      position: fixed;
+    /* 🚀 iOS Header Cố định */
+    header { 
+      position: sticky;
       top: 0;
-      left: 0;
-      right: 0;
-      width: 100%;
-      z-index: 10;
-      padding: 0 var(--padding-app);
-      height: var(--header-height);
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      background-color: var(--card-bg);
-      /* Hiệu ứng kính mờ (Glassmorphism) */
-      backdrop-filter: blur(12px); 
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      transition: height 0.3s ease, background-color 0.3s ease;
-      box-sizing: border-box;
+      z-index: 100;
+      padding: 12px 16px;
+      background: rgba(242, 242, 247, 0.85);
+      backdrop-filter: blur(20px); 
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 0.5px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    h1{ 
-      margin: 0; 
-      font-size: 20px; 
-      color: var(--text-color); 
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 20px;
       font-weight: 700;
-      transition: font-size 0.3s ease;
+      letter-spacing: -0.5px;
     }
 
-    /* 🃏 Card Layout */
-    .card{ 
-      background: var(--card-bg); 
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-soft); 
-      padding: var(--padding-app); 
-      border: 1px solid rgba(255, 255, 255, 0.8);
-      transition: all 0.2s ease-out;
-    }
-    
-    .card:hover{
-      box-shadow: var(--shadow-hover);
-    }
-    
-    /* 🏷️ Label & Input Field */
-    label{ 
-      display: block; 
-      font-size: 14px; 
-      margin-bottom: 8px; 
-      color: var(--muted-color); 
-      font-weight: 500;
-    }
-    input, textarea, select{ 
-      width: 100%; 
-      border: 1px solid #e0e0e0; 
-      background: #f7f7f7;
-      padding: 12px 14px; 
-      border-radius: var(--radius-lg);
-      font-size: 16px;
-      color: var(--text-color);
-      transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
-      box-sizing: border-box;
-    }
-    input:focus, textarea:focus, select:focus{
-      border-color: var(--accent-color);
-      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
-      outline: none;
-      background: #fff;
-    }
-    textarea{ 
-      min-height: 140px; 
-      resize: vertical; 
+    .app-brand i {
+      color: var(--accent-pink);
     }
 
-    /* 🔘 Buttons */
-    button{ 
-      border: 0; 
-      padding: 12px 18px; 
-      border-radius: var(--radius-lg); 
-      cursor: pointer; 
+    .count-badge {
+      background: rgba(255, 45, 85, 0.12);
+      color: var(--accent-pink);
+      font-size: 13px;
       font-weight: 600;
-      font-size: 15px;
-      transition: all 0.15s ease-out;
-    }
-    
-    /* Hiệu ứng co giãn khi nhấn (tương tự :active) */
-    button:active{
-      transform: scale(0.98);
-      opacity: 0.9;
+      padding: 4px 10px;
+      border-radius: 20px;
     }
 
-    .btn-primary{ 
-      background: var(--accent-color); 
-      color: #fff; 
-      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-    }
-    .btn-primary:hover{ background: #0066cc; }
-    
-    .btn-ghost{ 
-      background: transparent; 
-      color: var(--accent-color); 
-      border: 1px solid rgba(0, 122, 255, 0.2); 
-    }
-    .btn-ghost:hover{ background: rgba(0, 122, 255, 0.05); }
-    
-    .btn-danger{ 
-      background: #ff3b30;
-      color: #fff; 
-      box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
-    }
-    .btn-danger:hover{ background: #cc2d26; }
-    
-    /* 📝 List Item */
-    .list{ 
-      display: flex; 
-      flex-direction: column; 
-      gap: 12px; 
-      margin-top: 16px; 
-      /* Điều chỉnh chiều cao tối đa cho list */
-      max-height: calc(100vh - var(--header-height) - 340px); 
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-    /* Scrollbar mềm mại (Webkit only) */
-    .list::-webkit-scrollbar { width: 8px; }
-    .list::-webkit-scrollbar-thumb { 
-        background-color: rgba(0, 0, 0, 0.1); 
-        border-radius: 10px; 
+    /* 🔍 Thanh Tìm kiếm iOS Style */
+    .search-box {
+      position: relative;
+      width: 100%;
     }
 
-    .item{ 
-      display: flex; 
-      justify-content: space-between; 
-      padding: 14px; 
-      border-radius: var(--radius-lg); 
-      background: #fff; 
-      border: 1px solid #eee;
-      cursor: pointer;
-      transition: all 0.2s ease-out; 
-    }
-    
-    .item:hover{
-      box-shadow: var(--shadow-soft);
-      transform: translateY(-1px);
+    .search-box i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted-color);
+      font-size: 14px;
     }
 
-    .small{ 
-      font-size: 13px; 
-      color: var(--muted-color); 
-      margin-top: 4px; 
-    }
-    /* 🆕 Thêm style cho trạng thái */
-    .status-pill {
-      display: inline-block;
-      padding: 2px 8px;
+    .search-box input {
+      width: 100%;
+      border: none;
+      background: rgba(118, 118, 128, 0.12);
+      padding: 9px 12px 9px 34px;
       border-radius: 10px;
+      font-size: 15px;
+      color: var(--text-color);
+      outline: none;
+      transition: background 0.2s;
+    }
+
+    .search-box input:focus {
+      background: rgba(118, 118, 128, 0.18);
+    }
+
+    /* 📦 Main Container */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* 📝 Note Card Item */
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .item {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+      border: 0.5px solid var(--border-color);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .item:active {
+      transform: scale(0.985);
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .item-title {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.3;
+      color: var(--text-color);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 12px;
       font-size: 11px;
       font-weight: 600;
-      margin-left: 8px;
+      white-space: nowrap;
     }
-    .status-completed {
-      background: #e3ffe5; /* Xanh lá nhạt */
-      color: #1abc9c; /* Xanh lá đậm */
-    }
+
     .status-pending {
-      background: #ffe5e5; /* Đỏ nhạt */
-      color: #ff3b30; /* Đỏ đậm */
+      background: #fff0f2;
+      color: var(--accent-pink);
     }
 
+    .status-completed {
+      background: #e4f9ec;
+      color: #34c759;
+    }
 
-    .pill-cat{ 
-      display: inline-block; 
-      background: #e5f1ff;
-      color: var(--accent-color); 
-      padding: 4px 10px; 
-      border-radius: 12px; 
-      font-size: 13px; 
-      margin-top: 8px;
+    .item-body {
+      font-size: 14px;
+      line-height: 1.45;
+      color: #3a3a3c;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .item-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-badge {
+      font-size: 11px;
+      background: rgba(0, 122, 255, 0.08);
+      color: var(--accent-color);
+      padding: 2px 8px;
+      border-radius: 6px;
       font-weight: 500;
     }
-    
-    hr{ 
-      border: 0; 
-      border-top: 1px solid #efefef; 
-      margin: 16px 0; 
-    }
 
-    /* 🔍 Input Tìm kiếm */
-    #search{
-      width: auto;
-      min-width: 120px;
-      flex-grow: 1;
-      margin-left: 10px;
-      max-width: 250px;
-      padding: 10px 14px;
-      font-size: 15px;
-      border-radius: 12px;
-      background: #efefef;
-    }
-    
-    /* 💫 Chuyển cảnh & Animation cho Form (Fade + Slide) */
-    @keyframes slideInFade {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    #formArea {
-        animation: slideInFade 0.3s ease-out;
-    }
-    
-    
-    /* ✨ HIỂN THỊ KÊNH DẠNG THẺ ✨ */
-    /* Container của các thẻ kênh */
-    #channelSelectionContainer {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 16px;
-        margin-top: 20px;
-        padding-top: 10px;
-        padding-bottom: 20px;
-    }
-
-    /* Thẻ kênh */
-    .channel-card {
-        background: #fff;
-        border-radius: var(--radius-xl);
-        padding: 20px;
-        text-align: center;
-        box-shadow: var(--shadow-soft);
-        cursor: pointer;
-        transition: all 0.2s ease-out;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        min-height: 120px;
-        border: 1px solid #eee;
-        position: relative; /* Cần thiết cho badge */
-        
-        /* Hiệu ứng động khi load */
-        animation: slideInFade 0.4s ease-out forwards;
-        opacity: 0;
-    }
-    /* Delay cho hiệu ứng động từng thẻ */
-    .channel-card:nth-child(1) { animation-delay: 0.1s; }
-    .channel-card:nth-child(2) { animation-delay: 0.15s; }
-    .channel-card:nth-child(3) { animation-delay: 0.2s; }
-
-
-    .channel-card:hover {
-        box-shadow: var(--shadow-hover);
-        transform: translateY(-2px);
-    }
-    
-    .channel-card-icon {
-        font-size: 32px;
-        color: var(--accent-color);
-        margin-bottom: 8px;
-    }
-    
-    .channel-card-name {
-        font-size: 16px;
-        font-weight: 700;
-        color: var(--text-color);
-        line-height: 1.3;
-    }
-    
-    /* 🔴 Badge Thông báo - Đã sửa vị trí sang phải trên cùng */
-    .channel-notification-badge {
-        position: absolute;
-        top: 10px; /* Vị trí trên cùng */
-        right: 10px; /* Vị trí bên phải */
-        background-color: #ff3b30; /* Màu đỏ nổi bật */
-        color: white;
-        font-size: 11px;
-        font-weight: 700;
-        padding: 3px 7px;
-        border-radius: 10px;
-        min-width: 15px; 
-        text-align: center;
-        line-height: 1;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.7); /* Viền trắng nhẹ */
-    }
-
-    /* 📢 Tiêu đề trang chọn kênh */
-    #channelSelectionTitle {
-        font-size: 24px;
-        font-weight: 700;
-        text-align: center;
-        color: var(--text-color);
-        margin-bottom: 20px;
-        padding-top: 10px;
-    }
-
-    /* ↩️ Nút Quay Lại */
-    #backToChannelSelectionBtn {
-        margin-bottom: 15px;
-        width: auto;
-        padding: 8px 15px;
-        font-size: 14px;
-        border-radius: 12px;
-    }
-    
-    /* Hiệu ứng chuyển đổi giữa 2 màn hình */
-    .hidden {
-        display: none !important;
-    }
-    
-    .fade-out {
-        opacity: 0;
-        transition: opacity 0.3s ease-out;
-    }
-    .fade-in {
-        opacity: 1;
-        transition: opacity 0.3s ease-in;
-    }
-    
-    /* 💥 Modal Category */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.4);
+    .item-footer {
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
+      padding-top: 8px;
+      border-top: 0.5px solid rgba(0, 0, 0, 0.05);
+      margin-top: 4px;
+    }
+
+    .time-stamp {
+      font-size: 11px;
+      color: var(--muted-color);
+    }
+
+    .action-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-action {
+      background: var(--bg-main);
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-action.toggle {
+      background: rgba(0, 122, 255, 0.1);
+      color: var(--accent-color);
+    }
+
+    .btn-action.toggle.done {
+      background: rgba(52, 199, 89, 0.1);
+      color: #34c759;
+    }
+
+    .btn-action.delete {
+      background: rgba(255, 59, 48, 0.1);
+      color: #ff3b30;
+    }
+
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.04);
+      color: var(--accent-color);
+      text-decoration: none;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* 🎛️ Floating Add Button (Nút nổi iOS) */
+    .fab-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      background: var(--accent-pink);
+      color: white;
+      width: 56px;
+      height: 56px;
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: var(--shadow-float);
+      border: none;
+      cursor: pointer;
+      z-index: 99;
+      transition: transform 0.2s;
+    }
+
+    .fab-btn:active {
+      transform: scale(0.9);
+    }
+
+    /* 📜 iOS Bottom Sheet Modal (Form ghi chú) */
+    .sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
       z-index: 1000;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.3s, visibility 0.3s;
+      transition: opacity 0.25s ease;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
     }
 
-    .modal-overlay.active {
+    .sheet-overlay.active {
       opacity: 1;
       visibility: visible;
     }
 
-    .modal-content {
-      background: var(--card-bg);
-      padding: var(--padding-app);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-hover);
-      max-width: 400px;
-      width: 90%;
-      transform: translateY(-20px);
-      transition: transform 0.3s ease-out;
+    .sheet-content {
+      background: #ffffff;
+      width: 100%;
+      max-width: 600px;
+      border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+      padding: 20px 20px 30px 20px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.1, 0.9, 0.2, 1);
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
-    .modal-overlay.active .modal-content {
+    .sheet-overlay.active .sheet-content {
       transform: translateY(0);
     }
-    
-    /* Nút đóng/ẩn form */
-    #closeFormBtn {
-      position: absolute;
-      top: 15px; /* Điều chỉnh vị trí */
-      right: 15px; /* Điều chỉnh vị trí */
-      background: transparent;
-      color: var(--muted-color);
-      padding: 8px;
-      border: none; /* Bỏ border của btn-ghost */
-      border-radius: 50%;
-      font-size: 18px;
-      line-height: 1;
-      cursor: pointer;
-      transition: all 0.15s ease-out;
-    }
-    #closeFormBtn:hover {
-      background: rgba(0, 0, 0, 0.05);
-      color: var(--text-color);
-    }
-    
-    /* CSS cho nút Link */
-    .btn-link {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: #f0f0f0;
-        color: var(--text-color);
-        border: 1px solid #ddd;
-        text-decoration: none; /* Quan trọng: Loại bỏ gạch chân của link */
-        white-space: nowrap; /* Ngăn nút bị xuống dòng */
-    }
-    .btn-link:hover {
-        background: #e0e0e0;
+
+    .sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
     }
 
+    .sheet-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .btn-close {
+      background: rgba(118, 118, 128, 0.12);
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted-color);
+      cursor: pointer;
+    }
+
+    /* 🏷️ Form Elements iOS Style */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted-color);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input, 
+    .form-group textarea {
+      width: 100%;
+      border: 1px solid var(--border-color);
+      background: #f9f9f9;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      font-size: 15px;
+      color: var(--text-color);
+      outline: none;
+      font-family: inherit;
+    }
+
+    .form-group input:focus, 
+    .form-group textarea:focus {
+      border-color: var(--accent-pink);
+      background: #ffffff;
+    }
+
+    .form-group textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--accent-pink);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      box-shadow: 0 4px 12px rgba(255, 45, 85, 0.25);
+    }
+
+    .btn-submit:active {
+      opacity: 0.9;
+    }
+
+    /* Blank State */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted-color);
+    }
+
+    .empty-state i {
+      font-size: 40px;
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
   </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-  
+
+  <!-- 🚀 Header -->
+  <header>
+    <div class="header-top">
+      <div class="app-brand">
+        <i class="fas fa-paw"></i>
+        <span>CherryPet Note</span>
+      </div>
+      <div class="count-badge" id="pendingBadge">0 chưa quay</div>
+    </div>
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input id="searchInput" type="text" placeholder="Tìm tiêu đề, nội dung, hashtag..." />
+    </div>
+  </header>
+
+  <!-- 📦 Container Danh sách -->
   <div class="container">
-
-    <header>
-      <h1>Notebook</h1>
-      <button id="showFormBtn" class="btn-primary">
-        <i class="fas fa-plus"></i> Thêm mới 
-      </button> 
-    </header>
-
-    <section class="card" style="grid-column:1/-1; padding-top: 20px; position: relative;"> 
-
-      <div id="formArea" style="display:none;">
-      
-        <button id="closeFormBtn" style="padding: 10px 14px; font-size: 14px;">
-            <i class="fas fa-times"></i> Đóng
-        </button>
-        <div style="display:flex; justify-content: space-between; align-items: flex-end; gap:10px; margin-bottom: 10px;">
-          <div style="flex-grow: 1;">
-            <label for="category">Chọn loại nội dung</label>
-            <select id="category">
-              </select>
-          </div>
-          <button id="manageCategoryBtn" class="btn-ghost" style="padding:12px 14px; font-size:14px; white-space: nowrap;">
-            <i class="fas fa-cog"></i> Quản lý danh mục
-          </button>
-        </div>
-
-        <label style="margin-top:16px;">Tiêu đề</label>
-        <input id="title" placeholder="Tiêu đề (ví dụ: Công thức cà phê cốt dừa)..." />
-        
-        <label style="margin-top:16px;">Link đính kèm (URL)</label>
-        <input id="linkUrl" type="url" placeholder="https://youtube.com/watch?v=..." />
-        <label style="margin-top:16px;">Nội dung</label>
-        <textarea id="body" placeholder="Nội dung ý tưởng chi tiết..."></textarea>
-
-        <label style="margin-top:16px;">Tags (ngăn cách bởi dấu phẩy)</label>
-        <input id="tags" placeholder="chó, khách, cute, công thức" />
-
-        <div style="display:flex; gap:10px; margin-top:16px;">
-          <button id="saveBtn" class="btn-primary">Lưu</button>
-          <button id="clearBtn" class="btn-ghost">Xoá form</button>
-          <button id="cancelEditBtn" class="btn-ghost" style="display:none">Huỷ chỉnh sửa</button>
-        </div>
-        <hr>
-      </div>
-      
-      <div id="channelSelectionScreen">
-        <div id="channelSelectionTitle">
-            Chọn Kênh để xem Nội dung
-        </div>
-        <div id="channelSelectionContainer">
-            </div>
-      </div>
-      
-      <div id="contentListArea" class="hidden">
-          
-          <button id="backToChannelSelectionBtn" class="btn-ghost">
-            <i class="fas fa-chevron-left"></i> Quay lại chọn Kênh
-          </button>
-
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
-            <strong style="font-size: 17px; font-weight: 600;">Nội dung Kênh: <span id="currentChannelName"></span></strong>
-            <input id="search" placeholder="Tìm kiếm..." type="text" style="padding:10px; border-radius:12px; border:1px solid #eee; background: #f0f0f0; max-width: 100%; flex-grow: 1;">
-          </div>
-          <div class="list" id="list"></div>
-      </div>
-    </section>
-  </div>
-  
-  <div id="categoryModal" class="modal-overlay">
-    <div class="modal-content">
-      <h3 style="margin-top:0;">Quản lý Danh mục</h3>
-      
-      <label for="newCategoryInput">Tên Danh mục mới</label>
-      <input id="newCategoryInput" placeholder="Ví dụ: Công thức đồ uống" />
-
-      <div style="display:flex; gap:10px; margin-top:16px; justify-content: flex-end;">
-        <button id="closeCategoryModalBtn" class="btn-ghost" style="padding:10px 14px; font-size:14px;">Đóng</button>
-        <button id="addCategoryBtn" class="btn-primary" style="padding:10px 14px; font-size:14px;">
-          <i class="fas fa-plus"></i> Thêm Danh mục
-        </button>
-      </div>
-
-      <hr>
-      <div id="currentCategoryList">
-        <strong style="font-size: 15px;">Danh sách hiện tại:</strong>
-        <ul id="categoryListContainer" style="list-style: none; padding-left: 0; font-size: 14px; color: var(--text-color);">
-          </ul>
-      </div>
-
+    <div class="list" id="noteList">
+      <!-- Item render tự động ở đây -->
     </div>
   </div>
 
+  <!-- 🎛️ Nút tạo ghi chú nhanh (Nổi góc dưới) -->
+  <button class="fab-btn" id="openFormBtn">
+    <i class="fas fa-plus"></i>
+  </button>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-  import {
-    getDatabase, ref, push, set, onValue, remove, update
-  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+  <!-- 📜 Form Nhập Content (iOS Bottom Sheet) -->
+  <div class="sheet-overlay" id="sheetOverlay">
+    <div class="sheet-content">
+      <div class="sheet-header">
+        <div class="sheet-title" id="formTitle">Tạo ý tưởng mới</div>
+        <button class="btn-close" id="closeFormBtn"><i class="fas fa-times"></i></button>
+      </div>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
-    authDomain: "lichnghi-4c665.firebaseapp.com",
-    databaseURL: "https://lichnghi-4c665-default-rtdb.firebaseio.com",
-    projectId: "lichnghi-4c665",
-    storageBucket: "lichnghi-4c665.firebasestorage.app",
-    messagingSenderId: "86673813509",
-    appId: "1:86673813509:web:168376408dfcbf14e16c6c",
-    measurementId: "G-2G08MRQY1V"
-  };
+      <div class="form-group">
+        <label>Tiêu đề Content</label>
+        <input id="titleInput" placeholder="Ví dụ: Review Raccoon Lego ăn táo..." />
+      </div>
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const contentsRef = ref(db, "contents");
-  const categoriesRef = ref(db, "categories"); 
+      <div class="form-group">
+        <label>Link đính kèm (TikTok/Drive/Video mẫu)</label>
+        <input id="linkUrlInput" type="url" placeholder="https://vt.tiktok.com/..." />
+      </div>
 
-  const showFormBtn = document.getElementById("showFormBtn");
-  const formArea = document.getElementById("formArea");
-  const closeFormBtn = document.getElementById("closeFormBtn"); 
-  const categoryEl = document.getElementById("category");
-  const titleEl = document.getElementById("title");
-  const bodyEl = document.getElementById("body");
-  const tagsEl = document.getElementById("tags");
-  const linkUrlEl = document.getElementById("linkUrl"); // THÊM PHẦN TỬ LINK
-  const saveBtn = document.getElementById("saveBtn");
-  const clearBtn = document.getElementById("clearBtn");
-  const cancelEditBtn = document.getElementById("cancelEditBtn");
-  
-  // NEW DOM ELEMENTS FOR VISIBILITY CONTROL
-  const listEl = document.getElementById("list");
-  const searchInput = document.getElementById("search");
-  
-  // Phần tử Quản lý giao diện
-  const channelSelectionScreen = document.getElementById("channelSelectionScreen");
-  const channelSelectionContainer = document.getElementById("channelSelectionContainer"); 
-  const contentListArea = document.getElementById("contentListArea");
-  const backToChannelSelectionBtn = document.getElementById("backToChannelSelectionBtn");
-  const currentChannelNameEl = document.getElementById("currentChannelName");
-  
-  // Phần tử Modal Category
-  const manageCategoryBtn = document.getElementById("manageCategoryBtn");
-  const categoryModal = document.getElementById("categoryModal");
-  const closeCategoryModalBtn = document.getElementById("closeCategoryModalBtn");
-  const newCategoryInput = document.getElementById("newCategoryInput");
-  const addCategoryBtn = document.getElementById("addCategoryBtn");
-  const categoryListContainer = document.getElementById("categoryListContainer");
+      <div class="form-group">
+        <label>Chi tiết kịch bản / Nội dung Note</label>
+        <textarea id="bodyInput" placeholder="Nội dung ý tưởng, câu hook, góc quay..."></textarea>
+      </div>
 
+      <div class="form-group">
+        <label>Hashtag / Tags (phân cách bằng dấu phẩy)</label>
+        <input id="tagsInput" placeholder="raccoon, hai huoc, khach" />
+      </div>
 
-  let editingKey = null;
-  let localCacheContents = {};
-  let localCacheCategories = {}; 
-  // Lưu trữ số lượng nội dung chưa quay (isCompleted: false)
-  let pendingContentCounts = {};
-  
-  // Giá trị ban đầu là null (chưa chọn kênh)
-  let currentFilterCategory = null; 
-  const defaultCategories = {
-    "Ẩm thực Buôn Mê": "fas fa-coffee", 
-    "CherryPet": "fas fa-paw", 
-    "Chẻ ry pet": "fas fa-heart"
-  }; 
+      <button class="btn-submit" id="saveBtn">Lưu Ý Tưởng</button>
+    </div>
+  </div>
 
-  function nowISO(){ return new Date().toISOString(); }
-  
-  function hideForm() {
-    formArea.style.display = "none";
-    clearForm(); 
-  }
+  <!-- Firebase Integration Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getDatabase, ref, push, set, onValue, remove, update
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-  showFormBtn.onclick = () => { formArea.style.display = "block"; window.scrollTo(0,0); };
-  closeFormBtn.onclick = hideForm; 
-
-  function clearForm(){
-    categoryEl.value = "";
-    titleEl.value = "";
-    bodyEl.value = "";
-    tagsEl.value = "";
-    linkUrlEl.value = ""; // XÓA GIÁ TRỊ LINK
-    editingKey = null;
-    cancelEditBtn.style.display = "none";
-    saveBtn.textContent="Lưu"; 
-  }
-
-  async function saveContent(){
-    const cat = categoryEl.value;
-    const title = titleEl.value.trim();
-    const body = bodyEl.value.trim();
-    const linkUrl = linkUrlEl.value.trim(); // LẤY GIÁ TRỊ LINK
-    if(!cat){ alert("Vui lòng chọn loại nội dung."); return; }
-    if(!title && !body && !linkUrl){ alert("Vui lòng nhập nội dung hoặc link."); return; }
-
-    const tags = tagsEl.value.split(",").map(t=>t.trim()).filter(Boolean);
-    // THÊM linkUrl VÀO data
-    const data = { category: cat, title, body, tags, linkUrl, updatedAt: nowISO() };
-
-    if(editingKey){
-      await update(ref(db, "contents/"+editingKey), data);
-      editingKey = null;
-      saveBtn.textContent="Cập nhật";
-      cancelEditBtn.style.display="none";
-    } else {
-      await set(push(contentsRef), { ...data, createdAt: nowISO(), isCompleted: false }); 
-    }
-    hideForm(); 
-  }
-
-  function startEdit(key, item){
-    formArea.style.display="block";
-    categoryEl.value = item.category || "";
-    titleEl.value=item.title||"";
-    bodyEl.value=item.body||"";
-    tagsEl.value=(item.tags||[]).join(", ");
-    linkUrlEl.value=item.linkUrl||""; // ĐIỀN GIÁ TRỊ LINK KHI EDIT
-    editingKey=key;
-    saveBtn.textContent="Cập nhật";
-    cancelEditBtn.style.display="inline-block";
-    window.scrollTo(0,0); 
-  }
-
-  async function removeContent(key){
-    if(confirm("Xoá nội dung này?")) remove(ref(db,"contents/"+key));
-  }
-  
-  async function toggleCompleted(key, currentStatus) {
-    await update(ref(db, "contents/" + key), {
-      isCompleted: !currentStatus
-    });
-  }
-  
-  // Hàm hiển thị màn hình chọn kênh
-  function showChannelSelectionScreen() {
-      currentFilterCategory = null;
-      channelSelectionScreen.classList.remove('hidden');
-      contentListArea.classList.add('hidden');
-      searchInput.value = ''; 
-      window.scrollTo(0,0);
-  }
-  
-  // Hàm hiển thị màn hình nội dung của kênh
-  function showContentListScreen(category) {
-      currentFilterCategory = category;
-      currentChannelNameEl.textContent = category === 'Tất cả Nội dung' ? 'Tất cả Nội dung' : category; 
-      channelSelectionScreen.classList.add('hidden');
-      contentListArea.classList.remove('hidden');
-      renderList('', category); 
-      window.scrollTo(0,0);
-  }
-
-
-  // Hàm render danh mục cho thẻ <select>
-  function renderCategoryOptions(categories){
-    categoryEl.innerHTML = '<option value="">-- Chọn --</option>';
-    Object.keys(categories).forEach(cat => {
-        const option = document.createElement("option");
-        option.value = cat;
-        option.textContent = cat;
-        categoryEl.appendChild(option);
-    });
-    if(categoryEl.value in categories) categoryEl.value = categoryEl.value;
-  }
-
-  // Hàm render Thẻ Kênh (Cards) - Đã sửa vị trí Badge
-  function renderChannelCards(categories){
-    channelSelectionContainer.innerHTML = '';
-    
-    const pendingCounts = pendingContentCounts || {}; 
-    
-    // Helper function to create badge HTML
-    const createBadge = (categoryName) => {
-        const count = pendingCounts[categoryName] || 0;
-        if (count === 0) return '';
-        // 🚨 Vị trí đã được sửa trong CSS, chỉ cần trả về HTML
-        return `<div class="channel-notification-badge">${count}</div>`;
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyC4k2DyiEVKXcMpc_j9XwqZG1OHHBNegDk",
+      authDomain: "lichnghi-4c665.firebaseapp.com",
+      databaseURL: "https://lichnghi-4c665-default-rtdb.firebaseio.com",
+      projectId: "lichnghi-4c665",
+      storageBucket: "lichnghi-4c665.firebasestorage.app",
+      messagingSenderId: "86673813509",
+      appId: "1:86673813509:web:168376408dfcbf14e16c6c",
+      measurementId: "G-2G08MRQY1V"
     };
 
-    // 1. Nút "Tất cả"
-    const allCard = document.createElement("div");
-    allCard.className = `channel-card`;
-    allCard.setAttribute('data-category', 'all');
-    
-    const allBadge = createBadge('Tất cả Nội dung');
-    
-    allCard.innerHTML = `
-        ${allBadge} 
-        <i class="channel-card-icon fas fa-list-ul"></i>
-        <div class="channel-card-name">Tất cả các kênh</div>
-    `;
-    allCard.addEventListener('click', () => showContentListScreen('Tất cả Nội dung'));
-    channelSelectionContainer.appendChild(allCard);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const contentsRef = ref(db, "contents");
 
-    // 2. Các thẻ danh mục
-    Object.keys(categories).forEach(cat => {
-        const iconClass = categories[cat] || 'fas fa-folder'; 
-        
-        const card = document.createElement("div");
-        card.className = `channel-card`;
-        card.setAttribute('data-category', cat);
-        
-        const catBadge = createBadge(cat);
+    // Tên Kênh Mặc Định Duy Nhất
+    const FIXED_CATEGORY = "CherryPet";
 
-        card.innerHTML = `
-            ${catBadge} 
-            <i class="channel-card-icon ${iconClass}"></i>
-            <div class="channel-card-name">${cat}</div>
-        `;
-        card.addEventListener('click', () => showContentListScreen(cat));
-        channelSelectionContainer.appendChild(card);
-    });
-  }
+    // DOM Elements
+    const noteList = document.getElementById("noteList");
+    const searchInput = document.getElementById("searchInput");
+    const pendingBadge = document.getElementById("pendingBadge");
 
-  // Hàm render danh sách danh mục trong Modal
-  function renderCategoryListInModal(categories){
-      categoryListContainer.innerHTML = '';
-      Object.keys(categories).forEach(cat => {
-          const li = document.createElement('li');
-          li.style.display = 'flex';
-          li.style.justifyContent = 'space-between';
-          li.style.alignItems = 'center';
-          li.style.padding = '5px 0';
-          li.style.borderBottom = '1px dotted #eee';
-          li.innerHTML = `
-              <span>${cat}</span>
-              <button class="btn-danger" style="padding: 4px 8px; font-size: 12px; border-radius: 8px;">
-                <i class="fas fa-trash-alt"></i> Xoá
-              </button>
-          `;
-          li.querySelector('.btn-danger').onclick = () => removeCategory(cat);
-          categoryListContainer.appendChild(li);
-      });
-  }
-  
-  // Hàm thêm danh mục
-  async function addCategory(){
-    const newCat = newCategoryInput.value.trim();
-    if(!newCat){ alert("Vui lòng nhập tên danh mục."); return; }
-    if(localCacheCategories[newCat]){ alert("Danh mục này đã tồn tại."); return; }
-    
-    await update(categoriesRef, { [newCat]: 'fas fa-folder' });
-    newCategoryInput.value = "";
-  }
+    const sheetOverlay = document.getElementById("sheetOverlay");
+    const openFormBtn = document.getElementById("openFormBtn");
+    const closeFormBtn = document.getElementById("closeFormBtn");
 
-  // Hàm xoá danh mục
-  async function removeCategory(categoryName){
-      if(Object.entries(localCacheContents).some(([key, item]) => item.category === categoryName)){
-          alert("Không thể xóa. Vẫn còn nội dung sử dụng danh mục này.");
-          return;
+    const titleInput = document.getElementById("titleInput");
+    const linkUrlInput = document.getElementById("linkUrlInput");
+    const bodyInput = document.getElementById("bodyInput");
+    const tagsInput = document.getElementById("tagsInput");
+    const saveBtn = document.getElementById("saveBtn");
+    const formTitle = document.getElementById("formTitle");
+
+    let editingKey = null;
+    let localNotes = {};
+
+    function nowISO() { return new Date().toISOString(); }
+
+    // Mở Modal Sheet Form
+    function openSheet(editKey = null) {
+      editingKey = editKey;
+      if (editingKey && localNotes[editingKey]) {
+        const item = localNotes[editingKey];
+        titleInput.value = item.title || "";
+        linkUrlInput.value = item.linkUrl || "";
+        bodyInput.value = item.body || "";
+        tagsInput.value = (item.tags || []).join(", ");
+        formTitle.textContent = "Chỉnh sửa ý tưởng";
+        saveBtn.textContent = "Cập nhật";
+      } else {
+        titleInput.value = "";
+        linkUrlInput.value = "";
+        bodyInput.value = "";
+        tagsInput.value = "";
+        formTitle.textContent = "Tạo ý tưởng mới";
+        saveBtn.textContent = "Lưu Ý Tưởng";
       }
-      if(confirm(`Xoá danh mục "${categoryName}"?`)){
-          await remove(ref(db, "categories/"+categoryName));
-      }
-  }
-
-
-  // Hàm renderList được cập nhật
-  function renderList(q="", filterCat = currentFilterCategory){
-    
-    if(filterCat === null){ 
-        listEl.innerHTML = ""; 
-        contentListArea.classList.add('hidden');
-        return;
+      sheetOverlay.classList.add("active");
     }
 
-    listEl.innerHTML = "";
-    q = q.toLowerCase();
-    
-    const isAllFilter = filterCat === 'Tất cả Nội dung'; 
+    // Đóng Modal Sheet Form
+    function closeSheet() {
+      sheetOverlay.classList.remove("active");
+      editingKey = null;
+    }
 
-    const contentsArray = Object.entries(localCacheContents)
-      .filter(([key, item]) => {
-          if(!isAllFilter && item.category !== filterCat) return false;
+    openFormBtn.onclick = () => openSheet();
+    closeFormBtn.onclick = closeSheet;
+    sheetOverlay.onclick = (e) => {
+      if (e.target === sheetOverlay) closeSheet();
+    };
 
-          const searchContent = (item.title||"")+item.body+(item.tags||[]).join(" ")+(item.linkUrl||""); // Thêm linkUrl vào tìm kiếm
-          if(q && !searchContent.toLowerCase().includes(q)) return false;
-          
+    // Lưu hoặc Cập nhật Content
+    async function saveContent() {
+      const title = titleInput.value.trim();
+      const body = bodyInput.value.trim();
+      const linkUrl = linkUrlInput.value.trim();
+
+      if (!title && !body && !linkUrl) {
+        alert("Vui lòng nhập ít nhất tiêu đề, nội dung hoặc link.");
+        return;
+      }
+
+      const tags = tagsInput.value.split(",").map(t => t.trim()).filter(Boolean);
+
+      const data = {
+        category: FIXED_CATEGORY, // Luôn cố định là CherryPet
+        title,
+        body,
+        tags,
+        linkUrl,
+        updatedAt: nowISO()
+      };
+
+      if (editingKey) {
+        await update(ref(db, "contents/" + editingKey), data);
+      } else {
+        await set(push(contentsRef), {
+          ...data,
+          createdAt: nowISO(),
+          isCompleted: false
+        });
+      }
+
+      closeSheet();
+    }
+
+    saveBtn.onclick = saveContent;
+
+    // Xóa note
+    async function removeNote(key) {
+      if (confirm("Xoá nội dung này khỏi danh sách?")) {
+        await remove(ref(db, "contents/" + key));
+      }
+    }
+
+    // Đổi trạng thái Quay xong / Chưa xong
+    async function toggleCompleted(key, currentStatus) {
+      await update(ref(db, "contents/" + key), {
+        isCompleted: !currentStatus,
+        updatedAt: nowISO() // Cập nhật thời gian để sắp xếp chuẩn
+      });
+    }
+
+    // Render danh sách Note ra giao diện (Sắp xếp MỚI NHẤT LÊN ĐẦU)
+    function renderNotes(query = "") {
+      noteList.innerHTML = "";
+      const q = query.toLowerCase().trim();
+
+      let uncompletedCount = 0;
+
+      // Chuyển object Firebase thành Array để xử lý sắp xếp
+      const notesArray = Object.entries(localNotes)
+        .filter(([key, item]) => {
+          // Chỉ lấy nội dung của CherryPet (hoặc tất cả các ghi chú cũ)
+          const searchContent = (item.title || "") + " " + (item.body || "") + " " + (item.tags || []).join(" ") + " " + (item.linkUrl || "");
+          if (q && !searchContent.toLowerCase().includes(q)) return false;
+
+          if (!item.isCompleted) uncompletedCount++;
           return true;
-      })
-      .sort((a, b) => {
+        })
+        .sort((a, b) => {
           const itemA = a[1];
           const itemB = b[1];
+
           const isCompletedA = itemA.isCompleted || false;
           const isCompletedB = itemB.isCompleted || false;
-          
-          if(isCompletedA !== isCompletedB){
-              return isCompletedA ? 1 : -1; 
+
+          // 1. Ưu tiên Chưa quay nằm trên, Đã quay nằm dưới
+          if (isCompletedA !== isCompletedB) {
+            return isCompletedA ? 1 : -1;
           }
-          
-          const dateA = itemA.createdAt || nowISO(); 
-          const dateB = itemB.createdAt || nowISO();
-          
-          return dateA.localeCompare(dateB); 
-      });
 
+          // 2. Trong cùng nhóm: NỘI DUNG MỚI/CẬP NHẬT GẦN NHẤT XẾP TRÊN CÙNG
+          const timeA = new Date(itemA.updatedAt || itemA.createdAt || 0).getTime();
+          const timeB = new Date(itemB.updatedAt || itemB.createdAt || 0).getTime();
 
-    contentsArray.forEach(([key,item])=>{
-      
-      const isCompleted = item.isCompleted || false;
-      const statusText = isCompleted ? 'Xong' : 'Chưa xong';
-      const statusClass = isCompleted ? 'status-completed' : 'status-pending';
-      const toggleBtnText = isCompleted ? '<i class="fas fa-undo"></i> Chưa xong' : '<i class="fas fa-check"></i> Đã Quay Xong';
-      const toggleBtnClass = isCompleted ? 'btn-ghost' : 'btn-primary';
-      
-      // LOGIC NÚT LINK
-      const linkUrl = item.linkUrl || '';
-      let linkButtonHTML = '';
-      if (linkUrl) {
-          // Chỉ lấy tên miền để hiển thị
-          let displayUrl = linkUrl.replace(/^https?:\/\//, '').split('/')[0];
-          linkButtonHTML = `
-              <a href="${linkUrl}" target="_blank" rel="noopener noreferrer" class="btn-ghost btn-link" style="padding: 8px 12px; font-size: 13px; border-radius: 10px; color: inherit;">
-                <i class="fas fa-external-link-alt"></i> ${displayUrl}
-              </a>
-          `;
-      }
-      
-      const div = document.createElement("div");
-      div.className="item";
-      div.innerHTML = `
-        <div>
-          <div style="font-weight: 600;">
-            ${item.title||"(Không tiêu đề)"}
-            <span class="status-pill ${statusClass}">${statusText}</span>
+          return timeB - timeA; // Mới hơn lên đầu
+        });
+
+      // Cập nhật Badge số lượng chưa hoàn thành
+      pendingBadge.textContent = `${uncompletedCount} chưa quay`;
+
+      if (notesArray.length === 0) {
+        noteList.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-sticky-note"></i>
+            <div>Chưa có ghi chú nào. Hãy tạo ghi chú mới!</div>
           </div>
-          <div style="font-size: 14px; margin-top: 4px; color: var(--text-color);">${item.body||""}</div>
-          <div class="pill-cat">${item.category}</div>
-          <div class="small">${new Date(item.updatedAt).toLocaleString("vi-VN")}</div>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:6px;">
-          ${linkButtonHTML} <button class="${toggleBtnClass}" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;">${toggleBtnText}</button>
-          <button class="btn-ghost" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;">Sửa</button>
-          <button class="btn-danger" style="padding: 8px 12px; font-size: 13px; border-radius: 10px;">Xoá</button>
-        </div>
-      `;
-      
-      // Lấy danh sách các nút button để gán sự kiện (không bao gồm thẻ <a>)
-      const actionButtons = div.querySelectorAll("button");
-      
-      // Gán sự kiện cho các nút
-      // Nút 1: Toggle Completed
-      actionButtons[0].onclick = ()=> toggleCompleted(key, isCompleted);
-      
-      // Nút 2: Sửa
-      actionButtons[1].onclick = ()=> startEdit(key,item);
-      
-      // Nút 3: Xoá
-      actionButtons[2].onclick = ()=> removeContent(key);
+        `;
+        return;
+      }
 
-      listEl.appendChild(div);
-    });
-  }
+      // Render từng thẻ Card
+      notesArray.forEach(([key, item]) => {
+        const isCompleted = item.isCompleted || false;
+        const statusText = isCompleted ? "Đã xong" : "Chưa quay";
+        const statusClass = isCompleted ? "status-completed" : "status-pending";
 
-
-  // 🎧 Lắng nghe sự kiện thay đổi Nội dung (Contents)
-  onValue(contentsRef, snap=>{
-    localCacheContents = snap.val()||{};
-    
-    // TÍNH TOÁN SỐ LƯỢNG NỘI DUNG CHƯA XONG CHO TỪNG KÊNH
-    pendingContentCounts = {};
-    let totalPending = 0;
-    
-    Object.entries(localCacheContents).forEach(([key, item]) => {
-        if (item.category && (item.isCompleted === false || item.isCompleted === undefined)) {
-            pendingContentCounts[item.category] = (pendingContentCounts[item.category] || 0) + 1;
-            totalPending++;
+        // Xử lý nút Link đính kèm
+        let linkHTML = "";
+        if (item.linkUrl) {
+          let host = item.linkUrl.replace(/^https?:\/\//, '').split('/')[0];
+          linkHTML = `
+            <a href="${item.linkUrl}" target="_blank" rel="noopener noreferrer" class="btn-link">
+              <i class="fas fa-link"></i> ${host}
+            </a>
+          `;
         }
-    });
-    pendingContentCounts['Tất cả Nội dung'] = totalPending; 
 
-    // Chỉ render lại list nếu đang ở màn hình list
-    if (currentFilterCategory !== null) {
-        renderList(searchInput.value, currentFilterCategory);
-    }
-    // Cập nhật lại thẻ kênh để hiển thị số thông báo mới
-    renderChannelCards(localCacheCategories); 
-  });
-  
-  // 🎧 Lắng nghe sự kiện thay đổi Danh mục (Categories)
-  onValue(categoriesRef, snap => {
-      let categories = snap.val() || {};
+        // Render Tag
+        let tagsHTML = "";
+        if (item.tags && item.tags.length > 0) {
+          tagsHTML = `
+            <div class="item-tags">
+              ${item.tags.map(t => `<span class="tag-badge">#${t}</span>`).join("")}
+            </div>
+          `;
+        }
 
-      // Thêm danh mục mặc định nếu chưa có
-      let needsUpdate = false;
-      Object.keys(defaultCategories).forEach(cat => {
-          if(!categories[cat]){
-              categories[cat] = defaultCategories[cat]; 
-              needsUpdate = true;
-          }
+        // Định dạng thời gian
+        const dateObj = new Date(item.updatedAt || item.createdAt);
+        const timeDisplay = dateObj.toLocaleDateString("vi-VN", {
+          day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+        });
+
+        const card = document.createElement("div");
+        card.className = "item";
+        card.innerHTML = `
+          <div class="item-header">
+            <div class="item-title">${item.title || "(Chưa có tiêu đề)"}</div>
+            <span class="status-pill ${statusClass}">
+              <i class="fas ${isCompleted ? 'fa-check-circle' : 'fa-clock'}"></i>
+              ${statusText}
+            </span>
+          </div>
+
+          ${item.body ? `<div class="item-body">${item.body}</div>` : ''}
+          ${tagsHTML}
+          ${linkHTML}
+
+          <div class="item-footer">
+            <span class="time-stamp">${timeDisplay}</span>
+            <div class="action-group">
+              <button class="btn-action toggle ${isCompleted ? 'done' : ''}" id="toggle-${key}">
+                <i class="fas ${isCompleted ? 'fa-undo' : 'fa-check'}"></i>
+                ${isCompleted ? 'Mở lại' : 'Đã quay'}
+              </button>
+              <button class="btn-action" id="edit-${key}">
+                <i class="fas fa-pen"></i> Sửa
+              </button>
+              <button class="btn-action delete" id="del-${key}">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          </div>
+        `;
+
+        noteList.appendChild(card);
+
+        // Gán sự kiện click cho các nút
+        document.getElementById(`toggle-${key}`).onclick = () => toggleCompleted(key, isCompleted);
+        document.getElementById(`edit-${key}`).onclick = () => openSheet(key);
+        document.getElementById(`del-${key}`).onclick = () => removeNote(key);
       });
-      if(needsUpdate){
-          set(categoriesRef, categories); 
-      }
-
-      localCacheCategories = categories;
-      
-      // Cập nhật giao diện
-      renderCategoryOptions(localCacheCategories);
-      renderChannelCards(localCacheCategories); 
-      renderCategoryListInModal(localCacheCategories);
-      
-      // Đảm bảo màn hình hiển thị đúng trạng thái
-      if (currentFilterCategory === null) {
-          showChannelSelectionScreen();
-      } else {
-         renderList(searchInput.value, currentFilterCategory);
-      }
-  });
-
-  // Gán sự kiện cho nút Quay lại
-  backToChannelSelectionBtn.onclick = showChannelSelectionScreen;
-
-
-  saveBtn.onclick = saveContent;
-  clearBtn.onclick = ()=> clearForm();
-  cancelEditBtn.onclick = ()=>{ 
-    hideForm(); 
-  }; 
-  searchInput.oninput = () => renderList(searchInput.value, currentFilterCategory);
-  
-  // Logic Modal Category
-  manageCategoryBtn.onclick = () => { categoryModal.classList.add('active'); };
-  closeCategoryModalBtn.onclick = () => { categoryModal.classList.remove('active'); };
-  categoryModal.onclick = (e) => { 
-      if(e.target === categoryModal) categoryModal.classList.remove('active');
-  };
-  addCategoryBtn.onclick = addCategory;
-
-  /* Logic Header cố định */
-  window.onscroll = () => {
-    const header = document.querySelector('header');
-    const h1 = document.querySelector('h1');
-    if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
-      header.style.height = '52px';
-      h1.style.fontSize = '20px';
-    } else {
-      header.style.height = '52px'; 
-      h1.style.fontSize = '20px';
     }
-  };
-  
-</script>
+
+    // Lắng nghe dữ liệu Firebase Realtime
+    onValue(contentsRef, snap => {
+      localNotes = snap.val() || {};
+      renderNotes(searchInput.value);
+    });
+
+    // Sự kiện tìm kiếm nhanh
+    searchInput.oninput = () => renderNotes(searchInput.value);
+
+  </script>
 </body>
 </html>
